@@ -22,7 +22,8 @@ public class MutFindCircRNASTARScan1 extends FindCircRNASTARScan1{
 	}
 
 	//只是多了scan1IdMap
-	public void findCircRNAScan1(String samFile, int threads, int threadNum,HashMap<String, String> scan1IdMap) throws IOException {		
+	public void findCircRNAScan1(String samFile, int threads, int threadNum,HashMap<String, String> scan1IdMap) throws IOException {
+		long diagReadsSeen = 0, diagReadsInScan1Id = 0, diagBsjEmitted = 0;
 		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(samFile+"BSJ"+threadNum),true));
 		FileInputStream fileIn = new FileInputStream(samFile);
 		FileChannel fileChannel = fileIn.getChannel();
@@ -74,14 +75,17 @@ public class MutFindCircRNASTARScan1 extends FindCircRNASTARScan1{
 				if (!id.equals(lineArr[0])) {
 					//判断是否匹配上
 				    //判断是否含有BSJ
+					diagReadsSeen++;
 					if(alignNum > 2 || readsMap.keySet().size() == 1) {
 						if(!scan1IdMap.containsKey(id)) {
 							String circInfor = isBSJScan1.isBSJScan1(readsMap, standMap);
 							if(circInfor != null) {
 								BSJOut.write(id+"\t"+circInfor+"\n");
+								diagBsjEmitted++;
 							}
-						}		
-								
+						} else {
+							diagReadsInScan1Id++;
+						}
 					}
 					alignNum = 0;
 					//清空
@@ -130,15 +134,19 @@ public class MutFindCircRNASTARScan1 extends FindCircRNASTARScan1{
 				int readKey = Integer.valueOf(stand.stand7(lineArr[1]));
 				String[] serveInfor = {stand.stand5(lineArr[1]),lineArr[2],lineArr[3],lineArr[4],lineArr[5]};
 				if (!id.equals(lineArr[0])) {
-					
+
 				    //判断是否含有BSJ
+					diagReadsSeen++;
 					if(alignNum > 2 || readsMap.keySet().size() == 1) {
 						if(!scan1IdMap.containsKey(id)) {
 							String circInfor = isBSJScan1.isBSJScan1(readsMap, standMap);
 							if(circInfor != null) {
 								BSJOut.write(id+"\t"+circInfor+"\n");
+								diagBsjEmitted++;
 							}
-						}								
+						} else {
+							diagReadsInScan1Id++;
+						}
 					}
 					alignNum = 0;
 					//清空
@@ -202,14 +210,23 @@ public class MutFindCircRNASTARScan1 extends FindCircRNASTARScan1{
 			}
 		}
 		fileReader.close();
-		//最后一个		
+		//最后一个
+		diagReadsSeen++;
 		if(!scan1IdMap.containsKey(id)) {
 			String circInfor = isBSJScan1.isBSJScan1(readsMap, standMap);
 			if(circInfor != null) {
 				BSJOut.write(id+"\t"+circInfor+"\n");
+				diagBsjEmitted++;
 			}
-		}	
-						
+		} else {
+			diagReadsInScan1Id++;
+		}
+
 		BSJOut.close();
+		System.out.println(java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+				+ " :DIAG_SCAN1 samFile=" + samFile + " threadNum=" + threadNum
+				+ " reads_seen=" + diagReadsSeen
+				+ " reads_in_scan1IdMap=" + diagReadsInScan1Id
+				+ " bsj_emitted=" + diagBsjEmitted);
 	}
 }

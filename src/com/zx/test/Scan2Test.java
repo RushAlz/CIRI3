@@ -211,6 +211,8 @@ public class Scan2Test {
                         threadMain.await();
                     } catch (Exception e) {
                         e.printStackTrace();
+                        threadSub.reset();
+                        threadMain.reset();
                     }
                 }
             };
@@ -242,6 +244,8 @@ public class Scan2Test {
 
         } catch (Exception e) {
             e.printStackTrace();
+            threadSub.reset();
+            threadMain.reset();
         }
 
         poolExe.shutdown();

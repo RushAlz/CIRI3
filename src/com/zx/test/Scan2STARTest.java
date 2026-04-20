@@ -262,6 +262,8 @@ public class Scan2STARTest {
                         threadMain.await(); // [E] wait for final release, then exit
                     } catch (Exception e) {
                         e.printStackTrace();
+                        threadSub.reset();
+                        threadMain.reset();
                     }
                 }
             };
@@ -344,6 +346,8 @@ public class Scan2STARTest {
 
         } catch (Exception e) {
             e.printStackTrace();
+            threadSub.reset();
+            threadMain.reset();
         }
 
         poolExe.shutdown();

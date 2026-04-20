@@ -169,7 +169,14 @@ else
             -A "${GTF_FILE}" \
             -W 1 -Ma 1 -T "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
         2>&1 | tee "${ORIG_DIR}/run.log" \
-        | grep -E "CIRI3|scan|completed|circRNA|Mapped|time" || true
+        | grep -E "CIRI3|scan|completed|circRNA|Mapped|time|Exception|Error|^\t?at " || true
+fi
+
+if [[ ! -s "${ORIG_DIR}/result.BSJ_Matrix" ]]; then
+    echo "[ERROR] Original pipeline produced no BSJ_Matrix — aborting." >&2
+    echo "        Inspect: ${ORIG_DIR}/run.log" >&2
+    tail -40 "${ORIG_DIR}/run.log" >&2 || true
+    exit 1
 fi
 
 check_exists "Original BSJ_Matrix" "${ORIG_DIR}/result.BSJ_Matrix"

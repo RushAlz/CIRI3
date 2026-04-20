@@ -840,16 +840,17 @@ public class MutFileSTARTest {
 		}
 		
 		poolExe.shutdown();
-		//删除临时文件
+		//删除临时文件 (skip when CIRI3_KEEP_BSJ env-var set, for diagnosing joint vs decoupled divergence)
+ 		boolean keepBsj = System.getenv("CIRI3_KEEP_BSJ") != null;
  		for (int j = 0; j < NewFilePathList.size(); j++) {
 			String samFile = NewFilePathList.get(j);
 			//删除sam文件
 			//if (isSam){
-				//new File(samFile).delete();			
+				//new File(samFile).delete();
 			//}
 			AllFileSplitNum = fileSplitNumMap.get(samFile);
 			for (int i = 1; i <= AllFileSplitNum; i++) {
-				new File(samFile+"BSJ"+i).delete();
+				if (!keepBsj) new File(samFile+"BSJ"+i).delete();
 			}		
  		}
  		

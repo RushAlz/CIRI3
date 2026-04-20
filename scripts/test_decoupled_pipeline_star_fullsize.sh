@@ -192,6 +192,26 @@ if [[ ! -s "${ORIG_DIR}/result.BSJ_Matrix" ]]; then
     exit 1
 fi
 
+# Snapshot joint BSJ files for later direct diff against decoupled BSJ files.
+# Only effective when the user runs with CIRI3_KEEP_BSJ=1 (which tells current-
+# source MutFileSTARTest to skip its internal BSJ deletion). If the env-var
+# wasn't set, the joint BSJ files are already gone and we just skip.
+JOINT_BSJ_SNAPSHOT="${OUT_ROOT}/joint_bsj_snapshot"
+if [[ -n "${CIRI3_KEEP_BSJ:-}" ]]; then
+    mkdir -p "${JOINT_BSJ_SNAPSHOT}"
+    for S in "${SAMPLES[@]}"; do
+        STAR_DIR="${DATA_DIR}/STAR_output_${S}"
+        BWA_SAM="${STAR_DIR}/bwa.sam"
+        mkdir -p "${JOINT_BSJ_SNAPSHOT}/${S}"
+        # Move (not copy) so they don't interfere with decoupled SCAN1's pre-clean.
+        for f in "${BWA_SAM}BSJ"*; do
+            [[ -f "$f" ]] || continue
+            mv "$f" "${JOINT_BSJ_SNAPSHOT}/${S}/"
+        done
+    done
+    info "Joint BSJ files snapshotted to ${JOINT_BSJ_SNAPSHOT}/"
+fi
+
 check_exists "Original BSJ_Matrix" "${ORIG_DIR}/result.BSJ_Matrix"
 check_exists "Original FSJ_Matrix" "${ORIG_DIR}/result.FSJ_Matrix"
 ORIG_CIRCS=$(tail -n +2 "${ORIG_DIR}/result.BSJ_Matrix" | wc -l)
@@ -356,6 +376,35 @@ if [[ "$MISSING" -eq 0 ]]; then
 else
     fail "Universe coverage: $MISSING original circRNAs missing from universe"
     comm -23 <(echo "$ORIG_IDS") <(echo "$UNIV_IDS") | head -10
+fi
+
+# Per-sample, per-BSJ-file diff between joint's snapshotted BSJ files and the
+# decoupled run's BSJ files. Only active when CIRI3_KEEP_BSJ was set for joint.
+if [[ -d "${JOINT_BSJ_SNAPSHOT:-}" ]]; then
+    info "=== Per-BSJ-file joint vs decoupled diff ==="
+    for S in "${SAMPLES[@]}"; do
+        STAR_DIR="${DATA_DIR}/STAR_output_${S}"
+        BWA_SAM="${STAR_DIR}/bwa.sam"
+        for i in 1 2 3 4 5; do
+            joint_f="${JOINT_BSJ_SNAPSHOT}/${S}/$(basename "$BWA_SAM")BSJ${i}"
+            dec_f="${BWA_SAM}BSJ${i}"
+            [[ -f "$joint_f" && -f "$dec_f" ]] || continue
+            joint_sz=$(wc -l < "$joint_f")
+            dec_sz=$(wc -l < "$dec_f")
+            if [[ "$joint_sz" == "$dec_sz" ]] && cmp -s \
+                   <(sort "$joint_f") <(sort "$dec_f"); then
+                info "  ${S} BSJ${i}: IDENTICAL (${joint_sz} lines)"
+            else
+                fail "  ${S} BSJ${i}: joint=${joint_sz} lines, decoupled=${dec_sz} lines"
+                if [[ "$i" == "2" ]]; then
+                    echo "    lines in joint only (first 5):"
+                    comm -23 <(sort "$joint_f") <(sort "$dec_f") | head -5 | sed 's/^/      /'
+                    echo "    lines in decoupled only (first 5):"
+                    comm -13 <(sort "$joint_f") <(sort "$dec_f") | head -5 | sed 's/^/      /'
+                fi
+            fi
+        done
+    done
 fi
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,278 @@
+---
+title: "CIRI3 decoupled-vs-joint validation report"
+author: "CIRI3 regression harness"
+date: "`r format(Sys.time(), '%Y-%m-%d %H:%M')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    code_folding: hide
+params:
+  out_root: "/pastel/tools/circRNA_tools/test_data/decoupled_comparison"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
+                      fig.width = 8, fig.height = 6)
+library(tidyverse)
+library(knitr)
+```
+
+This report reads the outputs produced by
+`scripts/test_decoupled_pipeline_star_fullsize.sh` (or the BWA variant)
+and compares the joint `-W 1` pipeline's BSJ/FSJ matrices against the
+decoupled `SCAN1 → BUILD_UNIVERSE → SCAN2 → FINALIZE` matrices.
+
+To rerender after a new test run:
+
+```
+Rscript -e "rmarkdown::render('scripts/validation_report.Rmd')"
+```
+
+or, to point at a different output directory:
+
+```
+Rscript -e "rmarkdown::render('scripts/validation_report.Rmd', params=list(out_root='/path/to/out_root'))"
+```
+
+---
+
+## Test configuration
+
+```{r paths}
+out_root        <- params$out_root
+orig_dir        <- file.path(out_root, "original")
+decoupled_dir   <- file.path(out_root, "decoupled")
+finalize_dir    <- file.path(decoupled_dir, "finalize")
+bench_dir       <- file.path(out_root, "bench")
+
+required <- c(
+  "original/result.BSJ_Matrix",
+  "original/result.FSJ_Matrix",
+  "decoupled/finalize/result.BSJ_Matrix",
+  "decoupled/finalize/result.FSJ_Matrix"
+)
+missing <- required[!file.exists(file.path(out_root, required))]
+if (length(missing) > 0) {
+  stop("Missing expected input files:\n  ",
+       paste(file.path(out_root, missing), collapse = "\n  "))
+}
+tibble(key = c("out_root", "orig_dir", "decoupled_dir"),
+       value = c(out_root, orig_dir, decoupled_dir)) |>
+  kable(caption = "Paths used by this report")
+```
+
+## Load matrices
+
+```{r load}
+joint_BSJ     <- read_tsv(file.path(orig_dir, "result.BSJ_Matrix"))
+joint_FSJ     <- read_tsv(file.path(orig_dir, "result.FSJ_Matrix"))
+decoupled_BSJ <- read_tsv(file.path(finalize_dir, "result.BSJ_Matrix"))
+decoupled_FSJ <- read_tsv(file.path(finalize_dir, "result.FSJ_Matrix"))
+
+# Normalise column order so samples line up between joint and decoupled
+common_samples <- intersect(colnames(joint_BSJ)[-1], colnames(decoupled_BSJ)[-1])
+stopifnot(length(common_samples) > 0)
+joint_BSJ     <- joint_BSJ[,     c("circRNA_ID", common_samples)]
+joint_FSJ     <- joint_FSJ[,     c("circRNA_ID", common_samples)]
+decoupled_BSJ <- decoupled_BSJ[, c("circRNA_ID", common_samples)]
+decoupled_FSJ <- decoupled_FSJ[, c("circRNA_ID", common_samples)]
+
+tibble(
+  matrix     = c("BSJ joint", "BSJ decoupled", "FSJ joint", "FSJ decoupled"),
+  nrow       = c(nrow(joint_BSJ), nrow(decoupled_BSJ),
+                 nrow(joint_FSJ), nrow(decoupled_FSJ)),
+  n_samples  = length(common_samples)
+) |> kable(caption = "Matrix dimensions")
+```
+
+## circRNA set agreement
+
+```{r sets}
+both   <- intersect(joint_BSJ$circRNA_ID, decoupled_BSJ$circRNA_ID)
+only_j <- setdiff(joint_BSJ$circRNA_ID, decoupled_BSJ$circRNA_ID)
+only_d <- setdiff(decoupled_BSJ$circRNA_ID, joint_BSJ$circRNA_ID)
+
+tibble(
+  set = c("circRNAs in both pipelines",
+          "joint only",
+          "decoupled only",
+          "Jaccard (intersection / union)"),
+  n   = c(length(both),
+          length(only_j),
+          length(only_d),
+          round(length(both) /
+                  length(union(joint_BSJ$circRNA_ID,
+                               decoupled_BSJ$circRNA_ID)), 4))
+) |> kable(caption = "circRNA ID set agreement")
+```
+
+### Sample joint-only IDs (first 20)
+
+```{r}
+head(only_j, 20) |> as_tibble() |> kable(col.names = "joint-only circRNA_ID")
+```
+
+### Sample decoupled-only IDs (first 20)
+
+```{r}
+head(only_d, 20) |> as_tibble() |> kable(col.names = "decoupled-only circRNA_ID")
+```
+
+## BSJ matrix agreement
+
+```{r bsj_long}
+bsj_merged <- full_join(joint_BSJ, decoupled_BSJ,
+                        by = "circRNA_ID",
+                        suffix = c(".joint", ".decoupled"))
+
+bsj_long <- bsj_merged |>
+  pivot_longer(cols = -circRNA_ID,
+               names_to = c("Sample", "Run"),
+               names_pattern = "(.*)\\.(joint|decoupled)$") |>
+  pivot_wider(names_from = Run, values_from = value) |>
+  replace_na(list(joint = 0, decoupled = 0))
+
+bsj_long |>
+  group_by(Sample) |>
+  summarise(
+    n_rows            = n(),
+    exactly_equal     = sum(joint == decoupled),
+    joint_greater     = sum(joint > decoupled),
+    decoupled_greater = sum(decoupled > joint),
+    max_abs_diff      = max(abs(joint - decoupled)),
+    pct_exact         = round(100 * mean(joint == decoupled), 2)
+  ) |> kable(caption = "BSJ matrix: per-sample cell-level agreement")
+```
+
+### BSJ scatter: joint vs. decoupled
+
+```{r bsj_scatter}
+ggplot(bsj_long, aes(x = joint, y = decoupled)) +
+  geom_point(alpha = 0.4, size = 0.6) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  facet_wrap(~ Sample, scales = "free") +
+  labs(x = "Joint pipeline BSJ count",
+       y = "Decoupled pipeline BSJ count",
+       title = "BSJ counts per circRNA per sample") +
+  theme_bw()
+```
+
+### BSJ cell-level discordance (top 20)
+
+```{r bsj_top}
+bsj_long |>
+  mutate(abs_diff = abs(joint - decoupled)) |>
+  filter(abs_diff > 0) |>
+  arrange(desc(abs_diff)) |>
+  head(20) |> kable(caption = "Largest per-cell BSJ disagreements")
+```
+
+## FSJ matrix agreement
+
+```{r fsj_long}
+fsj_merged <- full_join(joint_FSJ, decoupled_FSJ,
+                        by = "circRNA_ID",
+                        suffix = c(".joint", ".decoupled"))
+fsj_long <- fsj_merged |>
+  pivot_longer(cols = -circRNA_ID,
+               names_to = c("Sample", "Run"),
+               names_pattern = "(.*)\\.(joint|decoupled)$") |>
+  pivot_wider(names_from = Run, values_from = value) |>
+  replace_na(list(joint = 0, decoupled = 0))
+
+fsj_long |>
+  group_by(Sample) |>
+  summarise(
+    n_rows            = n(),
+    exactly_equal     = sum(joint == decoupled),
+    joint_greater     = sum(joint > decoupled),
+    decoupled_greater = sum(decoupled > joint),
+    max_abs_diff      = max(abs(joint - decoupled)),
+    pct_exact         = round(100 * mean(joint == decoupled), 2)
+  ) |> kable(caption = "FSJ matrix: per-sample cell-level agreement")
+```
+
+### FSJ scatter: joint vs. decoupled
+
+```{r fsj_scatter}
+ggplot(fsj_long, aes(x = joint, y = decoupled)) +
+  geom_point(alpha = 0.4, size = 0.6) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
+  facet_wrap(~ Sample, scales = "free") +
+  labs(x = "Joint pipeline FSJ count",
+       y = "Decoupled pipeline FSJ count",
+       title = "FSJ counts per circRNA per sample") +
+  theme_bw()
+```
+
+### FSJ cell-level discordance (top 20)
+
+```{r fsj_top}
+fsj_long |>
+  mutate(abs_diff = abs(joint - decoupled)) |>
+  filter(abs_diff > 0) |>
+  arrange(desc(abs_diff)) |>
+  head(20) |> kable(caption = "Largest per-cell FSJ disagreements")
+```
+
+## Detection-correlation per sample
+
+Per-sample Pearson and Spearman correlation between joint and decoupled
+counts — a value of 1.00 means per-cell agreement is perfect; values
+under ~0.99 flag a real divergence.
+
+```{r corr}
+sample_corr <- function(df, what) {
+  df |>
+    group_by(Sample) |>
+    summarise(
+      pearson  = round(cor(joint, decoupled, method = "pearson"),  4),
+      spearman = round(cor(joint, decoupled, method = "spearman"), 4)
+    ) |>
+    mutate(matrix = what, .before = 1)
+}
+bind_rows(sample_corr(bsj_long, "BSJ"),
+          sample_corr(fsj_long, "FSJ")) |>
+  kable(caption = "Joint vs. decoupled correlation (per sample)")
+```
+
+## Benchmark (if present)
+
+```{r bench}
+bench_files <- list.files(bench_dir, pattern = "\\.bench$", full.names = TRUE)
+if (length(bench_files) == 0) {
+  cat("No benchmark files found in", bench_dir, "\n")
+} else {
+  parse_bench <- function(f) {
+    txt <- readLines(f, warn = FALSE)
+    if (length(txt) == 0) return(NULL)
+    kv <- strsplit(txt[1], " ")[[1]]
+    as_tibble(setNames(
+      lapply(kv, function(x) strsplit(x, "=")[[1]][2]),
+      sapply(kv, function(x) strsplit(x, "=")[[1]][1])
+    )) |> mutate(stage = sub("\\.bench$", "", basename(f)), .before = 1)
+  }
+  bench_df <- bind_rows(lapply(bench_files, parse_bench))
+  # Best-effort numeric coercion
+  for (col in c("wall_sec", "user_sec", "sys_sec", "max_rss_kb")) {
+    if (col %in% names(bench_df)) {
+      bench_df[[col]] <- suppressWarnings(as.numeric(bench_df[[col]]))
+    }
+  }
+  bench_df <- bench_df |> arrange(stage)
+  if ("max_rss_kb" %in% names(bench_df)) {
+    bench_df$max_rss_gb <- round(bench_df$max_rss_kb / 1024 / 1024, 2)
+  }
+  bench_df |> kable(caption = "Per-stage benchmark")
+}
+```
+
+---
+
+## Session info
+
+```{r sessioninfo}
+sessionInfo()
+```

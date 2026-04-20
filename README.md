@@ -107,6 +107,43 @@ Tab-separated: `chr start end fsjCount` — one line per circRNA in the universe
 
 ---
 
+## Validation
+
+Three regression scripts verify the decoupled pipeline produces matrices
+equivalent to the joint `-W 1` pipeline:
+
+- `scripts/test_decoupled_pipeline.sh` — small BWA test data bundled with
+  the repo.
+- `scripts/test_decoupled_pipeline_bwa_fullsize.sh` — full-size BWA data
+  (edit `DATA_DIR` and `SAMPLES` at the top of the script).
+- `scripts/test_decoupled_pipeline_star_fullsize.sh` — full-size STAR
+  data (same pattern).
+
+All three support `--threads N`, `--keep` (preserve the output
+directory), and — on the full-size scripts — `--intron` (enable intron
+mode `-It 1`) and `--use-current-joint` (use this repo's jar for the
+joint run instead of `CIRI3_Java_1.8.0.jar`, for apples-to-apples
+equivalence testing).
+
+After running one of the full-size scripts with `--keep`, render the
+validation report:
+
+```bash
+Rscript -e "rmarkdown::render('scripts/validation_report.Rmd')"
+# or point at a different test output directory:
+Rscript -e "rmarkdown::render('scripts/validation_report.Rmd', \
+    params=list(out_root='/path/to/decoupled_comparison'))"
+```
+
+That produces
+[`scripts/validation_report.html`](./scripts/validation_report.html) —
+per-sample BSJ/FSJ scatter plots, cell-level agreement tables,
+Pearson/Spearman correlations, the largest remaining disagreements, and
+the per-stage benchmark (wall time, CPU%, peak RAM) collected by
+`scripts/_bench.sh`.
+
+---
+
 ## Building from Source
 
 ### Prerequisites

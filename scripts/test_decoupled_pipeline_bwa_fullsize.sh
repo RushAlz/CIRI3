@@ -163,6 +163,9 @@ else
     ORIG_TSV="${ORIG_DIR}/samples.tsv"
     > "$ORIG_TSV"
     for S in "${SAMPLES[@]}"; do
+        # Wipe any BSJ files left over from a previous test run; joint opens
+        # BSJ{threadNum} in APPEND mode, so stale records would accumulate.
+        rm -f "${DATA_DIR}/${S}.sam"BSJ*
         echo "${DATA_DIR}/${S}.sam" >> "$ORIG_TSV"
     done
 

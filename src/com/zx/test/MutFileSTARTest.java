@@ -357,16 +357,23 @@ public class MutFileSTARTest {
 					idCircMap = getChiCirc.getIdCircMap();
 					getChiCirc = null;
 					String outBSJPath = bwaSamFile+"BSJ1";
-					BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(outBSJPath)));	
+					BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(outBSJPath)));
 					for (String idKey : idCircMap.keySet()) {
 						BSJOut.write(idCircMap.get(idKey)+"\n");
 					}
 					BSJOut.close();
+					// Delete any stale BSJ{2..threads} files from a previous run.
+					// scan1 opens them in APPEND mode; without this, stale records
+					// from a previous pipeline invocation accumulate and inflate
+					// the per-sample BSJ counts.
+					for (int delK = 2; delK <= threads; delK++) {
+						new File(bwaSamFile + "BSJ" + delK).delete();
+					}
 					threadSub.reset();//更新子线程
 				    threadMain.await();//所有线程激活2
 				    threadMain.reset();//更新主线程
-					threadSub.await();//主线程关闭，子线程激活2  
-			    }	
+					threadSub.await();//主线程关闭，子线程激活2
+			    }
 			    System.out.println(df.format(System.currentTimeMillis())+" "+":First scan completed");
 			    fileLog.write(df.format(System.currentTimeMillis())+" "+":First scan completed"+"\n");
 			    //导入文件

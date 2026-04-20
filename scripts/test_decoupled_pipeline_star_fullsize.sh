@@ -170,6 +170,9 @@ else
     > "$ORIG_TSV"
     for S in "${SAMPLES[@]}"; do
         STAR_DIR="${DATA_DIR}/STAR_output_${S}"
+        # Wipe any BSJ files left over from a previous test run; joint opens
+        # BSJ{threadNum} in APPEND mode, so stale records would accumulate.
+        rm -f "${STAR_DIR}/bwa.sam"BSJ*
         echo "${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam" \
             >> "$ORIG_TSV"
     done

@@ -77,6 +77,10 @@ FINALIZE_DIR="${DECOUPLED_DIR}/finalize"
 
 SCAN1_META_TSV="${UNIVERSE_DIR}/samples_scan1.tsv"
 FINALIZE_TSV="${FINALIZE_DIR}/finalize_samples.tsv"
+BENCH_DIR="${OUT_ROOT}/bench"
+
+# shellcheck source=/dev/null
+source "${REPO_ROOT}/scripts/_bench.sh"
 
 PASS=0
 FAIL=0
@@ -138,7 +142,7 @@ info "Output directory: ${OUT_ROOT}"
 info "Original jar : ${ORIGINAL_JAR}"
 info "Decoupled jar: ${DECOUPLED_JAR}"
 
-mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR"
+mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR" "$BENCH_DIR"
 
 # ---------------------------------------------------------------------------
 # 1. ORIGINAL pipeline (-W 1, STAR) from CIRI3_Java_1.8.0.jar
@@ -157,12 +161,13 @@ else
             >> "$ORIG_TSV"
     done
 
-    "${JAVA_ORIG[@]}" \
-        -I "${ORIG_TSV}" \
-        -O "${ORIG_DIR}/result" \
-        -F "${REF_FA}" \
-        -A "${GTF_FILE}" \
-        -W 1 -Ma 1 -T "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
+    bench_run "00_original_joint" \
+        "${JAVA_ORIG[@]}" \
+            -I "${ORIG_TSV}" \
+            -O "${ORIG_DIR}/result" \
+            -F "${REF_FA}" \
+            -A "${GTF_FILE}" \
+            -W 1 -Ma 1 -T "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
         2>&1 | tee "${ORIG_DIR}/run.log" \
         | grep -E "CIRI3|scan|completed|circRNA|Mapped|time" || true
 fi
@@ -182,7 +187,9 @@ info "=== Decoupled pipeline (CIRI3_decoupled.jar, STAR) ==="
 
 # --- Stage 1: SCAN1 (per sample) ---
 info "--- Stage 1: SCAN1 ---"
+SCAN1_IDX=0
 for S in "${SAMPLES[@]}"; do
+    SCAN1_IDX=$((SCAN1_IDX+1))
     STAR_DIR="${DATA_DIR}/STAR_output_${S}"
     TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
     BWA_SAM="${STAR_DIR}/bwa.sam"
@@ -196,12 +203,13 @@ for S in "${SAMPLES[@]}"; do
         # SCAN2's on-disk BSJ enumeration only sees files from this run.
         rm -f "${BWA_SAM}BSJ"*
         info "  SCAN1: $S"
-        "${JAVA_NEW[@]}" SCAN1 \
-            -I "${TRIPLE}" \
-            -O "${OUT_PREFIX}" \
-            -F "${REF_FA}" \
-            -A "${GTF_FILE}" \
-            -T "${THREADS}" -Ma 1 -S 0 "${INTRON_FLAG[@]}" \
+        bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${S}")" \
+            "${JAVA_NEW[@]}" SCAN1 \
+                -I "${TRIPLE}" \
+                -O "${OUT_PREFIX}" \
+                -F "${REF_FA}" \
+                -A "${GTF_FILE}" \
+                -T "${THREADS}" -Ma 1 -S 0 "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|meta|time|Mapped" || true
     fi
 
@@ -223,10 +231,11 @@ UNIVERSE_FILE="${UNIVERSE_DIR}/cohort.universe"
 if [[ -s "$UNIVERSE_FILE" ]]; then
     info "  [SKIP] Universe already exists"
 else
-    "${JAVA_NEW[@]}" BUILD_UNIVERSE \
-        -I "${SCAN1_META_TSV}" \
-        -F "${REF_FA}" \
-        -O "${UNIVERSE_DIR}/cohort" \
+    bench_run "20_build_universe" \
+        "${JAVA_NEW[@]}" BUILD_UNIVERSE \
+            -I "${SCAN1_META_TSV}" \
+            -F "${REF_FA}" \
+            -O "${UNIVERSE_DIR}/cohort" \
         2>&1 | grep -E "Universe|circRNA|time" || true
 fi
 check_exists "Universe file" "${UNIVERSE_FILE}"
@@ -235,7 +244,9 @@ info "Universe: ${UNIVERSE_CIRCS} circRNA candidates."
 
 # --- Stage 3: SCAN2 (per sample) ---
 info "--- Stage 3: SCAN2 ---"
+SCAN2_IDX=0
 for S in "${SAMPLES[@]}"; do
+    SCAN2_IDX=$((SCAN2_IDX+1))
     STAR_DIR="${DATA_DIR}/STAR_output_${S}"
     TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
     BWA_SAM="${STAR_DIR}/bwa.sam"
@@ -248,12 +259,13 @@ for S in "${SAMPLES[@]}"; do
         info "  [SKIP] SCAN2 already done for $S"
     else
         info "  SCAN2: $S"
-        "${JAVA_NEW[@]}" SCAN2 \
-            -I "${TRIPLE}" \
-            -CU "${UNIVERSE_FILE}" \
-            -O "${OUT_PREFIX}" \
-            -F "${REF_FA}" \
-            -T "${THREADS}" -Ma 1 "${INTRON_FLAG[@]}" \
+        bench_run "$(printf '30_scan2_%02d_%s' "${SCAN2_IDX}" "${S}")" \
+            "${JAVA_NEW[@]}" SCAN2 \
+                -I "${TRIPLE}" \
+                -CU "${UNIVERSE_FILE}" \
+                -O "${OUT_PREFIX}" \
+                -F "${REF_FA}" \
+                -T "${THREADS}" -Ma 1 "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|FSJ|BSJ|time" || true
     fi
     check_exists "SCAN2 FSJ counts ($S)" "${FSJ_COUNTS}"
@@ -267,13 +279,14 @@ FINAL_BSJ="${FINALIZE_DIR}/result.BSJ_Matrix"
 if [[ -s "$FINAL_BSJ" ]]; then
     info "  [SKIP] FINALIZE already done"
 else
-    "${JAVA_NEW[@]}" FINALIZE \
-        -I "${FINALIZE_TSV}" \
-        -CU "${UNIVERSE_FILE}" \
-        -F "${REF_FA}" \
-        -O "${FINALIZE_DIR}/result" \
-        -A "${GTF_FILE}" \
-        -S 0 "${INTRON_FLAG[@]}" \
+    bench_run "40_finalize" \
+        "${JAVA_NEW[@]}" FINALIZE \
+            -I "${FINALIZE_TSV}" \
+            -CU "${UNIVERSE_FILE}" \
+            -F "${REF_FA}" \
+            -O "${FINALIZE_DIR}/result" \
+            -A "${GTF_FILE}" \
+            -S 0 "${INTRON_FLAG[@]}" \
         2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
 fi
 check_exists "Decoupled BSJ_Matrix" "${FINAL_BSJ}"
@@ -326,8 +339,10 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Summary
+# 4. Benchmark + test summary
 # ---------------------------------------------------------------------------
+bench_report
+
 echo ""
 echo "========================================"
 echo "  TEST SUMMARY"

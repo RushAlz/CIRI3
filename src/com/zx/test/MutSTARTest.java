@@ -150,21 +150,22 @@ public class MutSTARTest {
 								}
 							}
 							HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();
+							HashSet<String> touchedBwa = scan2.getTouchedFSJKeys();
 							scan2 = null;
 							//合并信息
 							lock.lock();
-							for (String circKey : circFSJMap.keySet()) {
-								int num = circFSJMap.get(circKey);						
+							for (String circKey : touchedBwa) {
+								int num = circFSJMap.get(circKey);
 								int numNew = circFSJMapTem.get(circKey);
 								circFSJMap.put(circKey, num+numNew);
 							}
 							lock.unlock();
 							threadSub.await();
-							threadMain.await();	
-							
+							threadMain.await();
+
 							//第二遍扫描 starsam
 							MutFindCircRNASTARScan2 starScan2 = new MutFindCircRNASTARScan2(minMapqUni,circFSJMap,linear_range_size_min,siteArrayMap1,siteArrayMap2,chrSiteMap1,chrSiteMap2,
-				    				chrTCGAMap,seqLen,intronLable);  
+				    				chrTCGAMap,seqLen,intronLable);
 							starScan2.setFSJScan2List();
 							while(true) {
 								int threadNum= incr.getAndIncrement();
@@ -177,16 +178,17 @@ public class MutSTARTest {
 								}
 							}
 							circFSJMapTem = starScan2.getCircFSJMap();
+							HashSet<String> touchedStar = starScan2.getTouchedFSJKeys();
 							long matchNumTem = starScan2.getReadNum();
 							starScan2 = null;
 							//合并信息
 							lock.lock();
-							for (String circKey : circFSJMap.keySet()) {
-								int num = circFSJMap.get(circKey);						
+							for (String circKey : touchedStar) {
+								int num = circFSJMap.get(circKey);
 								int numNew = circFSJMapTem.get(circKey);
 								circFSJMap.put(circKey, num+numNew);
 							}
-							matchNum = matchNum + matchNumTem;			
+							matchNum = matchNum + matchNumTem;
 							lock.unlock();
 							circFSJMapTem = null;
 							threadSub.await();

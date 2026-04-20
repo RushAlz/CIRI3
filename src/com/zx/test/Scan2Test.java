@@ -196,9 +196,10 @@ public class Scan2Test {
                             }
                         }
                         HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();
+                        java.util.HashSet<String> touched = scan2.getTouchedFSJKeys();
                         scan2 = null;
                         lock.lock();
-                        for (String circKey : circFSJMap.keySet()) {
+                        for (String circKey : touched) {
                             int num = circFSJMap.get(circKey);
                             int numNew = circFSJMapTem.get(circKey);
                             circFSJMap.put(circKey, num + numNew);

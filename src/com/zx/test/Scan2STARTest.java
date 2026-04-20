@@ -220,8 +220,9 @@ public class Scan2STARTest {
                             }
                         }
                         HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();
+                        java.util.HashSet<String> touchedBwa = scan2.getTouchedFSJKeys();
                         lock.lock();
-                        for (String circKey : circFSJMap.keySet()) {
+                        for (String circKey : touchedBwa) {
                             circFSJMap.put(circKey, circFSJMap.get(circKey) + circFSJMapTem.get(circKey));
                         }
                         lock.unlock();
@@ -246,9 +247,10 @@ public class Scan2STARTest {
                             }
                         }
                         circFSJMapTem = starScan2.getCircFSJMap();
+                        java.util.HashSet<String> touchedStar = starScan2.getTouchedFSJKeys();
                         long matchNumTem = starScan2.getReadNum();
                         lock.lock();
-                        for (String circKey : circFSJMap.keySet()) {
+                        for (String circKey : touchedStar) {
                             circFSJMap.put(circKey, circFSJMap.get(circKey) + circFSJMapTem.get(circKey));
                         }
                         matchNum = matchNum + matchNumTem;

@@ -138,16 +138,17 @@ public class MutFileSTARTest {
 									}								
 								}
 								HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();
+								HashSet<String> touchedBwa = scan2.getTouchedFSJKeys();
 								lock.lock();
-								for (String circKey : circFSJMap.keySet()) {
-									int num = circFSJMap.get(circKey);						
+								for (String circKey : touchedBwa) {
+									int num = circFSJMap.get(circKey);
 									int numNew = circFSJMapTem.get(circKey);
 									circFSJMap.put(circKey, num+numNew);
-								}	
+								}
 								lock.unlock();
 								scan2.setFSJScan2List();
 								threadSub.await();
-								threadMain.await();								
+								threadMain.await();
 							}
 							scan2 = null;
 							
@@ -164,14 +165,15 @@ public class MutFileSTARTest {
 									}								
 								}
 								HashMap<String, Integer> circFSJMapTem = starScan2.getCircFSJMap();
+								HashSet<String> touchedStar = starScan2.getTouchedFSJKeys();
 								long matchNumTem = starScan2.getReadNum();
 								lock.lock();
-								matchNum = matchNum + matchNumTem;	
-								for (String circKey : circFSJMap.keySet()) {
-									int num = circFSJMap.get(circKey);						
+								matchNum = matchNum + matchNumTem;
+								for (String circKey : touchedStar) {
+									int num = circFSJMap.get(circKey);
 									int numNew = circFSJMapTem.get(circKey);
 									circFSJMap.put(circKey, num+numNew);
-								}	
+								}
 								lock.unlock();
 								starScan2.setFSJScan2List();
 								threadSub.await();

@@ -26,6 +26,9 @@ public class FindCircRNAScan2 {
     public HashMap<String, Integer> getCircFSJMap() throws IOException {
 		return isBSJScan2.getCircFSJMap();
 	}
+    public java.util.HashSet<String> getTouchedFSJKeys() {
+		return isBSJScan2.getTouchedFSJKeys();
+	}
     public void setFSJScan2List() {
     	isBSJScan2.setFSJScan2List();
 	}

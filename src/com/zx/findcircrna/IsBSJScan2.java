@@ -16,6 +16,7 @@ public class IsBSJScan2 {
 	HashMap<String, HashMap<Integer, ArrayList<SiteSort>>> chrSiteMap1,chrSiteMap2;
 	HashMap<String, String> chrTCGAMap;
 	HashMap<String, Integer> circFSJNewMap = new HashMap<String, Integer>();
+	HashSet<String> touchedFSJKeys = new HashSet<String>();
 	HashSet<String> temFSJId = new HashSet<String>();
 	HashMap<String, byte[]> siteArrayMap1,siteArrayMap2;
 	public IsBSJScan2(int minMapqUni, HashMap<String, Integer> circFSJMap, int linear_range_size_min, HashMap<String, byte[]> siteArrayMap1,
@@ -34,12 +35,20 @@ public class IsBSJScan2 {
 		circFSJNewMap.putAll(circFSJMap);
 	}
 	public HashMap<String, Integer> getCircFSJMap() throws IOException {
-		return circFSJNewMap;		
+		return circFSJNewMap;
+	}
+	public HashSet<String> getTouchedFSJKeys() {
+		return touchedFSJKeys;
 	}
 	public void setFSJScan2List() {
-		for (String circ : circFSJNewMap.keySet()) {
+		// Only reset the keys that were actually touched by this thread
+		// during the last scan — not the full universe. For large cohorts
+		// (hundreds of thousands of circRNAs), this is orders of magnitude
+		// faster than iterating every universe entry.
+		for (String circ : touchedFSJKeys) {
 			circFSJNewMap.put(circ, 0);
 		}
+		touchedFSJKeys.clear();
 	}
 	public String isCandidate(HashMap<Integer, ArrayList<String[]>> readsMap, HashMap<Integer, String> standMap) throws IOException {
 		// 初始化记录FSJ的Set
@@ -686,10 +695,11 @@ public class IsBSJScan2 {
 			}
 		}
 		
-		for (String circKey : temFSJId) {				
+		for (String circKey : temFSJId) {
 			int temNum = circFSJNewMap.get(circKey);
-			circFSJNewMap.put(circKey, temNum + 1);				
+			circFSJNewMap.put(circKey, temNum + 1);
+			touchedFSJKeys.add(circKey);
 		}
-		return null;	
+		return null;
 	}
 }

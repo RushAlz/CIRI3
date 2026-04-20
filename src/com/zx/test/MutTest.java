@@ -140,11 +140,12 @@ public class MutTest {
 								}
 							}
 							HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();
+							HashSet<String> touched = scan2.getTouchedFSJKeys();
 							scan2 = null;
 							//合并信息
 							lock.lock();
-							for (String circKey : circFSJMap.keySet()) {
-								int num = circFSJMap.get(circKey);						
+							for (String circKey : touched) {
+								int num = circFSJMap.get(circKey);
 								int numNew = circFSJMapTem.get(circKey);
 								circFSJMap.put(circKey, num+numNew);
 							}
@@ -152,7 +153,7 @@ public class MutTest {
 							scan1IdMap = null;
 							circFSJMapTem = null;
 							threadSub.await();
-							threadMain.await();		
+							threadMain.await();
 						}else {
 							MutUserFindCircRNAScan2 scan2 = new MutUserFindCircRNAScan2(minMapqUni,circFSJMap,linear_range_size_min,siteArrayMap1,siteArrayMap2,chrSiteMap1,chrSiteMap2,
 				    				chrTCGAMap,seqLen);  

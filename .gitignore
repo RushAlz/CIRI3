@@ -11,5 +11,6 @@ test_decoupled_*/
 sources.txt
 *.class
 
+.DS_Store
 .Rproj.user
 .Rhistory

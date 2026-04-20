@@ -323,7 +323,7 @@ if [[ "$A_BSJ" == "$B_BSJ" ]]; then
     ok "BSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_CIRCS} circRNAs)"
 else
     fail "BSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_BSJ") <(echo "$B_BSJ") | head -40
+    { diff <(echo "$A_BSJ") <(echo "$B_BSJ") || true; } | head -40 || true
 fi
 
 A_FSJ=$(normalise_matrix "${ORIG_DIR}/result.FSJ_Matrix")
@@ -332,7 +332,7 @@ if [[ "$A_FSJ" == "$B_FSJ" ]]; then
     ok "FSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_CIRCS} circRNAs)"
 else
     fail "FSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_FSJ") <(echo "$B_FSJ") | head -40
+    { diff <(echo "$A_FSJ") <(echo "$B_FSJ") || true; } | head -40 || true
 fi
 
 info "Checking universe coverage..."
@@ -343,7 +343,7 @@ if [[ "$MISSING" -eq 0 ]]; then
     ok "Universe coverage: all original circRNAs present in universe"
 else
     fail "Universe coverage: $MISSING original circRNAs missing from universe"
-    comm -23 <(echo "$ORIG_IDS") <(echo "$UNIV_IDS") | head -10
+    { comm -23 <(echo "$ORIG_IDS") <(echo "$UNIV_IDS") || true; } | head -10 || true
 fi
 
 # ---------------------------------------------------------------------------

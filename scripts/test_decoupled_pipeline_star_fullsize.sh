@@ -355,7 +355,7 @@ if [[ "$A_BSJ" == "$B_BSJ" ]]; then
     ok "BSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_CIRCS} circRNAs)"
 else
     fail "BSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_BSJ") <(echo "$B_BSJ") | head -40
+    { diff <(echo "$A_BSJ") <(echo "$B_BSJ") || true; } | head -40 || true
 fi
 
 A_FSJ=$(normalise_matrix "${ORIG_DIR}/result.FSJ_Matrix")
@@ -364,7 +364,7 @@ if [[ "$A_FSJ" == "$B_FSJ" ]]; then
     ok "FSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_CIRCS} circRNAs)"
 else
     fail "FSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_FSJ") <(echo "$B_FSJ") | head -40
+    { diff <(echo "$A_FSJ") <(echo "$B_FSJ") || true; } | head -40 || true
 fi
 
 info "Checking universe coverage..."
@@ -375,7 +375,7 @@ if [[ "$MISSING" -eq 0 ]]; then
     ok "Universe coverage: all original circRNAs present in universe"
 else
     fail "Universe coverage: $MISSING original circRNAs missing from universe"
-    comm -23 <(echo "$ORIG_IDS") <(echo "$UNIV_IDS") | head -10
+    { comm -23 <(echo "$ORIG_IDS") <(echo "$UNIV_IDS") || true; } | head -10 || true
 fi
 
 # Per-sample, per-BSJ-file diff between joint's snapshotted BSJ files and the
@@ -398,9 +398,11 @@ if [[ -d "${JOINT_BSJ_SNAPSHOT:-}" ]]; then
                 fail "  ${S} BSJ${i}: joint=${joint_sz} lines, decoupled=${dec_sz} lines"
                 if [[ "$i" == "2" ]]; then
                     echo "    lines in joint only (first 5):"
-                    comm -23 <(sort "$joint_f") <(sort "$dec_f") | head -5 | sed 's/^/      /'
+                    { comm -23 <(sort "$joint_f") <(sort "$dec_f") || true; } \
+                        | head -5 | sed 's/^/      /' || true
                     echo "    lines in decoupled only (first 5):"
-                    comm -13 <(sort "$joint_f") <(sort "$dec_f") | head -5 | sed 's/^/      /'
+                    { comm -13 <(sort "$joint_f") <(sort "$dec_f") || true; } \
+                        | head -5 | sed 's/^/      /' || true
                 fi
             fi
         done

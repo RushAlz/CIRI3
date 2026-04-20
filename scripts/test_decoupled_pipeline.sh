@@ -110,7 +110,7 @@ compare_matrices() {
         ok "$label: $nlines circRNAs match"
     else
         fail "$label: content differs"
-        diff <(echo "$sorted_a") <(echo "$sorted_b") | head -20
+        { diff <(echo "$sorted_a") <(echo "$sorted_b") || true; } | head -20 || true
     fi
 }
 
@@ -318,7 +318,7 @@ if [[ "$A_BSJ" == "$B_BSJ" ]]; then
     ok "BSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_BSJ_LINES} circRNAs)"
 else
     fail "BSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_BSJ") <(echo "$B_BSJ") | head -30
+    { diff <(echo "$A_BSJ") <(echo "$B_BSJ") || true; } | head -30 || true
 fi
 
 info "Normalising and comparing FSJ matrices..."
@@ -329,7 +329,7 @@ if [[ "$A_FSJ" == "$B_FSJ" ]]; then
     ok "FSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_BSJ_LINES} circRNAs)"
 else
     fail "FSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_FSJ") <(echo "$B_FSJ") | head -30
+    { diff <(echo "$A_FSJ") <(echo "$B_FSJ") || true; } | head -30 || true
 fi
 
 # Also check universe coverage — every circRNA in original should be in universe
@@ -344,7 +344,7 @@ if [[ "$MISSING" -eq 0 ]]; then
     ok "Universe coverage: all original circRNAs are present in the universe"
 else
     fail "Universe coverage: $MISSING circRNAs from original output are missing from universe"
-    comm -23 <(echo "$ORIG_CIRCS") <(echo "$UNIVERSE_CIRCS") | head -10
+    { comm -23 <(echo "$ORIG_CIRCS") <(echo "$UNIVERSE_CIRCS") || true; } | head -10 || true
 fi
 
 # ---------------------------------------------------------------------------

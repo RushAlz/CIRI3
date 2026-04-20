@@ -264,6 +264,7 @@ done
 info "--- Stage 2b: FINALIZE ---"
 ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" FINALIZE \
     -I "$FINALIZE_TSV" \
+    -CU "$UNIVERSE_DIR/cohort.universe" \
     -F "$REF_FA" \
     -O "$FINALIZE_DIR/result" \
     -S 0 \

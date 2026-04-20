@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.zx.findcircrna.CircRNAUniverseIO;
 import com.zx.findcircrna.GetAnnotationInformation;
 import com.zx.findcircrna.ReadFaFile;
 import com.zx.findcircrna.SiteSort;
@@ -40,6 +41,16 @@ public class FinalizeTest {
      */
     public void finalize(String finalizeInputTsv, String faFile, String annotationFile,
             String outputPrefix) throws IOException {
+        finalize(finalizeInputTsv, faFile, annotationFile, outputPrefix, null);
+    }
+
+    /**
+     * Variant that takes the BUILD_UNIVERSE output as the authoritative circRNA set.
+     * When universeFile is non-null, circRowMap is seeded from it rather than from
+     * the first sample's .fsj_counts, so FINALIZE is tolerant of partial re-runs.
+     */
+    public void finalize(String finalizeInputTsv, String faFile, String annotationFile,
+            String outputPrefix, String universeFile) throws IOException {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println(df.format(System.currentTimeMillis()) + " :FINALIZE start");
 
@@ -108,9 +119,17 @@ public class FinalizeTest {
         }
 
         // Step 4: Read all .fsj_counts files and build merged circFSJMap
-        // First pass: determine universe from first sample's .fsj_counts
+        // Seed the universe: prefer the BUILD_UNIVERSE output when supplied, else
+        // fall back to the first sample's .fsj_counts for backwards compatibility.
         HashMap<String, Integer> circFSJMerged = new HashMap<String, Integer>();
-        {
+        if (universeFile != null && !universeFile.isEmpty()) {
+            int[] seqLenOut = new int[1];
+            HashMap<String, String[]> universeDataMap = CircRNAUniverseIO.readUniverse(universeFile, seqLenOut);
+            for (String circKey : universeDataMap.keySet()) {
+                circFSJMerged.put(circKey, 0);
+            }
+            System.out.println(df.format(System.currentTimeMillis()) + " :Universe seeded from " + universeFile + ": " + circFSJMerged.size() + " circRNAs");
+        } else {
             BufferedReader firstBr = new BufferedReader(new FileReader(new File(fsjCountsFileList.get(0))));
             String line = firstBr.readLine();
             while (line != null) {

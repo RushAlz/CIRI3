@@ -18,6 +18,7 @@
 #
 #   --threads N      threads for each per-sample stage (default: 8)
 #   --output-dir D   output directory (default: DATA_DIR/decoupled_bwa_comparison)
+#   --intron         run with intron mode (-It 1) in both pipelines
 #   --keep           keep output directory after the run
 # =============================================================================
 set -euo pipefail
@@ -28,10 +29,12 @@ set -euo pipefail
 THREADS=8
 KEEP=0
 OUT_ROOT=""
+INTRON_FLAG=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --threads)     THREADS="$2";  shift 2 ;;
         --output-dir)  OUT_ROOT="$2"; shift 2 ;;
+        --intron)      INTRON_FLAG=(-It 1); shift ;;
         --keep)        KEEP=1;        shift   ;;
         *) echo "Unknown argument: $1"; exit 1 ;;
     esac
@@ -160,7 +163,7 @@ else
         -O  "${ORIG_DIR}/result" \
         -F  "${REF_FA}" \
         -A  "${GTF_FILE}" \
-        -W  1 -T "${THREADS}" -S 0 \
+        -W  1 -T "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
         2>&1 | tee "${ORIG_DIR}/run.log" \
         | grep -E "CIRI3|scan|completed|circRNA|Mapped|time" || true
 fi
@@ -196,7 +199,7 @@ for S in "${SAMPLES[@]}"; do
             -O  "${OUT_PREFIX}" \
             -F  "${REF_FA}" \
             -A  "${GTF_FILE}" \
-            -T  "${THREADS}" -S 0 \
+            -T  "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|meta|time|Mapped" || true
     fi
 
@@ -247,7 +250,7 @@ for S in "${SAMPLES[@]}"; do
             -CU "${UNIVERSE_FILE}" \
             -O  "${OUT_PREFIX}" \
             -F  "${REF_FA}" \
-            -T  "${THREADS}" \
+            -T  "${THREADS}" "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|FSJ|BSJ|time" || true
     fi
     check_exists "SCAN2 FSJ counts ($S)" "${FSJ_COUNTS}"
@@ -263,10 +266,11 @@ if [[ -s "$FINAL_BSJ" ]]; then
 else
     ${JAVA_SRC} FINALIZE \
         -I  "${FINALIZE_TSV}" \
+        -CU "${UNIVERSE_FILE}" \
         -F  "${REF_FA}" \
         -O  "${FINALIZE_DIR}/result" \
         -A  "${GTF_FILE}" \
-        -S  0 \
+        -S  0 "${INTRON_FLAG[@]}" \
         2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
 fi
 check_exists "Decoupled BSJ_Matrix" "${FINAL_BSJ}"

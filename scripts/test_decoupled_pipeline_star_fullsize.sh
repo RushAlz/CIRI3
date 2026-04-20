@@ -20,10 +20,15 @@
 # Usage:
 #   bash scripts/test_decoupled_pipeline_star_fullsize.sh [options]
 #
-#   --threads N      threads for each per-sample stage (default: 8)
-#   --output-dir D   output directory (default: DATA_DIR/decoupled_comparison)
-#   --intron         run with intron mode (-It 1) in both pipelines
-#   --keep           keep output directory after the run
+#   --threads N          threads for each per-sample stage (default: 8)
+#   --output-dir D       output directory (default: DATA_DIR/decoupled_comparison)
+#   --intron             run with intron mode (-It 1) in both pipelines
+#   --use-current-joint  run the joint pipeline from CIRI3_decoupled.jar (this
+#                        repo's current source) instead of CIRI3_Java_1.8.0.jar.
+#                        Use this to test the decoupled decomposition against
+#                        the exact same BSJ-detection code, isolating any
+#                        version-drift differences in the published jar.
+#   --keep               keep output directory after the run
 # =============================================================================
 set -euo pipefail
 
@@ -34,12 +39,14 @@ THREADS=8
 KEEP=0
 OUT_ROOT=""
 INTRON_FLAG=()
+USE_CURRENT_JOINT=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --threads)     THREADS="$2";  shift 2 ;;
-        --output-dir)  OUT_ROOT="$2"; shift 2 ;;
-        --intron)      INTRON_FLAG=(-It 1); shift ;;
-        --keep)        KEEP=1;        shift   ;;
+        --threads)            THREADS="$2";  shift 2 ;;
+        --output-dir)         OUT_ROOT="$2"; shift 2 ;;
+        --intron)             INTRON_FLAG=(-It 1); shift ;;
+        --use-current-joint)  USE_CURRENT_JOINT=1; shift ;;
+        --keep)               KEEP=1;        shift   ;;
         *) echo "Unknown argument: $1"; exit 1 ;;
     esac
 done
@@ -94,8 +101,14 @@ else
     JAVA_BIN="$(command -v java)"
 fi
 
-JAVA_ORIG=(${JAVA_BIN} -jar "${ORIGINAL_JAR}")
 JAVA_NEW=(${JAVA_BIN} -jar "${DECOUPLED_JAR}")
+if [[ $USE_CURRENT_JOINT -eq 1 ]]; then
+    JAVA_ORIG=(${JAVA_BIN} -jar "${DECOUPLED_JAR}")
+    JOINT_LABEL="CIRI3_decoupled.jar (current source, -W 1)"
+else
+    JAVA_ORIG=(${JAVA_BIN} -jar "${ORIGINAL_JAR}")
+    JOINT_LABEL="CIRI3_Java_1.8.0.jar (published, -W 1)"
+fi
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -139,8 +152,8 @@ for S in "${SAMPLES[@]}"; do
 done
 info "All input files found for ${#SAMPLES[@]} samples."
 info "Output directory: ${OUT_ROOT}"
-info "Original jar : ${ORIGINAL_JAR}"
-info "Decoupled jar: ${DECOUPLED_JAR}"
+info "Joint pipeline: ${JOINT_LABEL}"
+info "Decoupled jar:  ${DECOUPLED_JAR}"
 
 mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR" "$BENCH_DIR"
 

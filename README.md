@@ -136,9 +136,7 @@ Rscript -e "rmarkdown::render('scripts/validation_report.Rmd', \
 ```
 
 That produces
-[`scripts/validation_report.html`](./scripts/validation_report.html)
-(view rendered on GitHub via
-[htmlpreview](https://htmlpreview.github.io/?https://github.com/RushAlz/CIRI3/blob/main/scripts/validation_report.html))
+[`scripts/validation_report.html`](https://rushalz.github.io/CIRI3/scripts/validation_report.html)
 — per-sample BSJ/FSJ scatter plots, cell-level agreement tables,
 Pearson/Spearman correlations, the largest remaining disagreements, and
 the per-stage benchmark (wall time, CPU%, peak RAM) collected by

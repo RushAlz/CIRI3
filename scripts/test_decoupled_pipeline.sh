@@ -192,7 +192,7 @@ bench_run "00_original_joint" \
         -F "$REF_FA" \
         -W 1 \
         -T "$THREADS" \
-        -S 0 \
+        -S 2 \
     2>&1 | tee "$ORIG_DIR/run.log" | grep -E "CIRI3|scan|completed|circRNA|Matrix|time" || true
 
 check_exists "Original BSJ_Matrix" "$ORIG_DIR/result.BSJ_Matrix"
@@ -223,7 +223,7 @@ for SAM in "${SAMPLES[@]}"; do
             -O "$OUT_PREFIX" \
             -F "$REF_FA" \
             -T "$THREADS" \
-            -S 0 \
+            -S 2 \
         2>&1 | grep -E "scan|completed|meta|time" || true
     check_exists "SCAN1 meta ($SAMPLE_NAME)" "${OUT_PREFIX}.scan1_meta"
 
@@ -284,7 +284,7 @@ bench_run "40_finalize" \
         -CU "$UNIVERSE_DIR/cohort.universe" \
         -F "$REF_FA" \
         -O "$FINALIZE_DIR/result" \
-        -S 0 \
+        -S 2 \
     2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
 check_exists "Decoupled BSJ_Matrix" "$FINALIZE_DIR/result.BSJ_Matrix"
 check_exists "Decoupled FSJ_Matrix" "$FINALIZE_DIR/result.FSJ_Matrix"

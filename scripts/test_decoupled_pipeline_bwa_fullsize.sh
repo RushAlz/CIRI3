@@ -7,7 +7,7 @@
 # full-size BWA data, then verifies that both pipelines produce identical
 # BSJ and FSJ matrices.
 #
-# The original (joint) pipeline runs the stock CIRI3_Java_1.8.0.jar so the
+# The original (joint) pipeline runs the stock CIRI3_Java_18.0.1.jar so the
 # comparison is against the published ground truth. The decoupled pipeline
 # runs CIRI3_decoupled.jar, the jar built from this repo's src/ tree.
 #
@@ -21,7 +21,7 @@
 #   --output-dir D       output directory (default: DATA_DIR/decoupled_bwa_comparison)
 #   --intron             run with intron mode (-It 1) in both pipelines
 #   --use-current-joint  run the joint pipeline from CIRI3_decoupled.jar (this
-#                        repo's current source) instead of CIRI3_Java_1.8.0.jar.
+#                        repo's current source) instead of CIRI3_Java_18.0.1.jar.
 #                        Use this to test the decoupled decomposition against
 #                        the exact same BSJ-detection code, isolating any
 #                        version-drift differences in the published jar.
@@ -74,7 +74,7 @@ SAMPLE_IDS=(
 # ---------------------------------------------------------------------------
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-ORIGINAL_JAR="${REPO_ROOT}/CIRI3_Java_1.8.0.jar"       # published ground truth
+ORIGINAL_JAR="${REPO_ROOT}/CIRI3_Java_18.0.1.jar"       # published ground truth
 DECOUPLED_JAR="${REPO_ROOT}/CIRI3_decoupled.jar"       # built from this repo
 
 [[ -z "$OUT_ROOT" ]] && OUT_ROOT="${DATA_DIR}/decoupled_bwa_comparison"
@@ -111,7 +111,7 @@ if [[ $USE_CURRENT_JOINT -eq 1 ]]; then
     JOINT_LABEL="CIRI3_decoupled.jar (current source, -W 1)"
 else
     JAVA_ORIG=(${JAVA_BIN} -jar "${ORIGINAL_JAR}")
-    JOINT_LABEL="CIRI3_Java_1.8.0.jar (published, -W 1)"
+    JOINT_LABEL="CIRI3_Java_18.0.1.jar (published, -W 1)"
 fi
 
 # ---------------------------------------------------------------------------
@@ -159,9 +159,9 @@ info "Decoupled jar:  ${DECOUPLED_JAR}"
 mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR" "$BENCH_DIR"
 
 # ---------------------------------------------------------------------------
-# 1. ORIGINAL pipeline (-W 1, BWA-only) from CIRI3_Java_1.8.0.jar
+# 1. ORIGINAL pipeline (-W 1, BWA-only) from CIRI3_Java_18.0.1.jar
 # ---------------------------------------------------------------------------
-info "=== Stage 0: ORIGINAL pipeline (CIRI3_Java_1.8.0.jar, -W 1, BWA) ==="
+info "=== Stage 0: ORIGINAL pipeline (CIRI3_Java_18.0.1.jar, -W 1, BWA) ==="
 
 ORIG_BSJ="${ORIG_DIR}/result.BSJ_Matrix"
 if [[ -s "$ORIG_BSJ" ]]; then
@@ -182,7 +182,7 @@ else
             -O "${ORIG_DIR}/result" \
             -F "${REF_FA}" \
             -A "${GTF_FILE}" \
-            -W 1 -T "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
+            -W 1 -T "${THREADS}" -S 2 "${INTRON_FLAG[@]}" \
         2>&1 | tee "${ORIG_DIR}/run.log" \
         | grep -E "CIRI3|scan|completed|circRNA|Mapped|time|Exception|Error|^\t?at |DIAG" || true
 fi
@@ -229,7 +229,7 @@ for i in "${!SAMPLES[@]}"; do
                 -O "${OUT_PREFIX}" \
                 -F "${REF_FA}" \
                 -A "${GTF_FILE}" \
-                -T "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
+                -T "${THREADS}" -S 2 "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|meta|time|Mapped" || true
     fi
 
@@ -307,7 +307,7 @@ else
             -F "${REF_FA}" \
             -O "${FINALIZE_DIR}/result" \
             -A "${GTF_FILE}" \
-            -S 0 "${INTRON_FLAG[@]}" \
+            -S 2 "${INTRON_FLAG[@]}" \
         2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
 fi
 check_exists "Decoupled BSJ_Matrix" "${FINAL_BSJ}"

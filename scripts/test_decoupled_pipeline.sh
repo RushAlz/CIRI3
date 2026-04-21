@@ -214,7 +214,8 @@ SCAN1_IDX=0
 for SAM in "${SAMPLES[@]}"; do
     SCAN1_IDX=$((SCAN1_IDX+1))
     SAMPLE_NAME=$(basename "$SAM" .sam)
-    OUT_PREFIX="$SCAN1_DIR/${SAMPLE_NAME}"
+    mkdir -p "$SCAN1_DIR/${SAMPLE_NAME}"
+    OUT_PREFIX="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}"
     info "  SCAN1: $SAMPLE_NAME"
     bench_run "$(printf '10_scan1_%02d_%s' "$SCAN1_IDX" "$SAMPLE_NAME")" \
         ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN1 \
@@ -228,9 +229,9 @@ for SAM in "${SAMPLES[@]}"; do
 
     META="${OUT_PREFIX}.scan1_meta"
     SPLIT_NUM=$(grep "^fileSplitNum=" "$META" | cut -d= -f2)
-    # Confirm BSJ files were written
+    # Confirm BSJ files were written at new location
     for i in $(seq 1 "$SPLIT_NUM"); do
-        [[ -f "${SAM}BSJ${i}" ]] || fail "Missing BSJ file: ${SAM}BSJ${i}"
+        [[ -f "${OUT_PREFIX}BSJ${i}" ]] || fail "Missing BSJ file: ${OUT_PREFIX}BSJ${i}"
     done
     ok "SCAN1 BSJ files present for $SAMPLE_NAME"
 
@@ -255,21 +256,24 @@ SCAN2_IDX=0
 for SAM in "${SAMPLES[@]}"; do
     SCAN2_IDX=$((SCAN2_IDX+1))
     SAMPLE_NAME=$(basename "$SAM" .sam)
-    SCAN1_META="$SCAN1_DIR/${SAMPLE_NAME}.scan1_meta"
+    SCAN1_OUT_PREFIX="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}"
+    SCAN1_META="${SCAN1_OUT_PREFIX}.scan1_meta"
     SPLIT_NUM=$(grep "^fileSplitNum=" "$SCAN1_META" | cut -d= -f2)
-    OUT_PREFIX="$SCAN2_DIR/${SAMPLE_NAME}"
+    mkdir -p "$SCAN2_DIR/${SAMPLE_NAME}"
+    OUT_PREFIX="$SCAN2_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}"
     info "  SCAN2: $SAMPLE_NAME"
     bench_run "$(printf '30_scan2_%02d_%s' "$SCAN2_IDX" "$SAMPLE_NAME")" \
         ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN2 \
             -I "$SAM" \
             -CU "$UNIVERSE_DIR/cohort.universe" \
+            -SM "$SCAN1_META" \
             -O "$OUT_PREFIX" \
             -F "$REF_FA" \
             -T "$THREADS" \
         2>&1 | grep -E "scan|completed|FSJ|time" || true
     check_exists "SCAN2 FSJ counts ($SAMPLE_NAME)" "${OUT_PREFIX}.fsj_counts"
 
-    echo -e "$SAM\t${OUT_PREFIX}.fsj_counts\t${SPLIT_NUM}\t${SAMPLE_NAME}" >> "$FINALIZE_TSV"
+    echo -e "$SAM\t${OUT_PREFIX}.fsj_counts\t${SPLIT_NUM}\t${SAMPLE_NAME}\t${SCAN1_OUT_PREFIX}" >> "$FINALIZE_TSV"
 done
 
 # --- Stage 2b: FINALIZE ---
@@ -353,8 +357,8 @@ fi
 info "=== Checkpoint file format checks ==="
 
 # scan1_meta
-META_SAMPLE="$SCAN1_DIR/sample1.scan1_meta"
-for KEY in samFile readLen readNum fileSplitNum; do
+META_SAMPLE="$SCAN1_DIR/sample1/sample1.scan1_meta"
+for KEY in samFile readLen readNum fileSplitNum bsjPrefix; do
     if grep -q "^${KEY}=" "$META_SAMPLE"; then
         ok "scan1_meta has field: $KEY"
     else
@@ -371,7 +375,7 @@ else
 fi
 
 # fsj_counts format (4 tab-separated columns)
-FSJ_COUNTS_FILE="$SCAN2_DIR/sample1.fsj_counts"
+FSJ_COUNTS_FILE="$SCAN2_DIR/sample1/sample1.fsj_counts"
 BAD_LINES=$(awk 'NF!=4' "$FSJ_COUNTS_FILE" | wc -l)
 FSJ_TOTAL=$(wc -l < "$FSJ_COUNTS_FILE")
 if [[ "$BAD_LINES" -eq 0 ]] && [[ "$FSJ_TOTAL" -gt 0 ]]; then

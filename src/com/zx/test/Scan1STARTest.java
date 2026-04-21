@@ -107,7 +107,7 @@ public class Scan1STARTest {
                             if (threadNum > AllFileSplitNum) {
                                 break;
                             } else {
-                                scan1.findCircRNAScan1(bwaSamFile, AllFileSplitNum, threadNum, idCircMap);
+                                scan1.findCircRNAScan1(bwaSamFile, AllFileSplitNum, threadNum, idCircMap, outputFile);
                                 System.out.println(df.format(System.currentTimeMillis()) + " :First scan completed " + threadNum);
                                 fileLog.write(df.format(System.currentTimeMillis()) + " :First scan completed " + threadNum + "\n");
                             }
@@ -163,7 +163,7 @@ public class Scan1STARTest {
             getChiCirc.getBSJ(chimericPath);
             idCircMap = getChiCirc.getIdCircMap();
             getChiCirc = null;
-            String outBSJPath = bwaSamFile + "BSJ1";
+            String outBSJPath = outputFile + "BSJ1";
             BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(outBSJPath)));
             for (String idKey : idCircMap.keySet()) {
                 BSJOut.write(idCircMap.get(idKey) + "\n");
@@ -175,7 +175,7 @@ public class Scan1STARTest {
 
             // Delete stale BSJ2-BSJn from any previous SCAN2 run to prevent contamination
             for (int k = 2; k <= AllFileSplitNum; k++) {
-                new File(bwaSamFile + "BSJ" + k).delete();
+                new File(outputFile + "BSJ" + k).delete();
             }
 
             // Release threads for scan1
@@ -186,7 +186,7 @@ public class Scan1STARTest {
             // Log BSJ file counts after scan1
             long bsjTotal = 0, bsjTagOne = 0;
             for (int k = 1; k <= AllFileSplitNum; k++) {
-                java.io.File bsjFile = new java.io.File(bwaSamFile + "BSJ" + k);
+                java.io.File bsjFile = new java.io.File(outputFile + "BSJ" + k);
                 long fl = 0, ft1 = 0;
                 if (bsjFile.exists()) {
                     java.io.BufferedReader bsjBr = new java.io.BufferedReader(new java.io.FileReader(bsjFile));
@@ -209,6 +209,7 @@ public class Scan1STARTest {
             metaBw.write("readLen=" + seqLen + "\n");
             metaBw.write("readNum=0\n");
             metaBw.write("fileSplitNum=" + AllFileSplitNum + "\n");
+            metaBw.write("bsjPrefix=" + outputFile + "\n");
             metaBw.close();
             System.out.println(df.format(System.currentTimeMillis()) + " :Scan1 metadata written to " + metaPath);
             fileLog.write(df.format(System.currentTimeMillis()) + " :Scan1 metadata written to " + metaPath + "\n");

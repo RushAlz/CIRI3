@@ -55,10 +55,14 @@ public class FinalizeTest {
         System.out.println(df.format(System.currentTimeMillis()) + " :FINALIZE start");
 
         // Step 1: Read finalize input TSV
+        // Format: samFile  fsjCountsFile  fileSplitNum  sampleName  [bsjPrefix]
+        // The 5th column (bsjPrefix) is optional; if absent, samFilePath is used.
         ArrayList<String> filePathList = new ArrayList<String>();
         HashMap<String, Integer> fileSplitNumMap = new HashMap<String, Integer>();
         ArrayList<String> fsjCountsFileList = new ArrayList<String>();
         ArrayList<String> sampleNameList = new ArrayList<String>();
+        ArrayList<String> bsjPrefixList = new ArrayList<String>();
+        HashMap<String, Integer> bsjPrefixSplitNumMap = new HashMap<String, Integer>();
 
         BufferedReader tsvBr = new BufferedReader(new FileReader(new File(finalizeInputTsv)));
         String tsvLine = tsvBr.readLine();
@@ -72,10 +76,13 @@ public class FinalizeTest {
             String fsjCountsPath = arr[1].trim();
             int splitNum = Integer.parseInt(arr[2].trim());
             String sampleName = arr[3].trim();
+            String bsjPrefix = (arr.length >= 5 && !arr[4].trim().isEmpty()) ? arr[4].trim() : samFilePath;
             filePathList.add(samFilePath);
             fileSplitNumMap.put(samFilePath, splitNum);
             fsjCountsFileList.add(fsjCountsPath);
             sampleNameList.add(sampleName);
+            bsjPrefixList.add(bsjPrefix);
+            bsjPrefixSplitNumMap.put(bsjPrefix, splitNum);
             tsvLine = tsvBr.readLine();
         }
         tsvBr.close();
@@ -173,12 +180,12 @@ public class FinalizeTest {
         int[][] BSJmatrix = new int[circNum][sampleCount];
         for (int i = 0; i < sampleCount; i++) {
             HashMap<String, Integer> circMap = new HashMap<String, Integer>();
-            String samFilePath = filePathList.get(i);
-            int splitNum = fileSplitNumMap.get(samFilePath);
+            String bsjPrefix = bsjPrefixList.get(i);
+            int splitNum = bsjPrefixSplitNumMap.get(bsjPrefix);
             long totalLines = 0, tagOneLines = 0, unknownCirc = 0;
             for (int j = 1; j <= splitNum; j++) {
                 long fileLines = 0, fileTagOne = 0;
-                BufferedReader BSJBr = new BufferedReader(new FileReader(new File(samFilePath + "BSJ" + j)));
+                BufferedReader BSJBr = new BufferedReader(new FileReader(new File(bsjPrefix + "BSJ" + j)));
                 String line = BSJBr.readLine();
                 while (line != null) {
                     fileLines++;
@@ -212,7 +219,7 @@ public class FinalizeTest {
 
         // Step 6: Run Summary
         Summary summary = new Summary(strigency, chrTCGAMap);
-        ArrayList<String> SummaryCircList = summary.summary(filePathList, fileSplitNumMap, circFSJMerged, "");
+        ArrayList<String> SummaryCircList = summary.summary(bsjPrefixList, bsjPrefixSplitNumMap, circFSJMerged, "");
         HashMap<String, String> circTrueIdMap = summary.getCircMap();
         summary = null;
         chrTCGAMap = null;

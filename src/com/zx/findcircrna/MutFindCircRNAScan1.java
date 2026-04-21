@@ -24,8 +24,8 @@ public class MutFindCircRNAScan1 extends FindCircRNAScan1{
 	}
 
 	
-	public void findCircRNAScan1(String samFile, int threads, int threadNum) throws IOException {		
-		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(samFile+"BSJ"+threadNum)));
+	public void findCircRNAScan1(String samFile, int threads, int threadNum, String bsjPrefix) throws IOException {
+		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(bsjPrefix+"BSJ"+threadNum)));
 		boolean matchLable = false;
 		FileInputStream fileIn = new FileInputStream(samFile);
 		FileChannel fileChannel = fileIn.getChannel();

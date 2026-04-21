@@ -96,7 +96,7 @@ public class MutFileSTARTest {
 									if (threadNum > AllFileSplitNum) {
 										break;
 									}else {
-										scan1.findCircRNAScan1(bwaSamFile,AllFileSplitNum,threadNum,idCircMap);																
+										scan1.findCircRNAScan1(bwaSamFile,AllFileSplitNum,threadNum,idCircMap,bwaSamFile);																
 									}
 								}
 								threadSub.await();
@@ -108,7 +108,7 @@ public class MutFileSTARTest {
 								if (threadNum > AllFileSplitNum) {
 									break;
 								}else {
-									scan1.findCircRNAScan1(bwaSamFile,AllFileSplitNum,threadNum,idCircMap);														
+									scan1.findCircRNAScan1(bwaSamFile,AllFileSplitNum,threadNum,idCircMap,bwaSamFile);														
 								}
 							}
 					 		//获取最长read长度
@@ -127,14 +127,14 @@ public class MutFileSTARTest {
 							
 							//第二遍扫描
 							MutFindCircRNAScan2 scan2 = new MutFindCircRNAScan2(minMapqUni,circFSJMap,linear_range_size_min,siteArrayMap1,siteArrayMap2,chrSiteMap1,chrSiteMap2,
-				    				chrTCGAMap,seqLen,intronLable);  
+				    				chrTCGAMap,seqLen,intronLable);
 							for (int j = 0; j < filePathList.size(); j++) {
 								while(true) {
 									int threadNum = incr.getAndIncrement();
 									if (threadNum > AllFileSplitNum) {
 										break;
 									}else {
-										scan2.findCircRNAScan2(bwaSamFile,idCircMap,AllFileSplitNum,threadNum);																
+										scan2.findCircRNAScan2(bwaSamFile,idCircMap,AllFileSplitNum,threadNum,bwaSamFile);																
 									}								
 								}
 								HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();

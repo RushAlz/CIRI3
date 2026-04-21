@@ -32,6 +32,7 @@ public class BuildUniverseTest {
         // Step 1: Read samples TSV and all scan1_meta files
         ArrayList<String> filePathList = new ArrayList<String>();
         HashMap<String, Integer> fileSplitNumMap = new HashMap<String, Integer>();
+        HashMap<String, String> bsjPrefixMap = new HashMap<String, String>();
         int globalReadLen = 0;
 
         BufferedReader tsvBr = new BufferedReader(new FileReader(new File(samplesMetaTsv)));
@@ -58,6 +59,8 @@ public class BuildUniverseTest {
                 } else if (metaLine.startsWith("fileSplitNum=")) {
                     int splitNum = Integer.parseInt(metaLine.split("=")[1].trim());
                     fileSplitNumMap.put(samFilePath, splitNum);
+                } else if (metaLine.startsWith("bsjPrefix=")) {
+                    bsjPrefixMap.put(samFilePath, metaLine.split("=", 2)[1].trim());
                 }
                 metaLine = metaBr.readLine();
             }
@@ -87,8 +90,9 @@ public class BuildUniverseTest {
         for (int i = 0; i < filePathList.size(); i++) {
             String samFilePath = filePathList.get(i);
             int splitNum = fileSplitNumMap.get(samFilePath);
+            String bsjBase = bsjPrefixMap.containsKey(samFilePath) ? bsjPrefixMap.get(samFilePath) : samFilePath;
             for (int j = 1; j <= splitNum; j++) {
-                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(samFilePath + "BSJ" + j)));
+                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjBase + "BSJ" + j)));
                 String line = BSJbr.readLine();
                 while (line != null) {
                     String[] BSJArr = line.split("\t", 5);

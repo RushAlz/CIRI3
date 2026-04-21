@@ -62,6 +62,13 @@ SAMPLES=(
     "PARDOS_2_S2"
 )
 
+SAMPLE_IDS=(
+    "Div_100_S91"
+    "Div_101_S92"
+    "PARDOS_1_S1"
+    "PARDOS_2_S2"
+)
+
 # ---------------------------------------------------------------------------
 # Derived paths
 # ---------------------------------------------------------------------------
@@ -202,21 +209,21 @@ info "=== Decoupled pipeline (CIRI3_decoupled.jar, BWA) ==="
 
 # --- Stage 1: SCAN1 (per sample) ---
 info "--- Stage 1: SCAN1 ---"
-SCAN1_IDX=0
-for S in "${SAMPLES[@]}"; do
-    SCAN1_IDX=$((SCAN1_IDX+1))
+for i in "${!SAMPLES[@]}"; do
+    S="${SAMPLES[$i]}"
+    SAMPLE_ID="${SAMPLE_IDS[$i]}"
     BWA_SAM="${DATA_DIR}/${S}.sam"
-    OUT_PREFIX="${SCAN1_DIR}/${S}"
+    mkdir -p "${SCAN1_DIR}/${SAMPLE_ID}"
+    OUT_PREFIX="${SCAN1_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
     META="${OUT_PREFIX}.scan1_meta"
 
     if [[ -s "$META" ]]; then
-        info "  [SKIP] SCAN1 already done for $S"
+        info "  [SKIP] SCAN1 already done for $SAMPLE_ID"
     else
-        # Wipe any stale BSJ files from a previous run (different -T) so that
-        # SCAN2's on-disk BSJ enumeration only sees files from this run.
-        rm -f "${BWA_SAM}BSJ"*
-        info "  SCAN1: $S"
-        bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${S}")" \
+        # Wipe stale BSJ files at both old and new locations.
+        rm -f "${OUT_PREFIX}BSJ"* "${BWA_SAM}BSJ"*
+        info "  SCAN1: $SAMPLE_ID"
+        bench_run "$(printf '10_scan1_%02d_%s' "$((i+1))" "${SAMPLE_ID}")" \
             "${JAVA_NEW[@]}" SCAN1 \
                 -I "${BWA_SAM}" \
                 -O "${OUT_PREFIX}" \
@@ -226,14 +233,14 @@ for S in "${SAMPLES[@]}"; do
             2>&1 | grep -E "scan|meta|time|Mapped" || true
     fi
 
-    check_exists "SCAN1 meta ($S)" "${META}"
+    check_exists "SCAN1 meta ($SAMPLE_ID)" "${META}"
 
     SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
     local_fail=0
-    for i in $(seq 1 "${SPLIT_NUM}"); do
-        [[ -f "${BWA_SAM}BSJ${i}" ]] || { fail "Missing BSJ file: ${BWA_SAM}BSJ${i}"; local_fail=1; }
+    for j in $(seq 1 "${SPLIT_NUM}"); do
+        [[ -f "${OUT_PREFIX}BSJ${j}" ]] || { fail "Missing BSJ file: ${OUT_PREFIX}BSJ${j}"; local_fail=1; }
     done
-    [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for $S (${SPLIT_NUM} splits)"
+    [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for $SAMPLE_ID (${SPLIT_NUM} splits)"
 
     echo -e "${BWA_SAM}\t${META}" >> "$SCAN1_META_TSV"
 done
@@ -257,31 +264,34 @@ info "Universe: ${UNIVERSE_CIRCS} circRNA candidates."
 
 # --- Stage 3: SCAN2 (per sample) ---
 info "--- Stage 3: SCAN2 ---"
-SCAN2_IDX=0
-for S in "${SAMPLES[@]}"; do
-    SCAN2_IDX=$((SCAN2_IDX+1))
+for i in "${!SAMPLES[@]}"; do
+    S="${SAMPLES[$i]}"
+    SAMPLE_ID="${SAMPLE_IDS[$i]}"
     BWA_SAM="${DATA_DIR}/${S}.sam"
-    META="${SCAN1_DIR}/${S}.scan1_meta"
+    SCAN1_OUT_PREFIX="${SCAN1_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
+    META="${SCAN1_OUT_PREFIX}.scan1_meta"
     SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
-    OUT_PREFIX="${SCAN2_DIR}/${S}"
+    mkdir -p "${SCAN2_DIR}/${SAMPLE_ID}"
+    OUT_PREFIX="${SCAN2_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
     FSJ_COUNTS="${OUT_PREFIX}.fsj_counts"
 
     if [[ -s "$FSJ_COUNTS" ]]; then
-        info "  [SKIP] SCAN2 already done for $S"
+        info "  [SKIP] SCAN2 already done for $SAMPLE_ID"
     else
-        info "  SCAN2: $S"
-        bench_run "$(printf '30_scan2_%02d_%s' "${SCAN2_IDX}" "${S}")" \
+        info "  SCAN2: $SAMPLE_ID"
+        bench_run "$(printf '30_scan2_%02d_%s' "$((i+1))" "${SAMPLE_ID}")" \
             "${JAVA_NEW[@]}" SCAN2 \
                 -I "${BWA_SAM}" \
                 -CU "${UNIVERSE_FILE}" \
+                -SM "${META}" \
                 -O "${OUT_PREFIX}" \
                 -F "${REF_FA}" \
                 -T "${THREADS}" "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|FSJ|BSJ|time" || true
     fi
-    check_exists "SCAN2 FSJ counts ($S)" "${FSJ_COUNTS}"
+    check_exists "SCAN2 FSJ counts ($SAMPLE_ID)" "${FSJ_COUNTS}"
 
-    echo -e "${BWA_SAM}\t${FSJ_COUNTS}\t${SPLIT_NUM}\t${S}" >> "$FINALIZE_TSV"
+    echo -e "${BWA_SAM}\t${FSJ_COUNTS}\t${SPLIT_NUM}\t${SAMPLE_ID}\t${SCAN1_OUT_PREFIX}" >> "$FINALIZE_TSV"
 done
 
 # --- Stage 4: FINALIZE ---

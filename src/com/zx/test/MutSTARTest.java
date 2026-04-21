@@ -119,7 +119,7 @@ public class MutSTARTest {
 								if (threadNum > AllFileSplitNum) {
 									break;
 								}else {
-									scan1.findCircRNAScan1(bwaSamFile,AllFileSplitNum,threadNum,idCircMap);								
+									scan1.findCircRNAScan1(bwaSamFile,AllFileSplitNum,threadNum,idCircMap,bwaSamFile);								
 									System.out.println(df.format(System.currentTimeMillis())+" "+":First scan completed "+threadNum); 
 									fileLog.write(df.format(System.currentTimeMillis())+" "+":First scan completed "+threadNum+"\n");								
 								}
@@ -138,13 +138,13 @@ public class MutSTARTest {
 							
 							//第二遍扫描
 							MutFindCircRNAScan2 scan2 = new MutFindCircRNAScan2(minMapqUni,circFSJMap,linear_range_size_min,siteArrayMap1,siteArrayMap2,chrSiteMap1,chrSiteMap2,
-				    				chrTCGAMap,seqLen,intronLable);  
+				    				chrTCGAMap,seqLen,intronLable);
 							while(true) {
 								int threadNum= incr.getAndIncrement();
 								if (threadNum > AllFileSplitNum) {
 									break;
 								}else {
-									scan2.findCircRNAScan2(bwaSamFile,idCircMap,AllFileSplitNum,threadNum);														
+									scan2.findCircRNAScan2(bwaSamFile,idCircMap,AllFileSplitNum,threadNum,bwaSamFile);														
 									System.out.println(df.format(System.currentTimeMillis())+" "+":unmapSam Second scan completed "+threadNum);  
 									fileLog.write(df.format(System.currentTimeMillis())+" "+":unmapSam Second scan completed "+threadNum+"\n");															
 								}

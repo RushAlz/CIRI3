@@ -92,7 +92,7 @@ public class MutTsvFileTest {
 								if (threadNum > AllFileSplitNum) {
 									break;
 								}else {
-									scan1.findCircRNAScan1(samFile,AllFileSplitNum,threadNum);																
+									scan1.findCircRNAScan1(samFile,AllFileSplitNum,threadNum,samFile);																
 								}
 							}
 				 			//获取最长read长度
@@ -109,7 +109,7 @@ public class MutTsvFileTest {
 							if (threadNum > AllFileSplitNum) {
 								break;
 							}else {
-								scan1.findCircRNAScan1(samFile,AllFileSplitNum,threadNum);																
+								scan1.findCircRNAScan1(samFile,AllFileSplitNum,threadNum,samFile);																
 							}
 						}
 				 		//获取最长read长度
@@ -145,7 +145,7 @@ public class MutTsvFileTest {
 										line = BSJbr.readLine();
 									}
 									BSJbr.close();
-									scan2.findCircRNAScan2(samFile,scan1IdMap,AllFileSplitNum,threadNum);																
+									scan2.findCircRNAScan2(samFile,scan1IdMap,AllFileSplitNum,threadNum,samFile);																
 								}								
 							}
 							HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();

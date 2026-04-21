@@ -55,7 +55,7 @@ public class Scan2Test {
      * threads:      thread count (should match the count used in SCAN1)
      */
     public boolean CIRI3(String inputFile, String outputFile, String universeFile,
-            String faFile, String annotationFile, int threads) throws IOException {
+            String faFile, String annotationFile, int threads, String scan1MetaFile) throws IOException {
         long startTime = System.currentTimeMillis();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String outputFileLog = outputFile + ".log";
@@ -74,6 +74,19 @@ public class Scan2Test {
             System.out.println("Please enter the file that ends with sam or bam");
             return false;
         }
+
+        // Resolve BSJ prefix: read from scan1_meta if provided, else fall back to samFile
+        String bsjPrefix = samFile;
+        if (!scan1MetaFile.equals("F")) {
+            BufferedReader metaBr = new BufferedReader(new FileReader(new File(scan1MetaFile)));
+            String ml;
+            while ((ml = metaBr.readLine()) != null) {
+                if (ml.startsWith("bsjPrefix=")) { bsjPrefix = ml.split("=", 2)[1].trim(); break; }
+            }
+            metaBr.close();
+        }
+        System.out.println(df.format(System.currentTimeMillis()) + " :BSJ prefix: " + bsjPrefix);
+        fileLog.write(df.format(System.currentTimeMillis()) + " :BSJ prefix: " + bsjPrefix + "\n");
 
         // Step 1: Read universe file
         int[] seqLenOut = new int[1];
@@ -147,13 +160,13 @@ public class Scan2Test {
         chrUniverseMap = null;
         universeDataMap = null;
 
-        // Determine AllFileSplitNum from BSJ file count
+        // Determine AllFileSplitNum from BSJ file count (using bsjPrefix)
         AllFileSplitNum = 0;
-        while (new File(samFile + "BSJ" + (AllFileSplitNum + 1)).exists()) {
+        while (new File(bsjPrefix + "BSJ" + (AllFileSplitNum + 1)).exists()) {
             AllFileSplitNum++;
         }
         if (AllFileSplitNum == 0) {
-            System.out.println("ERROR: No BSJ files found at " + samFile + "BSJ1. Run SCAN1 first.");
+            System.out.println("ERROR: No BSJ files found at " + bsjPrefix + "BSJ1. Run SCAN1 first.");
             fileLog.close();
             return false;
         }
@@ -161,6 +174,7 @@ public class Scan2Test {
         fileLog.write(df.format(System.currentTimeMillis()) + " :AllFileSplitNum=" + AllFileSplitNum + "\n");
 
         // Step 4: Launch thread pool and run scan2 (identical to MutTest lines 118-154)
+        final String bsjPrefixFinal = bsjPrefix;
         ExecutorService poolExe = Executors.newFixedThreadPool(threads);
         final CyclicBarrier threadSub = new CyclicBarrier(threads + 1);
         final CyclicBarrier threadMain = new CyclicBarrier(threads + 1);
@@ -182,7 +196,7 @@ public class Scan2Test {
                             } else {
                                 scan1IdMap.clear();
                                 BufferedReader BSJbr = new BufferedReader(
-                                        new FileReader(new File(samFile + "BSJ" + threadNum)));
+                                        new FileReader(new File(bsjPrefixFinal + "BSJ" + threadNum)));
                                 String line = BSJbr.readLine();
                                 while (line != null) {
                                     String[] BSJArr = line.split("\t", 2);
@@ -190,7 +204,7 @@ public class Scan2Test {
                                     line = BSJbr.readLine();
                                 }
                                 BSJbr.close();
-                                scan2.findCircRNAScan2(samFile, scan1IdMap, AllFileSplitNum, threadNum);
+                                scan2.findCircRNAScan2(samFile, scan1IdMap, AllFileSplitNum, threadNum, bsjPrefixFinal);
                                 System.out.println(df.format(System.currentTimeMillis()) + " :Second scan completed " + threadNum);
                                 fileLog.write(df.format(System.currentTimeMillis()) + " :Second scan completed " + threadNum + "\n");
                             }

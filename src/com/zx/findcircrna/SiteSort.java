@@ -3,10 +3,18 @@ package com.zx.findcircrna;
 public class SiteSort implements Comparable<SiteSort> {
 	private Integer site;
 	private String[] length;
+	private int tieKey;
 
 	public SiteSort(int site, String[] length) {
 		this.site = site;
 		this.length = length;
+		this.tieKey = 0;
+	}
+
+	public SiteSort(int site, String[] length, int tieKey) {
+		this.site = site;
+		this.length = length;
+		this.tieKey = tieKey;
 	}
 
 	public String[] getLength() {
@@ -21,8 +29,6 @@ public class SiteSort implements Comparable<SiteSort> {
 	public int compareTo(SiteSort other) {
 		int cmp = this.site - other.site;
 		if (cmp != 0) return cmp;
-		cmp = Integer.parseInt(this.length[0]) - Integer.parseInt(other.length[0]);
-		if (cmp != 0) return cmp;
-		return Integer.parseInt(this.length[1]) - Integer.parseInt(other.length[1]);
+		return this.tieKey - other.tieKey;
 	}
 }

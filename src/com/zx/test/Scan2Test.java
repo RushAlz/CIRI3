@@ -140,11 +140,11 @@ public class Scan2Test {
                 if (!SiteMap1.containsKey(site1)) {
                     SiteMap1.put(site1, new ArrayList<SiteSort>());
                 }
-                SiteMap1.get(site1).add(new SiteSort(Integer.parseInt(arr[0]), arr));
+                SiteMap1.get(site1).add(new SiteSort(Integer.parseInt(arr[0]), arr, Integer.parseInt(arr[1])));
                 if (!SiteMap2.containsKey(site2)) {
                     SiteMap2.put(site2, new ArrayList<SiteSort>());
                 }
-                SiteMap2.get(site2).add(new SiteSort(Integer.parseInt(arr[1]), arr));
+                SiteMap2.get(site2).add(new SiteSort(Integer.parseInt(arr[1]), arr, Integer.parseInt(arr[0])));
             }
             // Sort site lists
             for (Integer site : SiteMap1.keySet()) {

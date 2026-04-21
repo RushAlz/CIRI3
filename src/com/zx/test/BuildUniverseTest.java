@@ -137,20 +137,20 @@ public class BuildUniverseTest {
                 siteArray2[site2] = 1;
                 if (!SiteMap1.containsKey(site1)) {
                     siteList1 = new ArrayList<SiteSort>();
-                    siteList1.add(new SiteSort(Integer.parseInt(arr[0]), arr));
+                    siteList1.add(new SiteSort(Integer.parseInt(arr[0]), arr, Integer.parseInt(arr[1])));
                     SiteMap1.put(site1, siteList1);
                 } else {
                     siteList1 = SiteMap1.get(site1);
-                    siteList1.add(new SiteSort(Integer.parseInt(arr[0]), arr));
+                    siteList1.add(new SiteSort(Integer.parseInt(arr[0]), arr, Integer.parseInt(arr[1])));
                     SiteMap1.put(site1, siteList1);
                 }
                 if (!SiteMap2.containsKey(site2)) {
                     siteList2 = new ArrayList<SiteSort>();
-                    siteList2.add(new SiteSort(Integer.parseInt(arr[1]), arr));
+                    siteList2.add(new SiteSort(Integer.parseInt(arr[1]), arr, Integer.parseInt(arr[0])));
                     SiteMap2.put(site2, siteList2);
                 } else {
                     siteList2 = SiteMap2.get(site2);
-                    siteList2.add(new SiteSort(Integer.parseInt(arr[1]), arr));
+                    siteList2.add(new SiteSort(Integer.parseInt(arr[1]), arr, Integer.parseInt(arr[0])));
                     SiteMap2.put(site2, siteList2);
                 }
             }

@@ -136,8 +136,10 @@ Rscript -e "rmarkdown::render('scripts/validation_report.Rmd', \
 ```
 
 That produces
-[`scripts/validation_report.html`](./scripts/validation_report.html) —
-per-sample BSJ/FSJ scatter plots, cell-level agreement tables,
+[`scripts/validation_report.html`](./scripts/validation_report.html)
+(view rendered on GitHub via
+[htmlpreview](https://htmlpreview.github.io/?https://github.com/RushAlz/CIRI3/blob/main/scripts/validation_report.html))
+— per-sample BSJ/FSJ scatter plots, cell-level agreement tables,
 Pearson/Spearman correlations, the largest remaining disagreements, and
 the per-stage benchmark (wall time, CPU%, peak RAM) collected by
 `scripts/_bench.sh`.
@@ -151,7 +153,18 @@ the per-stage benchmark (wall time, CPU%, peak RAM) collected by
 - JDK 8 or later (`javac`, `jar`)
 - `lib/htsjdk-3.0.4.jar` (included in the repository)
 
-### Compile
+### Quick build (recommended)
+
+```bash
+bash scripts/build_jar.sh
+```
+
+This compiles `src/` with `-source 8 -target 8`, bundles
+`lib/htsjdk-3.0.4.jar`, and writes a runnable
+`CIRI3_decoupled.jar` at the repository root. The jar is also checked
+in — you only need to rebuild it if you change Java sources.
+
+### Manual compile
 
 ```bash
 mkdir -p bin
@@ -160,7 +173,7 @@ javac -source 8 -target 8 -cp "lib/htsjdk-3.0.4.jar" -d bin @sources.txt
 rm sources.txt
 ```
 
-### Create a distributable JAR
+### Manual distributable JAR
 
 Create a manifest file that sets the main class and bundles the htsjdk dependency:
 
@@ -182,11 +195,12 @@ jar cfm "CIRI3_Java_${JAVA_VERSION}.jar" MANIFEST.MF -C bin .
 rm MANIFEST.MF
 ```
 
-The resulting `CIRI3_Java_<version>.jar` is self-contained and can be used as:
+The resulting `CIRI3_Java_<version>.jar` (or `CIRI3_decoupled.jar` from
+the helper script) is self-contained and can be used as:
 
 ```bash
-java -jar CIRI3_Java_<version>.jar -I sample.sam -O result -F ref.fa
-java -jar CIRI3_Java_<version>.jar SCAN1 -I sample.sam -O sample -F ref.fa -T 8
+java -jar CIRI3_decoupled.jar -I sample.sam -O result -F ref.fa
+java -jar CIRI3_decoupled.jar SCAN1 -I sample.sam -O sample -F ref.fa -T 8
 ```
 
 ---

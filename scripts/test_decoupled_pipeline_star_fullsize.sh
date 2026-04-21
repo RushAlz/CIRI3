@@ -79,7 +79,7 @@ SAMPLE_IDS=(
 # ---------------------------------------------------------------------------
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-ORIGINAL_JAR="${REPO_ROOT}/CIRI3_Java_1.8.0.jar"       # published ground truth
+ORIGINAL_JAR="${REPO_ROOT}/CIRI3_Java_18.0.1.jar"       # published ground truth
 DECOUPLED_JAR="${REPO_ROOT}/CIRI3_decoupled.jar"       # built from this repo
 
 [[ -z "$OUT_ROOT" ]] && OUT_ROOT="${DATA_DIR}/decoupled_comparison"

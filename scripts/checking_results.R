@@ -1,21 +1,16 @@
 library(tidyverse)
 
-setwd("/pastel/tools/circRNA_tools/test_data/decoupled_comparison")
-# setwd("/pastel/tools/circRNA_tools/test_data/decoupled_bwa_comparison")
+setwd("/pastel/Github_scripts/CIRI3/test_decoupled_manual")
 
 # Compare results from joint analysis 
-joint_res_df = read_tsv("original/result")
-head(joint_res_df)
-joint_BSJ_res = read_tsv("original/result.BSJ_Matrix")
-joint_FSJ_res = read_tsv("original/result.FSJ_Matrix")
-# joint_BSJ_res = read_tsv("/pastel/tools/circRNA_tools/test_data/CIRI3_joint_results.txt.BSJ_Matrix")
-# joint_FSJ_res = read_tsv("/pastel/tools/circRNA_tools/test_data/CIRI3_joint_results.txt.FSJ_Matrix")
+joint_res_df = read_tsv("multi_bam/CIRI3_joint_results.txt")
+joint_BSJ_res = read_tsv("multi_bam/CIRI3_joint_results.txt.BSJ_Matrix")
+joint_FSJ_res = read_tsv("multi_bam/CIRI3_joint_results.txt.FSJ_Matrix")
 
 # Compare results from decoupled analysis
-decoupled_res_df = read_tsv("decoupled/finalize/result")
-head(decoupled_res_df)
-decoupled_BSJ_res = read_tsv("decoupled/finalize/result.BSJ_Matrix")
-decoupled_FSJ_res = read_tsv("decoupled/finalize/result.FSJ_Matrix")
+decoupled_res_df = read_tsv("result")
+decoupled_BSJ_res = read_tsv("result.BSJ_Matrix")
+decoupled_FSJ_res = read_tsv("result.FSJ_Matrix")
 
 colnames(joint_BSJ_res) = colnames(decoupled_BSJ_res)
 colnames(joint_FSJ_res) = colnames(decoupled_FSJ_res)

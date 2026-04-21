@@ -115,6 +115,19 @@ ok()    { echo "[PASS]  $*"; PASS=$((PASS+1)); }
 fail()  { echo "[FAIL]  $*"; FAIL=$((FAIL+1)); }
 die()   { echo "[ERROR] $*" >&2; exit 1; }
 
+# Build a comma-separated list of BSJ file paths from a scan1_meta file.
+make_bsj_list() {
+    local sam="$1" meta="$2"
+    local n
+    n=$(grep "^fileSplitNum=" "$meta" | cut -d= -f2)
+    local list=""
+    for i in $(seq 1 "$n"); do
+        [[ -n "$list" ]] && list="${list},"
+        list="${list}${sam}BSJ${i}"
+    done
+    echo "$list"
+}
+
 check_exists() {
     local label="$1" f="$2"
     if [[ -s "$f" ]]; then ok "$label exists and is non-empty"
@@ -235,7 +248,8 @@ for S in "${SAMPLES[@]}"; do
     done
     [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for $S (${SPLIT_NUM} splits)"
 
-    echo -e "${BWA_SAM}\t${META}" >> "$SCAN1_META_TSV"
+    BSJ_LIST=$(make_bsj_list "${BWA_SAM}" "${META}")
+    echo -e "${BWA_SAM}\t${META}\t${BSJ_LIST}" >> "$SCAN1_META_TSV"
 done
 
 # --- Stage 2: BUILD_UNIVERSE ---
@@ -262,7 +276,7 @@ for S in "${SAMPLES[@]}"; do
     SCAN2_IDX=$((SCAN2_IDX+1))
     BWA_SAM="${DATA_DIR}/${S}.sam"
     META="${SCAN1_DIR}/${S}.scan1_meta"
-    SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
+    BSJ_LIST=$(make_bsj_list "${BWA_SAM}" "${META}")
     OUT_PREFIX="${SCAN2_DIR}/${S}"
     FSJ_COUNTS="${OUT_PREFIX}.fsj_counts"
 
@@ -274,6 +288,7 @@ for S in "${SAMPLES[@]}"; do
             "${JAVA_NEW[@]}" SCAN2 \
                 -I "${BWA_SAM}" \
                 -CU "${UNIVERSE_FILE}" \
+                -BSJ "${BSJ_LIST}" \
                 -O "${OUT_PREFIX}" \
                 -F "${REF_FA}" \
                 -T "${THREADS}" "${INTRON_FLAG[@]}" \
@@ -281,7 +296,7 @@ for S in "${SAMPLES[@]}"; do
     fi
     check_exists "SCAN2 FSJ counts ($S)" "${FSJ_COUNTS}"
 
-    echo -e "${BWA_SAM}\t${FSJ_COUNTS}\t${SPLIT_NUM}\t${S}" >> "$FINALIZE_TSV"
+    echo -e "${BWA_SAM}\t${FSJ_COUNTS}\t${BSJ_LIST}\t${S}" >> "$FINALIZE_TSV"
 done
 
 # --- Stage 4: FINALIZE ---

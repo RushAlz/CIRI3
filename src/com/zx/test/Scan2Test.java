@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.CyclicBarrier;
@@ -47,15 +48,17 @@ public class Scan2Test {
     public static HashMap<String, byte[]> siteArrayMap1, siteArrayMap2;
 
     /**
-     * inputFile:    SAM/BAM file (same as used in SCAN1; BSJ files must exist at {samFile}BSJ{i})
+     * inputFile:    SAM/BAM file (same as used in SCAN1)
      * outputFile:   output prefix; writes {outputFile}.fsj_counts
      * universeFile: path to .universe file from BUILD_UNIVERSE
      * faFile:       FASTA reference genome
-     * annotationFile: annotation file path or "F" (not used for scan2 itself, kept for API symmetry)
-     * threads:      thread count (should match the count used in SCAN1)
+     * annotationFile: annotation file path or "F" (kept for API symmetry)
+     * threads:      worker thread count (independent of fileSplitNum)
+     * bsjFilesArg:  comma-separated list of BSJ file paths produced by SCAN1
+     *               (authoritative; prevents stale files from a previous run leaking in)
      */
     public boolean CIRI3(String inputFile, String outputFile, String universeFile,
-            String faFile, String annotationFile, int threads) throws IOException {
+            String faFile, String annotationFile, int threads, String bsjFilesArg) throws IOException {
         long startTime = System.currentTimeMillis();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String outputFileLog = outputFile + ".log";
@@ -147,18 +150,21 @@ public class Scan2Test {
         chrUniverseMap = null;
         universeDataMap = null;
 
-        // Determine AllFileSplitNum from BSJ file count
-        AllFileSplitNum = 0;
-        while (new File(samFile + "BSJ" + (AllFileSplitNum + 1)).exists()) {
-            AllFileSplitNum++;
+        // Use the explicit BSJ file list supplied by the caller (-BSJ flag).
+        // This prevents stale BSJ files left over from a prior run (different
+        // thread count) from being picked up via filesystem discovery.
+        ArrayList<String> bsjFileList = new ArrayList<String>(Arrays.asList(bsjFilesArg.split(",")));
+        for (int k = bsjFileList.size() - 1; k >= 0; k--) {
+            bsjFileList.set(k, bsjFileList.get(k).trim());
         }
-        if (AllFileSplitNum == 0) {
-            System.out.println("ERROR: No BSJ files found at " + samFile + "BSJ1. Run SCAN1 first.");
+        if (bsjFileList.isEmpty() || bsjFileList.get(0).isEmpty()) {
+            System.out.println("ERROR: No BSJ files provided via -BSJ. Run SCAN1 first and pass its BSJ outputs.");
             fileLog.close();
             return false;
         }
-        System.out.println(df.format(System.currentTimeMillis()) + " :AllFileSplitNum=" + AllFileSplitNum);
-        fileLog.write(df.format(System.currentTimeMillis()) + " :AllFileSplitNum=" + AllFileSplitNum + "\n");
+        AllFileSplitNum = bsjFileList.size();
+        System.out.println(df.format(System.currentTimeMillis()) + " :AllFileSplitNum=" + AllFileSplitNum + " (from explicit BSJ list)");
+        fileLog.write(df.format(System.currentTimeMillis()) + " :AllFileSplitNum=" + AllFileSplitNum + " (from explicit BSJ list)\n");
 
         // Step 4: Launch thread pool and run scan2 (identical to MutTest lines 118-154)
         ExecutorService poolExe = Executors.newFixedThreadPool(threads);
@@ -182,7 +188,7 @@ public class Scan2Test {
                             } else {
                                 scan1IdMap.clear();
                                 BufferedReader BSJbr = new BufferedReader(
-                                        new FileReader(new File(samFile + "BSJ" + threadNum)));
+                                        new FileReader(new File(bsjFileList.get(threadNum - 1))));
                                 String line = BSJbr.readLine();
                                 while (line != null) {
                                     String[] BSJArr = line.split("\t", 2);

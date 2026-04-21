@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import com.zx.findcircrna.CircRNAUniverseIO;
@@ -33,8 +34,13 @@ public class FinalizeTest {
     /**
      * Merges FSJ counts from all samples, runs Summary + Annotation, and writes matrix outputs.
      *
-     * finalizeInputTsv: five-column TSV per sample:
-     *   samFile  fsjCountsFile  fileSplitNum  sampleName  bsjCountsFile
+     * finalizeInputTsv: four-column TSV per sample:
+     *   samFile  fsjCountsFile  bsjFile1,bsjFile2,...  sampleName
+     *
+     * Column 3 is a comma-separated list of the exact BSJ file paths produced by SCAN1
+     * (and appended to by SCAN2) for that sample.  Using an explicit list prevents stale
+     * files from a previous run leaking into the BSJ matrix or Summary filtering.
+     *
      * faFile:         FASTA reference genome
      * annotationFile: GTF/GFF3 or "F"
      * outputPrefix:   prefix for output files
@@ -55,8 +61,9 @@ public class FinalizeTest {
         System.out.println(df.format(System.currentTimeMillis()) + " :FINALIZE start");
 
         // Step 1: Read finalize input TSV
+        // TSV format: samFile  fsjCountsFile  bsjFile1,bsjFile2,...  sampleName
         ArrayList<String> filePathList = new ArrayList<String>();
-        HashMap<String, Integer> fileSplitNumMap = new HashMap<String, Integer>();
+        HashMap<String, ArrayList<String>> bsjFilesMap = new HashMap<String, ArrayList<String>>();
         ArrayList<String> fsjCountsFileList = new ArrayList<String>();
         ArrayList<String> sampleNameList = new ArrayList<String>();
 
@@ -70,10 +77,10 @@ public class FinalizeTest {
             String[] arr = tsvLine.split("\t");
             String samFilePath = arr[0].trim();
             String fsjCountsPath = arr[1].trim();
-            int splitNum = Integer.parseInt(arr[2].trim());
+            ArrayList<String> bsjPaths = new ArrayList<String>(Arrays.asList(arr[2].trim().split(",")));
             String sampleName = arr[3].trim();
             filePathList.add(samFilePath);
-            fileSplitNumMap.put(samFilePath, splitNum);
+            bsjFilesMap.put(samFilePath, bsjPaths);
             fsjCountsFileList.add(fsjCountsPath);
             sampleNameList.add(sampleName);
             tsvLine = tsvBr.readLine();
@@ -169,16 +176,20 @@ public class FinalizeTest {
         }
         System.out.println(df.format(System.currentTimeMillis()) + " :FSJ counts merged: " + circFSJMerged.size() + " circRNAs");
 
-        // Step 5: Build BSJ matrix from BSJ files (SCAN2 appends additional BSJ reads to the same files)
+        // Step 5: Build BSJ matrix from BSJ files (SCAN2 appends additional BSJ reads to the same files).
+        // BSJ file paths come from the explicit list in column 3 of the input TSV,
+        // not reconstructed from samFile+fileSplitNum, to prevent stale-file leakage.
         int[][] BSJmatrix = new int[circNum][sampleCount];
         for (int i = 0; i < sampleCount; i++) {
             HashMap<String, Integer> circMap = new HashMap<String, Integer>();
             String samFilePath = filePathList.get(i);
-            int splitNum = fileSplitNumMap.get(samFilePath);
+            ArrayList<String> bsjPaths = bsjFilesMap.get(samFilePath);
             long totalLines = 0, tagOneLines = 0, unknownCirc = 0;
-            for (int j = 1; j <= splitNum; j++) {
+            int slotIdx = 0;
+            for (String bsjPath : bsjPaths) {
+                slotIdx++;
                 long fileLines = 0, fileTagOne = 0;
-                BufferedReader BSJBr = new BufferedReader(new FileReader(new File(samFilePath + "BSJ" + j)));
+                BufferedReader BSJBr = new BufferedReader(new FileReader(new File(bsjPath)));
                 String line = BSJBr.readLine();
                 while (line != null) {
                     fileLines++;
@@ -197,7 +208,7 @@ public class FinalizeTest {
                 BSJBr.close();
                 totalLines += fileLines;
                 tagOneLines += fileTagOne;
-                System.out.println(df.format(System.currentTimeMillis()) + " :DIAG sample[" + i + "] BSJ" + j + ": total=" + fileLines + " tag1=" + fileTagOne);
+                System.out.println(df.format(System.currentTimeMillis()) + " :DIAG sample[" + i + "] BSJ" + slotIdx + ": total=" + fileLines + " tag1=" + fileTagOne);
             }
             for (String circKey : circMap.keySet()) {
                 if (circRowMap.containsKey(circKey)) {
@@ -210,9 +221,9 @@ public class FinalizeTest {
         }
         System.out.println(df.format(System.currentTimeMillis()) + " :BSJ matrix built");
 
-        // Step 6: Run Summary
+        // Step 6: Run Summary (using explicit BSJ file lists, not fileSplitNum reconstruction)
         Summary summary = new Summary(strigency, chrTCGAMap);
-        ArrayList<String> SummaryCircList = summary.summary(filePathList, fileSplitNumMap, circFSJMerged, "");
+        ArrayList<String> SummaryCircList = summary.summaryFromBsjFiles(filePathList, bsjFilesMap, circFSJMerged, "");
         HashMap<String, String> circTrueIdMap = summary.getCircMap();
         summary = null;
         chrTCGAMap = null;

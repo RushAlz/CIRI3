@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.CyclicBarrier;
@@ -51,11 +52,13 @@ public class Scan2STARTest {
      * outputFile:   output prefix; writes {outputFile}.fsj_counts
      * universeFile: path to .universe file from BUILD_UNIVERSE
      * faFile:       FASTA reference genome
-     * annotationFile: "F" or annotation path (not used directly, kept for symmetry)
-     * threads:      thread count
+     * annotationFile: "F" or annotation path (kept for symmetry)
+     * threads:      worker thread count (independent of fileSplitNum)
+     * bsjFilesArg:  comma-separated list of BSJ file paths produced by SCAN1
+     *               (authoritative; prevents stale files from a previous run leaking in)
      */
     public boolean CIRI3(String inputFile, String outputFile, String universeFile,
-            String faFile, String annotationFile, int threads) throws IOException {
+            String faFile, String annotationFile, int threads, String bsjFilesArg) throws IOException {
         long startTime = System.currentTimeMillis();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String outputFileLog = outputFile + ".log";
@@ -156,16 +159,19 @@ public class Scan2STARTest {
         chrUniverseMap = null;
         universeDataMap = null;
 
-        // Step 4: Determine AllFileSplitNum for bwaSamFile from BSJ file count
-        AllFileSplitNum = 0;
-        while (new File(bwaSamFile + "BSJ" + (AllFileSplitNum + 1)).exists()) {
-            AllFileSplitNum++;
+        // Step 4: Use the explicit BSJ file list supplied by the caller (-BSJ flag).
+        // This prevents stale BSJ files left over from a prior run (different thread
+        // count) from being picked up via filesystem discovery.
+        ArrayList<String> bsjFileList = new ArrayList<String>(Arrays.asList(bsjFilesArg.split(",")));
+        for (int k = bsjFileList.size() - 1; k >= 0; k--) {
+            bsjFileList.set(k, bsjFileList.get(k).trim());
         }
-        if (AllFileSplitNum == 0) {
-            System.out.println("ERROR: No BSJ files found at " + bwaSamFile + "BSJ1. Run SCAN1 first.");
+        if (bsjFileList.isEmpty() || bsjFileList.get(0).isEmpty()) {
+            System.out.println("ERROR: No BSJ files provided via -BSJ. Run SCAN1 first and pass its BSJ outputs.");
             fileLog.close();
             return false;
         }
+        AllFileSplitNum = bsjFileList.size();
         final int bwaFileSplitNum = AllFileSplitNum;
 
         // Build all-upfront idCircMap from all SCAN1 BSJ files (matches original -Ma 1 pipeline)
@@ -174,7 +180,7 @@ public class Scan2STARTest {
         long bsjTagOneAfterScan1 = 0;
         for (int i = 1; i <= bwaFileSplitNum; i++) {
             long fileLines = 0, fileTagOne = 0;
-            BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bwaSamFile + "BSJ" + i)));
+            BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjFileList.get(i - 1))));
             String bsjLine = BSJbr.readLine();
             while (bsjLine != null) {
                 String[] BSJArr = bsjLine.split("\t", 2);

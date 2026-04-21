@@ -494,7 +494,13 @@ public class TestParameters {
 			}
 			if (Parameters[Parameters.length-1].startsWith("-")) { parameterMap.put(Parameters[Parameters.length-1], "T"); }
 			if (!parameterMap.get("-H").equals("F")) {
-				System.out.println("Usage: java CIRI3.jar BUILD_UNIVERSE -I samples_scan1.tsv -F ref.fa -O universe_prefix");
+				System.out.println("Usage: java CIRI3.jar BUILD_UNIVERSE -I samples_scan1.tsv -F ref.fa -O universe_prefix\n"
+						+ "\n"
+						+ "  samples_scan1.tsv: three-column TSV, one row per sample:\n"
+						+ "    col 1: SAM/BAM file path\n"
+						+ "    col 2: scan1_meta file path (from SCAN1 -O prefix)\n"
+						+ "    col 3: comma-separated BSJ file paths produced by SCAN1\n"
+						+ "           e.g. /data/sample.samBSJ1,/data/sample.samBSJ2,...,/data/sample.samBSJN");
 			} else if (parameterMap.get("-I").equals("F") && parameterMap.get("--in").equals("F")) {
 				System.out.println("Please use --in or -I to designate the samples_scan1.tsv file!");
 			} else if (parameterMap.get("-O").equals("F") && parameterMap.get("--out").equals("F")) {
@@ -513,11 +519,12 @@ public class TestParameters {
 			}
 		}else if (Parameters[0].equals("SCAN2")) {
 			String inputFile = null, outputFile = null, universeFile = null, annotationFile, faFile = null, mitochondrion;
+			String bsjFilesArg = null;
 			int minMapqUni, maxCircle, minCircle, linear_range_size_min = 50000, strigency, relExp, threadNum;
 			boolean intronLable, mLable, spLable, maLable;
 			HashMap<String,String> parameterMap = new HashMap<String,String>();
 			parameterMap.put("-I", "F"); parameterMap.put("-O", "F"); parameterMap.put("-F", "F");
-			parameterMap.put("-A", "F"); parameterMap.put("-CU", "F"); parameterMap.put("-H", "F");
+			parameterMap.put("-A", "F"); parameterMap.put("-CU", "F"); parameterMap.put("-BSJ", "F"); parameterMap.put("-H", "F");
 			parameterMap.put("-Max", "200000"); parameterMap.put("-Min", "140"); parameterMap.put("-S", "2");
 			parameterMap.put("-U", "10"); parameterMap.put("-E", "0"); parameterMap.put("-Mc", "0");
 			parameterMap.put("-M", "chrM"); parameterMap.put("-T", "1"); parameterMap.put("-It", "0");
@@ -526,16 +533,24 @@ public class TestParameters {
 			parameterMap.put("--anno", "F"); parameterMap.put("--circ_universe", "F"); parameterMap.put("--help", "F");
 			parameterMap.put("--thread_num", "1"); parameterMap.put("--intron", "0");
 			parameterMap.put("--splicing_signals", "0"); parameterMap.put("--mapper", "0"); parameterMap.put("--mapq_uni", "10");
+			parameterMap.put("--bsj_files", "F");
 			for (int i = 1; i < Parameters.length-1; i++) {
 				if (Parameters[i].startsWith("-")) { parameterMap.put(Parameters[i], Parameters[i+1]); }
 			}
 			if (Parameters[Parameters.length-1].startsWith("-")) { parameterMap.put(Parameters[Parameters.length-1], "T"); }
 			if (!parameterMap.get("-H").equals("F")) {
-				System.out.println("Usage: java CIRI3.jar SCAN2 -I in.sam -CU cohort.universe -O output_prefix -F ref.fa [-A ref.gtf] [-T threads] [-Ma 0|1]");
+				System.out.println("Usage: java CIRI3.jar SCAN2 -I in.sam -CU cohort.universe -BSJ bsj1,bsj2,...,bsjN -O output_prefix -F ref.fa [-T threads] [-Ma 0|1]\n"
+						+ "\n"
+						+ "  -BSJ  Comma-separated list of BSJ file paths produced by SCAN1 for this sample.\n"
+						+ "        These are the authoritative inputs; passing them explicitly prevents stale\n"
+						+ "        files from a previous run (different thread count) from leaking in.\n"
+						+ "        Example: -BSJ /data/sample.samBSJ1,/data/sample.samBSJ2,/data/sample.samBSJ4");
 			} else if (parameterMap.get("-I").equals("F") && parameterMap.get("--in").equals("F")) {
 				System.out.println("Please use --in or -I to designate input SAM/BAM file!");
 			} else if (parameterMap.get("-CU").equals("F") && parameterMap.get("--circ_universe").equals("F")) {
 				System.out.println("Please use --circ_universe or -CU to designate the universe file from BUILD_UNIVERSE!");
+			} else if (parameterMap.get("-BSJ").equals("F") && parameterMap.get("--bsj_files").equals("F")) {
+				System.out.println("Please use -BSJ to designate the comma-separated BSJ file list from SCAN1!");
 			} else if (parameterMap.get("-O").equals("F") && parameterMap.get("--out").equals("F")) {
 				System.out.println("Please use --out or -O to designate output prefix!");
 			} else if (parameterMap.get("-F").equals("F") && parameterMap.get("--ref_file").equals("F")) {
@@ -545,6 +560,7 @@ public class TestParameters {
 				inputFile = new File(inputFile).getCanonicalPath();
 				if (!parameterMap.get("-CU").equals("F")) { universeFile = parameterMap.get("-CU"); } else { universeFile = parameterMap.get("--circ_universe"); }
 				universeFile = new File(universeFile).getCanonicalPath();
+				if (!parameterMap.get("-BSJ").equals("F")) { bsjFilesArg = parameterMap.get("-BSJ"); } else { bsjFilesArg = parameterMap.get("--bsj_files"); }
 				if (!parameterMap.get("-O").equals("F")) { outputFile = parameterMap.get("-O"); } else { outputFile = parameterMap.get("--out"); }
 				outputFile = new File(outputFile).getCanonicalPath();
 				if (!parameterMap.get("-F").equals("F")) { faFile = parameterMap.get("-F"); } else { faFile = parameterMap.get("--ref_file"); }
@@ -565,10 +581,10 @@ public class TestParameters {
 				maLable = parameterMap.get("-Ma").equals("0") && parameterMap.get("--mapper").equals("0");
 				if (maLable) {
 					Scan2Test scan2Test = new Scan2Test(minMapqUni, maxCircle, minCircle, linear_range_size_min, intronLable, strigency, relExp, mitochondrion, mLable, spLable);
-					scan2Test.CIRI3(inputFile, outputFile, universeFile, faFile, annotationFile, threadNum);
+					scan2Test.CIRI3(inputFile, outputFile, universeFile, faFile, annotationFile, threadNum, bsjFilesArg);
 				} else {
 					Scan2STARTest scan2Test = new Scan2STARTest(minMapqUni, maxCircle, minCircle, linear_range_size_min, intronLable, strigency, relExp, mitochondrion, mLable, spLable);
-					scan2Test.CIRI3(inputFile, outputFile, universeFile, faFile, annotationFile, threadNum);
+					scan2Test.CIRI3(inputFile, outputFile, universeFile, faFile, annotationFile, threadNum, bsjFilesArg);
 				}
 			}
 		}else if (Parameters[0].equals("FINALIZE")) {
@@ -588,7 +604,14 @@ public class TestParameters {
 			}
 			if (Parameters[Parameters.length-1].startsWith("-")) { parameterMap.put(Parameters[Parameters.length-1], "T"); }
 			if (!parameterMap.get("-H").equals("F")) {
-				System.out.println("Usage: java CIRI3.jar FINALIZE -I finalize_samples.tsv -F ref.fa -O output_prefix [-CU cohort.universe] [-A ref.gtf] [-S strigency] [-E rel_exp] [-It 0|1]");
+				System.out.println("Usage: java CIRI3.jar FINALIZE -I finalize_samples.tsv -F ref.fa -O output_prefix [-CU cohort.universe] [-A ref.gtf] [-S strigency] [-E rel_exp] [-It 0|1]\n"
+						+ "\n"
+						+ "  finalize_samples.tsv: four-column TSV, one row per sample:\n"
+						+ "    col 1: SAM/BAM file path\n"
+						+ "    col 2: fsj_counts file path (from SCAN2 -O prefix)\n"
+						+ "    col 3: comma-separated BSJ file paths produced by SCAN1/SCAN2\n"
+						+ "           e.g. /data/sample.samBSJ1,/data/sample.samBSJ2,...,/data/sample.samBSJN\n"
+						+ "    col 4: sample name (used as column header in output matrices)");
 			} else if (parameterMap.get("-I").equals("F") && parameterMap.get("--in").equals("F")) {
 				System.out.println("Please use --in or -I to designate the finalize_samples.tsv file!");
 			} else if (parameterMap.get("-O").equals("F") && parameterMap.get("--out").equals("F")) {

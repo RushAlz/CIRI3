@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,9 +22,14 @@ public class BuildUniverseTest {
     /**
      * Builds the circRNA universe from all SCAN1 outputs and writes a universe file.
      *
-     * samplesMetaTsv: two-column TSV (samFile path, scan1_meta path) per sample
+     * samplesMetaTsv: three-column TSV per sample:
+     *   samFile  scan1_meta_path  bsjFile1,bsjFile2,...,bsjFileN
      * faFile:         FASTA reference genome
      * outputPrefix:   prefix for output files; writes {outputPrefix}.universe
+     *
+     * The comma-separated BSJ file list in column 3 is the authoritative set of BSJ
+     * files produced by SCAN1 for that sample.  Using an explicit list prevents stale
+     * files left over from earlier runs with a different thread count from leaking in.
      */
     public void build(String samplesMetaTsv, String faFile, String outputPrefix) throws IOException {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -31,7 +37,7 @@ public class BuildUniverseTest {
 
         // Step 1: Read samples TSV and all scan1_meta files
         ArrayList<String> filePathList = new ArrayList<String>();
-        HashMap<String, Integer> fileSplitNumMap = new HashMap<String, Integer>();
+        HashMap<String, ArrayList<String>> bsjFilesMap = new HashMap<String, ArrayList<String>>();
         int globalReadLen = 0;
 
         BufferedReader tsvBr = new BufferedReader(new FileReader(new File(samplesMetaTsv)));
@@ -44,9 +50,14 @@ public class BuildUniverseTest {
             String[] tsvArr = tsvLine.split("\t");
             String samFilePath = tsvArr[0].trim();
             String metaFilePath = tsvArr[1].trim();
+            String bsjFilesCol  = tsvArr[2].trim();
             filePathList.add(samFilePath);
 
-            // Read scan1_meta
+            // Parse explicit BSJ file list from column 3
+            ArrayList<String> bsjPaths = new ArrayList<String>(Arrays.asList(bsjFilesCol.split(",")));
+            bsjFilesMap.put(samFilePath, bsjPaths);
+
+            // Read scan1_meta for globalReadLen
             BufferedReader metaBr = new BufferedReader(new FileReader(new File(metaFilePath)));
             String metaLine = metaBr.readLine();
             while (metaLine != null) {
@@ -55,9 +66,6 @@ public class BuildUniverseTest {
                     if (readLen > globalReadLen) {
                         globalReadLen = readLen;
                     }
-                } else if (metaLine.startsWith("fileSplitNum=")) {
-                    int splitNum = Integer.parseInt(metaLine.split("=")[1].trim());
-                    fileSplitNumMap.put(samFilePath, splitNum);
                 }
                 metaLine = metaBr.readLine();
             }
@@ -81,14 +89,15 @@ public class BuildUniverseTest {
 
         // Step 4: Read all BSJ files from all samples to build chrCircSiteMap
         // (identical to MutFileTest lines 306-327 / MutTest lines 256-273)
+        // BSJ file paths come from the explicit list in column 3 of the input TSV,
+        // not reconstructed from samFile+fileSplitNum, to prevent stale-file leakage.
         HashMap<String, HashSet<String>> chrCircSiteMap = new HashMap<String, HashSet<String>>();
         HashSet<String> circSiteSet = new HashSet<String>();
 
         for (int i = 0; i < filePathList.size(); i++) {
             String samFilePath = filePathList.get(i);
-            int splitNum = fileSplitNumMap.get(samFilePath);
-            for (int j = 1; j <= splitNum; j++) {
-                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(samFilePath + "BSJ" + j)));
+            for (String bsjPath : bsjFilesMap.get(samFilePath)) {
+                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjPath)));
                 String line = BSJbr.readLine();
                 while (line != null) {
                     String[] BSJArr = line.split("\t", 5);

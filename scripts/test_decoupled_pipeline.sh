@@ -82,6 +82,21 @@ ok()    { echo "[PASS]  $*"; PASS=$((PASS+1)); }
 fail()  { echo "[FAIL]  $*"; FAIL=$((FAIL+1)); }
 die()   { echo "[ERROR] $*" >&2; exit 1; }
 
+# Build a comma-separated list of BSJ file paths from a scan1_meta file.
+# Uses fileSplitNum from the meta to know how many BSJ files to include.
+# Usage: make_bsj_list <samFile> <scan1_meta_path>
+make_bsj_list() {
+    local sam="$1" meta="$2"
+    local n
+    n=$(grep "^fileSplitNum=" "$meta" | cut -d= -f2)
+    local list=""
+    for i in $(seq 1 "$n"); do
+        [[ -n "$list" ]] && list="${list},"
+        list="${list}${sam}BSJ${i}"
+    done
+    echo "$list"
+}
+
 # Compare two matrix files after sorting rows (skip header)
 compare_matrices() {
     local label="$1" file_a="$2" file_b="$3"
@@ -234,7 +249,8 @@ for SAM in "${SAMPLES[@]}"; do
     done
     ok "SCAN1 BSJ files present for $SAMPLE_NAME"
 
-    echo -e "$SAM\t$META" >> "$SCAN1_META_TSV"
+    BSJ_LIST=$(make_bsj_list "$SAM" "$META")
+    echo -e "$SAM\t$META\t$BSJ_LIST" >> "$SCAN1_META_TSV"
 done
 
 # --- Stage 2a: BUILD_UNIVERSE ---
@@ -256,20 +272,21 @@ for SAM in "${SAMPLES[@]}"; do
     SCAN2_IDX=$((SCAN2_IDX+1))
     SAMPLE_NAME=$(basename "$SAM" .sam)
     SCAN1_META="$SCAN1_DIR/${SAMPLE_NAME}.scan1_meta"
-    SPLIT_NUM=$(grep "^fileSplitNum=" "$SCAN1_META" | cut -d= -f2)
+    BSJ_LIST=$(make_bsj_list "$SAM" "$SCAN1_META")
     OUT_PREFIX="$SCAN2_DIR/${SAMPLE_NAME}"
     info "  SCAN2: $SAMPLE_NAME"
     bench_run "$(printf '30_scan2_%02d_%s' "$SCAN2_IDX" "$SAMPLE_NAME")" \
         ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN2 \
             -I "$SAM" \
             -CU "$UNIVERSE_DIR/cohort.universe" \
+            -BSJ "$BSJ_LIST" \
             -O "$OUT_PREFIX" \
             -F "$REF_FA" \
             -T "$THREADS" \
         2>&1 | grep -E "scan|completed|FSJ|time" || true
     check_exists "SCAN2 FSJ counts ($SAMPLE_NAME)" "${OUT_PREFIX}.fsj_counts"
 
-    echo -e "$SAM\t${OUT_PREFIX}.fsj_counts\t${SPLIT_NUM}\t${SAMPLE_NAME}" >> "$FINALIZE_TSV"
+    echo -e "$SAM\t${OUT_PREFIX}.fsj_counts\t$BSJ_LIST\t${SAMPLE_NAME}" >> "$FINALIZE_TSV"
 done
 
 # --- Stage 2b: FINALIZE ---

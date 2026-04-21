@@ -45,7 +45,7 @@ public class MutFindCircRNASTARScan2 extends FindCircRNASTARScan2{
 		int oneRead = 0;
 		HashMap<Integer, String> standMap = new HashMap<Integer, String>();
 		//读取数据		
-		FileReader fileReader = new FileReader(fileChannel, 65536, fileStart);
+		FileReader fileReader = new FileReader(fileChannel, 1024, fileStart);
 		line = fileReader.readline();
 		// 判断来自第几个线程
 		if (threadNum != 1) {			

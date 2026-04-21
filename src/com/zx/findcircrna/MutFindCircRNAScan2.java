@@ -50,7 +50,7 @@ public class MutFindCircRNAScan2 extends FindCircRNAScan2{
 		//standMap.put(0, "");
 		//standMap.put(1, "");
 		//读取数据		
-		FileReader fileReader = new FileReader(fileChannel, 65536, fileStart);
+		FileReader fileReader = new FileReader(fileChannel, 1024, fileStart);
 		line = fileReader.readline();
 		// 判断来自第几个线程
 		if (threadNum != 1) {			

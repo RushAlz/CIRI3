@@ -71,20 +71,28 @@ joint_FSJ     <- read_tsv(file.path(orig_dir, "result.FSJ_Matrix"))
 decoupled_BSJ <- read_tsv(file.path(finalize_dir, "result.BSJ_Matrix"))
 decoupled_FSJ <- read_tsv(file.path(finalize_dir, "result.FSJ_Matrix"))
 
-# Normalise column order so samples line up between joint and decoupled
-common_samples <- intersect(colnames(joint_BSJ)[-1], colnames(decoupled_BSJ)[-1])
-stopifnot(length(common_samples) > 0)
-joint_BSJ     <- joint_BSJ[,     c("circRNA_ID", common_samples)]
-joint_FSJ     <- joint_FSJ[,     c("circRNA_ID", common_samples)]
-decoupled_BSJ <- decoupled_BSJ[, c("circRNA_ID", common_samples)]
-decoupled_FSJ <- decoupled_FSJ[, c("circRNA_ID", common_samples)]
+# Joint writes sample columns by input-file basename (e.g. "bwa.sam");
+# decoupled uses the sampleName column from finalize_samples.tsv. They mean
+# the same thing in the same order, so align positionally using the decoupled
+# names — those are more informative.
+align_cols <- function(df, ref_names) {
+  stopifnot(ncol(df) == length(ref_names) + 1)
+  colnames(df) <- c("circRNA_ID", ref_names)
+  df
+}
+ref_names    <- colnames(decoupled_BSJ)[-1]
+joint_BSJ    <- align_cols(joint_BSJ,    ref_names)
+joint_FSJ    <- align_cols(joint_FSJ,    ref_names)
 
 tibble(
   matrix     = c("BSJ joint", "BSJ decoupled", "FSJ joint", "FSJ decoupled"),
   nrow       = c(nrow(joint_BSJ), nrow(decoupled_BSJ),
                  nrow(joint_FSJ), nrow(decoupled_FSJ)),
-  n_samples  = length(common_samples)
-) |> kable(caption = "Matrix dimensions")
+  n_samples  = length(ref_names)
+) |> kable(caption = "Matrix dimensions (sample columns aligned positionally)")
+
+cat("Sample column names used:\n")
+cat(paste0("  ", ref_names, collapse = "\n"), "\n")
 ```
 
 ## circRNA set agreement

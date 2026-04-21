@@ -106,6 +106,11 @@ public class Scan1Test {
                         threadMain.await(); // wait for final release, then exit
                     } catch (Exception e) {
                         e.printStackTrace();
+                        // Break both barriers so the main thread and any peers
+                        // waiting on await() don't hang indefinitely when one
+                        // worker dies (particularly likely at high -T).
+                        threadSub.reset();
+                        threadMain.reset();
                     }
                 }
             };
@@ -173,6 +178,10 @@ public class Scan1Test {
 
         } catch (Exception e) {
             e.printStackTrace();
+            // Ensure no worker is left waiting on a barrier if the main
+            // thread fails mid-flight.
+            threadSub.reset();
+            threadMain.reset();
         }
 
         poolExe.shutdown();

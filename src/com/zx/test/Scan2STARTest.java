@@ -220,8 +220,9 @@ public class Scan2STARTest {
                             }
                         }
                         HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();
+                        java.util.HashSet<String> touchedBwa = scan2.getTouchedFSJKeys();
                         lock.lock();
-                        for (String circKey : circFSJMap.keySet()) {
+                        for (String circKey : touchedBwa) {
                             circFSJMap.put(circKey, circFSJMap.get(circKey) + circFSJMapTem.get(circKey));
                         }
                         lock.unlock();
@@ -246,9 +247,10 @@ public class Scan2STARTest {
                             }
                         }
                         circFSJMapTem = starScan2.getCircFSJMap();
+                        java.util.HashSet<String> touchedStar = starScan2.getTouchedFSJKeys();
                         long matchNumTem = starScan2.getReadNum();
                         lock.lock();
-                        for (String circKey : circFSJMap.keySet()) {
+                        for (String circKey : touchedStar) {
                             circFSJMap.put(circKey, circFSJMap.get(circKey) + circFSJMapTem.get(circKey));
                         }
                         matchNum = matchNum + matchNumTem;
@@ -260,6 +262,8 @@ public class Scan2STARTest {
                         threadMain.await(); // [E] wait for final release, then exit
                     } catch (Exception e) {
                         e.printStackTrace();
+                        threadSub.reset();
+                        threadMain.reset();
                     }
                 }
             };
@@ -289,6 +293,17 @@ public class Scan2STARTest {
             System.out.println(df.format(System.currentTimeMillis()) + " :DIAG after_bwa_scan2 BSJ_TOTAL: total=" + bsjTotalAfterBwa + " tag1=" + bsjTagOneAfterBwa);
             fileLog.write(df.format(System.currentTimeMillis()) + " :DIAG after_bwa_scan2 BSJ_TOTAL: total=" + bsjTotalAfterBwa + " tag1=" + bsjTagOneAfterBwa + "\n");
 
+            // Snapshot BWA FSJ contributions, then zero circFSJMap so Phase B's
+            // starScan2 captures a clean (all-zero) baseline via putAll instead
+            // of double-counting Phase A. Matches the main-side reset that
+            // joint MutFileSTARTest performs between phases.
+            HashMap<String, Integer> bwaFSJMap = new HashMap<String, Integer>();
+            for (String circKey : circFSJMap.keySet()) {
+                int v = circFSJMap.get(circKey);
+                if (v != 0) bwaFSJMap.put(circKey, v);
+                circFSJMap.put(circKey, 0);
+            }
+
             // Compute AllFileSplitNum for STAR SAM
             File starFile = new File(starSamFile);
             long fileSizeGB = starFile.length() / 1024 / 1024 / 1024;
@@ -304,6 +319,12 @@ public class Scan2STARTest {
             threadMain.await();
             threadMain.reset();
             threadSub.await(); // [D] wait for STAR scan2 done
+
+            // Merge Phase A contributions back in now that Phase B is finished.
+            for (String circKey : bwaFSJMap.keySet()) {
+                circFSJMap.put(circKey, circFSJMap.get(circKey) + bwaFSJMap.get(circKey));
+            }
+            bwaFSJMap = null;
 
             System.out.println(df.format(System.currentTimeMillis()) + " :STAR scan2 completed");
             System.out.println(df.format(System.currentTimeMillis()) + " :Mapped_Reads " + matchNum);
@@ -342,6 +363,8 @@ public class Scan2STARTest {
 
         } catch (Exception e) {
             e.printStackTrace();
+            threadSub.reset();
+            threadMain.reset();
         }
 
         poolExe.shutdown();

@@ -1,7 +1,7 @@
 library(tidyverse)
 
-# setwd("/pastel/tools/circRNA_tools/test_data/decoupled_comparison")
-setwd("/pastel/tools/circRNA_tools/test_data/decoupled_bwa_comparison")
+setwd("/pastel/tools/circRNA_tools/test_data/decoupled_comparison")
+# setwd("/pastel/tools/circRNA_tools/test_data/decoupled_bwa_comparison")
 
 # Compare results from joint analysis 
 joint_res_df = read_tsv("original/result")
@@ -57,7 +57,6 @@ UpSetR::upset(
   order.by = "freq",
   nsets    = length(circ_list)
 )
-
 
 # Compare PARDOS results with Jishu results
 pardos_res = list.files("/pastel/projects/PARDoS/circrna_pardos", pattern = ".CIRI3", full.names = T)

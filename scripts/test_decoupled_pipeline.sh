@@ -38,6 +38,9 @@ done
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+# shellcheck source=/dev/null
+source "$REPO_ROOT/scripts/_bench.sh"
+
 SRC_DIR="$REPO_ROOT/src"
 BIN_DIR="$REPO_ROOT/bin"
 LIB_DIR="$REPO_ROOT/lib"
@@ -53,6 +56,7 @@ SCAN1_DIR="$DECOUPLED_DIR/scan1"
 UNIVERSE_DIR="$DECOUPLED_DIR/universe"
 SCAN2_DIR="$DECOUPLED_DIR/scan2"
 FINALIZE_DIR="$DECOUPLED_DIR/finalize"
+BENCH_DIR="$WORK_DIR/bench"
 
 PASS=0
 FAIL=0
@@ -106,7 +110,7 @@ compare_matrices() {
         ok "$label: $nlines circRNAs match"
     else
         fail "$label: content differs"
-        diff <(echo "$sorted_a") <(echo "$sorted_b") | head -20
+        { diff <(echo "$sorted_a") <(echo "$sorted_b") || true; } | head -20 || true
     fi
 }
 
@@ -160,7 +164,7 @@ info "Compilation complete."
 # ---------------------------------------------------------------------------
 # 2. Build sample list TSVs
 # ---------------------------------------------------------------------------
-mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR"
+mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR" "$BENCH_DIR"
 
 # Original pipeline: one path per line
 ORIG_SAMPLES_TSV="$ORIG_DIR/samples.tsv"
@@ -181,13 +185,14 @@ FINALIZE_TSV="$FINALIZE_DIR/finalize_samples.tsv"
 # 3. Run ORIGINAL pipeline (-W 1)
 # ---------------------------------------------------------------------------
 info "=== Running ORIGINAL pipeline (-W 1) ==="
-${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" \
-    -I "$ORIG_SAMPLES_TSV" \
-    -O "$ORIG_DIR/result" \
-    -F "$REF_FA" \
-    -W 1 \
-    -T "$THREADS" \
-    -S 0 \
+bench_run "00_original_joint" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" \
+        -I "$ORIG_SAMPLES_TSV" \
+        -O "$ORIG_DIR/result" \
+        -F "$REF_FA" \
+        -W 1 \
+        -T "$THREADS" \
+        -S 0 \
     2>&1 | tee "$ORIG_DIR/run.log" | grep -E "CIRI3|scan|completed|circRNA|Matrix|time" || true
 
 check_exists "Original BSJ_Matrix" "$ORIG_DIR/result.BSJ_Matrix"
@@ -205,16 +210,19 @@ info "=== Running DECOUPLED pipeline ==="
 
 # --- Stage 1: SCAN1 (per sample) ---
 info "--- Stage 1: SCAN1 ---"
+SCAN1_IDX=0
 for SAM in "${SAMPLES[@]}"; do
+    SCAN1_IDX=$((SCAN1_IDX+1))
     SAMPLE_NAME=$(basename "$SAM" .sam)
     OUT_PREFIX="$SCAN1_DIR/${SAMPLE_NAME}"
     info "  SCAN1: $SAMPLE_NAME"
-    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN1 \
-        -I "$SAM" \
-        -O "$OUT_PREFIX" \
-        -F "$REF_FA" \
-        -T "$THREADS" \
-        -S 0 \
+    bench_run "$(printf '10_scan1_%02d_%s' "$SCAN1_IDX" "$SAMPLE_NAME")" \
+        ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN1 \
+            -I "$SAM" \
+            -O "$OUT_PREFIX" \
+            -F "$REF_FA" \
+            -T "$THREADS" \
+            -S 0 \
         2>&1 | grep -E "scan|completed|meta|time" || true
     check_exists "SCAN1 meta ($SAMPLE_NAME)" "${OUT_PREFIX}.scan1_meta"
 
@@ -231,10 +239,11 @@ done
 
 # --- Stage 2a: BUILD_UNIVERSE ---
 info "--- Stage 2a: BUILD_UNIVERSE ---"
-${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" BUILD_UNIVERSE \
-    -I "$SCAN1_META_TSV" \
-    -F "$REF_FA" \
-    -O "$UNIVERSE_DIR/cohort" \
+bench_run "20_build_universe" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" BUILD_UNIVERSE \
+        -I "$SCAN1_META_TSV" \
+        -F "$REF_FA" \
+        -O "$UNIVERSE_DIR/cohort" \
     2>&1 | grep -E "Universe|circRNA|time" || true
 check_exists "Universe file" "$UNIVERSE_DIR/cohort.universe"
 UNIVERSE_LINES=$(grep -c "^chr" "$UNIVERSE_DIR/cohort.universe" || true)
@@ -242,18 +251,21 @@ info "Universe contains $UNIVERSE_LINES circRNA candidates."
 
 # --- Stage 3: SCAN2 (per sample) ---
 info "--- Stage 3: SCAN2 ---"
+SCAN2_IDX=0
 for SAM in "${SAMPLES[@]}"; do
+    SCAN2_IDX=$((SCAN2_IDX+1))
     SAMPLE_NAME=$(basename "$SAM" .sam)
     SCAN1_META="$SCAN1_DIR/${SAMPLE_NAME}.scan1_meta"
     SPLIT_NUM=$(grep "^fileSplitNum=" "$SCAN1_META" | cut -d= -f2)
     OUT_PREFIX="$SCAN2_DIR/${SAMPLE_NAME}"
     info "  SCAN2: $SAMPLE_NAME"
-    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN2 \
-        -I "$SAM" \
-        -CU "$UNIVERSE_DIR/cohort.universe" \
-        -O "$OUT_PREFIX" \
-        -F "$REF_FA" \
-        -T "$THREADS" \
+    bench_run "$(printf '30_scan2_%02d_%s' "$SCAN2_IDX" "$SAMPLE_NAME")" \
+        ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN2 \
+            -I "$SAM" \
+            -CU "$UNIVERSE_DIR/cohort.universe" \
+            -O "$OUT_PREFIX" \
+            -F "$REF_FA" \
+            -T "$THREADS" \
         2>&1 | grep -E "scan|completed|FSJ|time" || true
     check_exists "SCAN2 FSJ counts ($SAMPLE_NAME)" "${OUT_PREFIX}.fsj_counts"
 
@@ -262,11 +274,13 @@ done
 
 # --- Stage 2b: FINALIZE ---
 info "--- Stage 2b: FINALIZE ---"
-${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" FINALIZE \
-    -I "$FINALIZE_TSV" \
-    -F "$REF_FA" \
-    -O "$FINALIZE_DIR/result" \
-    -S 0 \
+bench_run "40_finalize" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" FINALIZE \
+        -I "$FINALIZE_TSV" \
+        -CU "$UNIVERSE_DIR/cohort.universe" \
+        -F "$REF_FA" \
+        -O "$FINALIZE_DIR/result" \
+        -S 0 \
     2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
 check_exists "Decoupled BSJ_Matrix" "$FINALIZE_DIR/result.BSJ_Matrix"
 check_exists "Decoupled FSJ_Matrix" "$FINALIZE_DIR/result.FSJ_Matrix"
@@ -304,7 +318,7 @@ if [[ "$A_BSJ" == "$B_BSJ" ]]; then
     ok "BSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_BSJ_LINES} circRNAs)"
 else
     fail "BSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_BSJ") <(echo "$B_BSJ") | head -30
+    { diff <(echo "$A_BSJ") <(echo "$B_BSJ") || true; } | head -30 || true
 fi
 
 info "Normalising and comparing FSJ matrices..."
@@ -315,7 +329,7 @@ if [[ "$A_FSJ" == "$B_FSJ" ]]; then
     ok "FSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_BSJ_LINES} circRNAs)"
 else
     fail "FSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_FSJ") <(echo "$B_FSJ") | head -30
+    { diff <(echo "$A_FSJ") <(echo "$B_FSJ") || true; } | head -30 || true
 fi
 
 # Also check universe coverage — every circRNA in original should be in universe
@@ -330,7 +344,7 @@ if [[ "$MISSING" -eq 0 ]]; then
     ok "Universe coverage: all original circRNAs are present in the universe"
 else
     fail "Universe coverage: $MISSING circRNAs from original output are missing from universe"
-    comm -23 <(echo "$ORIG_CIRCS") <(echo "$UNIVERSE_CIRCS") | head -10
+    { comm -23 <(echo "$ORIG_CIRCS") <(echo "$UNIVERSE_CIRCS") || true; } | head -10 || true
 fi
 
 # ---------------------------------------------------------------------------
@@ -367,8 +381,10 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. Summary
+# 7. Benchmark + test summary
 # ---------------------------------------------------------------------------
+bench_report
+
 echo ""
 echo "========================================"
 echo "  TEST SUMMARY"

@@ -572,23 +572,23 @@ public class TestParameters {
 				}
 			}
 		}else if (Parameters[0].equals("FINALIZE")) {
-			String inputFile = null, outputFile = null, annotationFile, faFile = null;
+			String inputFile = null, outputFile = null, annotationFile, faFile = null, universeFile = null;
 			int minMapqUni = 10, maxCircle = 200000, minCircle = 140, linear_range_size_min = 50000, strigency, relExp;
 			boolean intronLable, mLable = false, spLable = false;
 			String mitochondrion = "chrM";
 			HashMap<String,String> parameterMap = new HashMap<String,String>();
 			parameterMap.put("-I", "F"); parameterMap.put("-O", "F"); parameterMap.put("-F", "F");
 			parameterMap.put("-A", "F"); parameterMap.put("-S", "2"); parameterMap.put("-E", "0");
-			parameterMap.put("-It", "0"); parameterMap.put("-H", "F");
+			parameterMap.put("-It", "0"); parameterMap.put("-H", "F"); parameterMap.put("-CU", "F");
 			parameterMap.put("--in", "F"); parameterMap.put("--out", "F"); parameterMap.put("--ref_file", "F");
 			parameterMap.put("--anno", "F"); parameterMap.put("--strigency", "2"); parameterMap.put("--rel_exp", "0");
-			parameterMap.put("--intron", "0"); parameterMap.put("--help", "F");
+			parameterMap.put("--intron", "0"); parameterMap.put("--help", "F"); parameterMap.put("--circ_universe", "F");
 			for (int i = 1; i < Parameters.length-1; i++) {
 				if (Parameters[i].startsWith("-")) { parameterMap.put(Parameters[i], Parameters[i+1]); }
 			}
 			if (Parameters[Parameters.length-1].startsWith("-")) { parameterMap.put(Parameters[Parameters.length-1], "T"); }
 			if (!parameterMap.get("-H").equals("F")) {
-				System.out.println("Usage: java CIRI3.jar FINALIZE -I finalize_samples.tsv -F ref.fa -O output_prefix [-A ref.gtf] [-S strigency] [-E rel_exp] [-It 0|1]");
+				System.out.println("Usage: java CIRI3.jar FINALIZE -I finalize_samples.tsv -F ref.fa -O output_prefix [-CU cohort.universe] [-A ref.gtf] [-S strigency] [-E rel_exp] [-It 0|1]");
 			} else if (parameterMap.get("-I").equals("F") && parameterMap.get("--in").equals("F")) {
 				System.out.println("Please use --in or -I to designate the finalize_samples.tsv file!");
 			} else if (parameterMap.get("-O").equals("F") && parameterMap.get("--out").equals("F")) {
@@ -608,8 +608,10 @@ public class TestParameters {
 				strigency = !parameterMap.get("-S").equals("2") ? Integer.valueOf(parameterMap.get("-S")) : (!parameterMap.get("--strigency").equals("2") ? Integer.valueOf(parameterMap.get("--strigency")) : 2);
 				relExp = !parameterMap.get("-E").equals("0") ? Integer.valueOf(parameterMap.get("-E")) : (!parameterMap.get("--rel_exp").equals("0") ? Integer.valueOf(parameterMap.get("--rel_exp")) : 0);
 				intronLable = !parameterMap.get("-It").equals("0") || !parameterMap.get("--intron").equals("0");
+				if (!parameterMap.get("-CU").equals("F")) { universeFile = new File(parameterMap.get("-CU")).getCanonicalPath(); }
+				else if (!parameterMap.get("--circ_universe").equals("F")) { universeFile = new File(parameterMap.get("--circ_universe")).getCanonicalPath(); }
 				FinalizeTest ft = new FinalizeTest(minMapqUni, maxCircle, minCircle, linear_range_size_min, intronLable, strigency, relExp, mitochondrion, mLable, spLable);
-				ft.finalize(inputFile, faFile, annotationFile, outputFile);
+				ft.finalize(inputFile, faFile, annotationFile, outputFile, universeFile);
 			}
 		}else {
 			String inputFile = null,outputFile = null,UserGivecircRNA = "",annotationFile,faFile = null,mitochondrion;

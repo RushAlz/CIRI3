@@ -123,6 +123,8 @@ public class Scan1STARTest {
                         threadMain.await();
                     } catch (Exception e) {
                         e.printStackTrace();
+                        threadSub.reset();
+                        threadMain.reset();
                     }
                 }
             };
@@ -217,6 +219,8 @@ public class Scan1STARTest {
 
         } catch (Exception e) {
             e.printStackTrace();
+            threadSub.reset();
+            threadMain.reset();
         }
 
         poolExe.shutdown();

@@ -148,12 +148,13 @@ public class MutFileTest {
 									}								
 								}
 								HashMap<String, Integer> circFSJMapTem = scan2.getCircFSJMap();
+								HashSet<String> touched = scan2.getTouchedFSJKeys();
 								lock.lock();
-								for (String circKey : circFSJMap.keySet()) {
-									int num = circFSJMap.get(circKey);						
+								for (String circKey : touched) {
+									int num = circFSJMap.get(circKey);
 									int numNew = circFSJMapTem.get(circKey);
 									circFSJMap.put(circKey, num+numNew);
-								}	
+								}
 								lock.unlock();
 								scan2.setFSJScan2List();
 								threadSub.await();

@@ -650,9 +650,10 @@ public class IsBSJScan2Intron extends IsBSJScan2 {
 				}
 			}
 		}
-		for (String circKey : temFSJId) {				
+		for (String circKey : temFSJId) {
 			int temNum = circFSJNewMap.get(circKey);
-			circFSJNewMap.put(circKey, temNum + 1);				
+			circFSJNewMap.put(circKey, temNum + 1);
+			touchedFSJKeys.add(circKey);
 		}
 		return null;	
 	}

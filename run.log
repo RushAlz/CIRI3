@@ -1,0 +1,1210 @@
+[INFO]  === Pre-flight checks ===
+[INFO]  All input files found for 2 samples.
+[INFO]  Output directory: /pastel/tools/circRNA_tools/test_data/decoupled_comparison
+[INFO]  Joint pipeline: CIRI3_decoupled.jar (current source, -W 1)
+[INFO]  Decoupled jar:  /pastel/Github_scripts/CIRI3/CIRI3_decoupled.jar
+[INFO]  === Stage 0: ORIGINAL pipeline (CIRI3_Java_1.8.0.jar, -W 1, -Ma 1) ===
+2026-04-20 20:24:38 :CIRI3 start
+2026-04-20 20:24:54 Running:/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/Chimeric.out.junction,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/Aligned.out.sam,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam
+2026-04-20 20:24:59 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=34 reads_seen=35275 reads_in_scan1IdMap=91 bsj_emitted=224
+2026-04-20 20:24:59 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=16 reads_seen=35533 reads_in_scan1IdMap=125 bsj_emitted=231
+2026-04-20 20:24:59 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=2 reads_seen=35936 reads_in_scan1IdMap=95 bsj_emitted=223
+2026-04-20 20:24:59 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=26 reads_seen=35520 reads_in_scan1IdMap=95 bsj_emitted=210
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=22 reads_seen=35530 reads_in_scan1IdMap=112 bsj_emitted=218
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=17 reads_seen=34616 reads_in_scan1IdMap=125 bsj_emitted=278
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=3 reads_seen=34634 reads_in_scan1IdMap=119 bsj_emitted=223
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=33 reads_seen=34760 reads_in_scan1IdMap=123 bsj_emitted=235
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=23 reads_seen=34682 reads_in_scan1IdMap=117 bsj_emitted=246
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=24 reads_seen=35390 reads_in_scan1IdMap=112 bsj_emitted=218
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=42 reads_seen=35476 reads_in_scan1IdMap=99 bsj_emitted=216
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=20 reads_seen=35416 reads_in_scan1IdMap=101 bsj_emitted=237
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=38 reads_seen=35411 reads_in_scan1IdMap=107 bsj_emitted=248
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=43 reads_seen=34829 reads_in_scan1IdMap=130 bsj_emitted=251
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=7 reads_seen=34566 reads_in_scan1IdMap=107 bsj_emitted=232
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=6 reads_seen=35459 reads_in_scan1IdMap=99 bsj_emitted=227
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=56 reads_seen=35699 reads_in_scan1IdMap=87 bsj_emitted=243
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=15 reads_seen=34639 reads_in_scan1IdMap=97 bsj_emitted=267
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=37 reads_seen=35094 reads_in_scan1IdMap=119 bsj_emitted=244
+2026-04-20 20:25:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=64 reads_seen=35605 reads_in_scan1IdMap=96 bsj_emitted=198
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=18 reads_seen=35626 reads_in_scan1IdMap=101 bsj_emitted=226
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=52 reads_seen=35571 reads_in_scan1IdMap=103 bsj_emitted=230
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=59 reads_seen=34652 reads_in_scan1IdMap=139 bsj_emitted=246
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=31 reads_seen=34650 reads_in_scan1IdMap=118 bsj_emitted=262
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=5 reads_seen=34751 reads_in_scan1IdMap=152 bsj_emitted=235
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=28 reads_seen=35498 reads_in_scan1IdMap=125 bsj_emitted=246
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=8 reads_seen=35795 reads_in_scan1IdMap=107 bsj_emitted=213
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=45 reads_seen=34661 reads_in_scan1IdMap=120 bsj_emitted=243
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=53 reads_seen=34772 reads_in_scan1IdMap=101 bsj_emitted=242
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=1 reads_seen=34599 reads_in_scan1IdMap=109 bsj_emitted=256
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=54 reads_seen=35634 reads_in_scan1IdMap=102 bsj_emitted=215
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=10 reads_seen=35641 reads_in_scan1IdMap=97 bsj_emitted=219
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=49 reads_seen=34909 reads_in_scan1IdMap=126 bsj_emitted=237
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=25 reads_seen=34695 reads_in_scan1IdMap=124 bsj_emitted=230
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=63 reads_seen=34652 reads_in_scan1IdMap=108 bsj_emitted=267
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=21 reads_seen=35005 reads_in_scan1IdMap=126 bsj_emitted=253
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=55 reads_seen=34602 reads_in_scan1IdMap=116 bsj_emitted=262
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=41 reads_seen=34898 reads_in_scan1IdMap=124 bsj_emitted=231
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=50 reads_seen=35745 reads_in_scan1IdMap=105 bsj_emitted=235
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=11 reads_seen=34865 reads_in_scan1IdMap=125 bsj_emitted=269
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=48 reads_seen=35795 reads_in_scan1IdMap=101 bsj_emitted=223
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=29 reads_seen=34664 reads_in_scan1IdMap=99 bsj_emitted=241
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=12 reads_seen=35591 reads_in_scan1IdMap=105 bsj_emitted=244
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=4 reads_seen=35415 reads_in_scan1IdMap=124 bsj_emitted=236
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=40 reads_seen=35314 reads_in_scan1IdMap=118 bsj_emitted=257
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=36 reads_seen=35574 reads_in_scan1IdMap=123 bsj_emitted=271
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=35 reads_seen=34844 reads_in_scan1IdMap=121 bsj_emitted=259
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=27 reads_seen=34954 reads_in_scan1IdMap=108 bsj_emitted=218
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=60 reads_seen=35352 reads_in_scan1IdMap=116 bsj_emitted=232
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=14 reads_seen=35517 reads_in_scan1IdMap=101 bsj_emitted=203
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=62 reads_seen=35581 reads_in_scan1IdMap=107 bsj_emitted=234
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=57 reads_seen=34857 reads_in_scan1IdMap=133 bsj_emitted=272
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=51 reads_seen=34925 reads_in_scan1IdMap=117 bsj_emitted=252
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=44 reads_seen=35344 reads_in_scan1IdMap=99 bsj_emitted=243
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=61 reads_seen=34977 reads_in_scan1IdMap=113 bsj_emitted=245
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=46 reads_seen=35658 reads_in_scan1IdMap=97 bsj_emitted=219
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=9 reads_seen=34894 reads_in_scan1IdMap=105 bsj_emitted=237
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=13 reads_seen=34716 reads_in_scan1IdMap=115 bsj_emitted=239
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=19 reads_seen=34788 reads_in_scan1IdMap=141 bsj_emitted=292
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=58 reads_seen=35589 reads_in_scan1IdMap=94 bsj_emitted=200
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=39 reads_seen=34993 reads_in_scan1IdMap=115 bsj_emitted=281
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=32 reads_seen=35514 reads_in_scan1IdMap=114 bsj_emitted=219
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=47 reads_seen=34558 reads_in_scan1IdMap=122 bsj_emitted=257
+2026-04-20 20:25:01 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=30 reads_seen=35490 reads_in_scan1IdMap=103 bsj_emitted=245
+2026-04-20 20:25:01 Running:/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/Chimeric.out.junction,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/Aligned.out.sam,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=16 reads_seen=57045 reads_in_scan1IdMap=122 bsj_emitted=189
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=13 reads_seen=55882 reads_in_scan1IdMap=141 bsj_emitted=193
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=9 reads_seen=55668 reads_in_scan1IdMap=153 bsj_emitted=178
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=29 reads_seen=55755 reads_in_scan1IdMap=162 bsj_emitted=175
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=28 reads_seen=57076 reads_in_scan1IdMap=134 bsj_emitted=179
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=19 reads_seen=55753 reads_in_scan1IdMap=144 bsj_emitted=178
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=17 reads_seen=55901 reads_in_scan1IdMap=160 bsj_emitted=181
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=8 reads_seen=57427 reads_in_scan1IdMap=130 bsj_emitted=204
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=31 reads_seen=55308 reads_in_scan1IdMap=158 bsj_emitted=195
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=23 reads_seen=55513 reads_in_scan1IdMap=146 bsj_emitted=220
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=2 reads_seen=57458 reads_in_scan1IdMap=115 bsj_emitted=192
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=7 reads_seen=55257 reads_in_scan1IdMap=154 bsj_emitted=209
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=21 reads_seen=55673 reads_in_scan1IdMap=166 bsj_emitted=202
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=12 reads_seen=57138 reads_in_scan1IdMap=112 bsj_emitted=201
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=4 reads_seen=57308 reads_in_scan1IdMap=113 bsj_emitted=188
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=53 reads_seen=55574 reads_in_scan1IdMap=170 bsj_emitted=212
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=3 reads_seen=54919 reads_in_scan1IdMap=156 bsj_emitted=191
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=27 reads_seen=55624 reads_in_scan1IdMap=177 bsj_emitted=204
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=34 reads_seen=57428 reads_in_scan1IdMap=142 bsj_emitted=177
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=18 reads_seen=57090 reads_in_scan1IdMap=116 bsj_emitted=175
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=46 reads_seen=57378 reads_in_scan1IdMap=130 bsj_emitted=169
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=38 reads_seen=57124 reads_in_scan1IdMap=125 bsj_emitted=189
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=32 reads_seen=57281 reads_in_scan1IdMap=135 bsj_emitted=206
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=54 reads_seen=56923 reads_in_scan1IdMap=122 bsj_emitted=172
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=43 reads_seen=55407 reads_in_scan1IdMap=168 bsj_emitted=195
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=56 reads_seen=57084 reads_in_scan1IdMap=129 bsj_emitted=174
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=35 reads_seen=55550 reads_in_scan1IdMap=157 bsj_emitted=188
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=41 reads_seen=55395 reads_in_scan1IdMap=174 bsj_emitted=205
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=59 reads_seen=55720 reads_in_scan1IdMap=184 bsj_emitted=208
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=22 reads_seen=57373 reads_in_scan1IdMap=143 bsj_emitted=173
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=42 reads_seen=57481 reads_in_scan1IdMap=125 bsj_emitted=182
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=40 reads_seen=57273 reads_in_scan1IdMap=143 bsj_emitted=201
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=26 reads_seen=57357 reads_in_scan1IdMap=130 bsj_emitted=195
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=15 reads_seen=55296 reads_in_scan1IdMap=159 bsj_emitted=198
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=57 reads_seen=55314 reads_in_scan1IdMap=155 bsj_emitted=207
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=58 reads_seen=57667 reads_in_scan1IdMap=126 bsj_emitted=201
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=52 reads_seen=56921 reads_in_scan1IdMap=169 bsj_emitted=188
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=25 reads_seen=55747 reads_in_scan1IdMap=164 bsj_emitted=188
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=50 reads_seen=57203 reads_in_scan1IdMap=155 bsj_emitted=183
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=37 reads_seen=55493 reads_in_scan1IdMap=152 bsj_emitted=198
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=55 reads_seen=55167 reads_in_scan1IdMap=164 bsj_emitted=199
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=6 reads_seen=57787 reads_in_scan1IdMap=132 bsj_emitted=202
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=60 reads_seen=57495 reads_in_scan1IdMap=134 bsj_emitted=185
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=48 reads_seen=57028 reads_in_scan1IdMap=136 bsj_emitted=193
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=61 reads_seen=55748 reads_in_scan1IdMap=154 bsj_emitted=199
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=20 reads_seen=56851 reads_in_scan1IdMap=153 bsj_emitted=185
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=44 reads_seen=57123 reads_in_scan1IdMap=120 bsj_emitted=226
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=63 reads_seen=55107 reads_in_scan1IdMap=177 bsj_emitted=198
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=1 reads_seen=55452 reads_in_scan1IdMap=184 bsj_emitted=193
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=64 reads_seen=57321 reads_in_scan1IdMap=141 bsj_emitted=195
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=14 reads_seen=57203 reads_in_scan1IdMap=135 bsj_emitted=200
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=11 reads_seen=55357 reads_in_scan1IdMap=175 bsj_emitted=205
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=39 reads_seen=55516 reads_in_scan1IdMap=155 bsj_emitted=197
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=10 reads_seen=57271 reads_in_scan1IdMap=130 bsj_emitted=184
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=5 reads_seen=55855 reads_in_scan1IdMap=161 bsj_emitted=208
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=36 reads_seen=57224 reads_in_scan1IdMap=117 bsj_emitted=193
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=30 reads_seen=57442 reads_in_scan1IdMap=148 bsj_emitted=192
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=49 reads_seen=55689 reads_in_scan1IdMap=152 bsj_emitted=198
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=62 reads_seen=57615 reads_in_scan1IdMap=128 bsj_emitted=187
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=24 reads_seen=57124 reads_in_scan1IdMap=132 bsj_emitted=202
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=51 reads_seen=55511 reads_in_scan1IdMap=183 bsj_emitted=188
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=33 reads_seen=55468 reads_in_scan1IdMap=162 bsj_emitted=220
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=47 reads_seen=55239 reads_in_scan1IdMap=167 bsj_emitted=216
+2026-04-20 20:25:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=45 reads_seen=55684 reads_in_scan1IdMap=160 bsj_emitted=202
+2026-04-20 20:25:07 :First scan completed
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ1: total=36256 tag1=36209
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ2: total=223 tag1=181
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ3: total=223 tag1=180
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ4: total=236 tag1=192
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ5: total=235 tag1=194
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ6: total=227 tag1=180
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ7: total=232 tag1=185
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ8: total=213 tag1=157
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ9: total=237 tag1=194
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ10: total=219 tag1=180
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ11: total=269 tag1=216
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ12: total=244 tag1=203
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ13: total=239 tag1=189
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ14: total=203 tag1=156
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ15: total=267 tag1=209
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ16: total=231 tag1=177
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ17: total=278 tag1=235
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ18: total=226 tag1=194
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ19: total=292 tag1=229
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ20: total=237 tag1=192
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ21: total=253 tag1=205
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ22: total=218 tag1=170
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ23: total=246 tag1=188
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ24: total=218 tag1=175
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ25: total=230 tag1=189
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ26: total=210 tag1=161
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ27: total=218 tag1=176
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ28: total=246 tag1=204
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ29: total=241 tag1=193
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ30: total=245 tag1=199
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ31: total=262 tag1=207
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ32: total=219 tag1=179
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ33: total=235 tag1=176
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ34: total=224 tag1=192
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ35: total=259 tag1=196
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ36: total=271 tag1=214
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ37: total=244 tag1=199
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ38: total=248 tag1=199
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ39: total=281 tag1=227
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ40: total=257 tag1=216
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ41: total=231 tag1=178
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ42: total=216 tag1=167
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ43: total=251 tag1=200
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ44: total=243 tag1=182
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ45: total=243 tag1=197
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ46: total=219 tag1=179
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ47: total=257 tag1=197
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ48: total=223 tag1=184
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ49: total=237 tag1=190
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ50: total=235 tag1=191
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ51: total=252 tag1=192
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ52: total=230 tag1=189
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ53: total=242 tag1=199
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ54: total=215 tag1=177
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ55: total=262 tag1=219
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ56: total=243 tag1=195
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ57: total=272 tag1=228
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ58: total=200 tag1=167
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ59: total=246 tag1=203
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ60: total=232 tag1=181
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ61: total=245 tag1=202
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ62: total=234 tag1=178
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ63: total=267 tag1=210
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] BSJ64: total=198 tag1=153
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[0] bwaSam=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam bsj_total=51305 tag1=48275 idCircMap=51305
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ1: total=38662 tag1=38590
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ2: total=192 tag1=134
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ3: total=191 tag1=120
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ4: total=188 tag1=114
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ5: total=208 tag1=137
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ6: total=202 tag1=126
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ7: total=209 tag1=140
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ8: total=204 tag1=129
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ9: total=178 tag1=110
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ10: total=184 tag1=124
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ11: total=205 tag1=129
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ12: total=201 tag1=133
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ13: total=193 tag1=131
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ14: total=200 tag1=127
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ15: total=198 tag1=131
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ16: total=189 tag1=116
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ17: total=181 tag1=115
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ18: total=175 tag1=115
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ19: total=178 tag1=103
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ20: total=185 tag1=120
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ21: total=202 tag1=124
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ22: total=173 tag1=116
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ23: total=220 tag1=144
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ24: total=202 tag1=130
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ25: total=188 tag1=115
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ26: total=195 tag1=135
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ27: total=204 tag1=137
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ28: total=179 tag1=114
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ29: total=175 tag1=101
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ30: total=192 tag1=126
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ31: total=195 tag1=139
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ32: total=206 tag1=142
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ33: total=220 tag1=142
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ34: total=177 tag1=111
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ35: total=188 tag1=117
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ36: total=193 tag1=120
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ37: total=198 tag1=137
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ38: total=189 tag1=121
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ39: total=197 tag1=125
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ40: total=201 tag1=132
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ41: total=205 tag1=135
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ42: total=182 tag1=110
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ43: total=195 tag1=126
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ44: total=226 tag1=146
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ45: total=202 tag1=135
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ46: total=169 tag1=111
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ47: total=216 tag1=148
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ48: total=193 tag1=133
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ49: total=198 tag1=131
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ50: total=183 tag1=116
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ51: total=188 tag1=120
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ52: total=188 tag1=118
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ53: total=212 tag1=139
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ54: total=172 tag1=114
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ55: total=199 tag1=123
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ56: total=174 tag1=106
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ57: total=207 tag1=134
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ58: total=201 tag1=131
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ59: total=208 tag1=127
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ60: total=185 tag1=118
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ61: total=199 tag1=124
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ62: total=187 tag1=135
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ63: total=198 tag1=141
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] BSJ64: total=195 tag1=123
+2026-04-20 20:25:07 :DIAG_ORIG after_scan1 sample[1] bwaSam=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam bsj_total=50899 tag1=46516 idCircMap=50899
+Running:/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/Chimeric.out.junction,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/Aligned.out.sam,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam
+Running:/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/Chimeric.out.junction,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/Aligned.out.sam,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam
+Running:/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/Chimeric.out.junction,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/Aligned.out.sam,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam
+/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/Chimeric.out.junction,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/Aligned.out.sam,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam Mapped_Reads 19213792
+Running:/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/Chimeric.out.junction,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/Aligned.out.sam,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam
+/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/Chimeric.out.junction,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/Aligned.out.sam,/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam Mapped_Reads 40312306
+2026-04-20 20:27:07 :Second scan completed
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ1: total=36563 tag1=36504
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ2: total=520 tag1=466
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ3: total=565 tag1=503
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ4: total=535 tag1=458
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ5: total=562 tag1=495
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ6: total=559 tag1=484
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ7: total=568 tag1=491
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ8: total=553 tag1=475
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ9: total=541 tag1=482
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ10: total=541 tag1=474
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ11: total=542 tag1=468
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ12: total=587 tag1=527
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ13: total=559 tag1=484
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ14: total=546 tag1=466
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ15: total=592 tag1=514
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ16: total=554 tag1=484
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ17: total=597 tag1=524
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ18: total=537 tag1=480
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ19: total=576 tag1=485
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ20: total=556 tag1=495
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ21: total=574 tag1=493
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ22: total=545 tag1=477
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ23: total=546 tag1=473
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ24: total=511 tag1=445
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ25: total=574 tag1=502
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ26: total=506 tag1=428
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ27: total=546 tag1=482
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ28: total=568 tag1=489
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ29: total=517 tag1=447
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ30: total=547 tag1=483
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ31: total=587 tag1=509
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ32: total=535 tag1=468
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ33: total=560 tag1=476
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ34: total=551 tag1=496
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ35: total=554 tag1=469
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ36: total=583 tag1=495
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ37: total=558 tag1=495
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ38: total=588 tag1=518
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ39: total=612 tag1=530
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ40: total=549 tag1=483
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ41: total=566 tag1=485
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ42: total=533 tag1=468
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ43: total=555 tag1=478
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ44: total=572 tag1=493
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ45: total=550 tag1=477
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ46: total=522 tag1=461
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ47: total=596 tag1=515
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ48: total=548 tag1=481
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ49: total=539 tag1=477
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ50: total=546 tag1=474
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ51: total=579 tag1=498
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ52: total=510 tag1=450
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ53: total=589 tag1=522
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ54: total=559 tag1=491
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ55: total=598 tag1=536
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ56: total=539 tag1=474
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ57: total=578 tag1=514
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ58: total=520 tag1=470
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ59: total=544 tag1=478
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ60: total=538 tag1=460
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ61: total=592 tag1=528
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ62: total=528 tag1=456
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ63: total=588 tag1=508
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] BSJ64: total=509 tag1=438
+2026-04-20 20:27:07 :DIAG_ORIG sample[0] samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam bsj_total=71562 tag1=67049 circRNAs=21052
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ1: total=38945 tag1=38841
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ2: total=452 tag1=366
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ3: total=470 tag1=363
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ4: total=445 tag1=343
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ5: total=453 tag1=358
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ6: total=475 tag1=368
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ7: total=482 tag1=392
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ8: total=484 tag1=372
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ9: total=453 tag1=349
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ10: total=436 tag1=338
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ11: total=510 tag1=410
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ12: total=490 tag1=390
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ13: total=467 tag1=370
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ14: total=455 tag1=357
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ15: total=482 tag1=386
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ16: total=482 tag1=369
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ17: total=432 tag1=330
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ18: total=451 tag1=365
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ19: total=466 tag1=360
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ20: total=475 tag1=383
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ21: total=474 tag1=359
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ22: total=463 tag1=378
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ23: total=467 tag1=362
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ24: total=468 tag1=363
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ25: total=458 tag1=356
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ26: total=471 tag1=371
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ27: total=487 tag1=391
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ28: total=473 tag1=368
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ29: total=428 tag1=322
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ30: total=414 tag1=330
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ31: total=517 tag1=427
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ32: total=494 tag1=400
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ33: total=489 tag1=385
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ34: total=465 tag1=365
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ35: total=454 tag1=347
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ36: total=454 tag1=352
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ37: total=502 tag1=401
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ38: total=441 tag1=338
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ39: total=455 tag1=352
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ40: total=478 tag1=374
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ41: total=495 tag1=384
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ42: total=442 tag1=338
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ43: total=453 tag1=350
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ44: total=497 tag1=388
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ45: total=472 tag1=377
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ46: total=428 tag1=334
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ47: total=470 tag1=374
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ48: total=494 tag1=401
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ49: total=482 tag1=372
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ50: total=461 tag1=364
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ51: total=457 tag1=369
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ52: total=464 tag1=361
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ53: total=481 tag1=366
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ54: total=441 tag1=357
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ55: total=471 tag1=367
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ56: total=472 tag1=368
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ57: total=472 tag1=367
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ58: total=492 tag1=391
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ59: total=527 tag1=407
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ60: total=477 tag1=378
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ61: total=488 tag1=374
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ62: total=440 tag1=365
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ63: total=466 tag1=378
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] BSJ64: total=453 tag1=345
+2026-04-20 20:27:07 :DIAG_ORIG sample[1] samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam bsj_total=68452 tag1=62026 circRNAs=20592
+2026-04-20 20:27:11 :Collation of circRNA completed
+Program run time:152737ms
+[INFO]  Joint BSJ files snapshotted to /pastel/tools/circRNA_tools/test_data/decoupled_comparison/joint_bsj_snapshot/
+[PASS]  Original BSJ_Matrix exists and is non-empty
+[PASS]  Original FSJ_Matrix exists and is non-empty
+[INFO]  Original pipeline: 30296 circRNAs.
+[INFO]  === Decoupled pipeline (CIRI3_decoupled.jar, STAR) ===
+[INFO]  --- Stage 1: SCAN1 ---
+[INFO]    SCAN1: PARDOS_1_S1
+2026-04-20 20:27:46 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=52 reads_seen=35571 reads_in_scan1IdMap=103 bsj_emitted=230
+2026-04-20 20:27:46 :First scan completed 52
+2026-04-20 20:27:46 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=43 reads_seen=34829 reads_in_scan1IdMap=130 bsj_emitted=251
+2026-04-20 20:27:46 :First scan completed 43
+2026-04-20 20:27:46 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=64 reads_seen=35605 reads_in_scan1IdMap=96 bsj_emitted=198
+2026-04-20 20:27:46 :First scan completed 64
+2026-04-20 20:27:52 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=14 reads_seen=35517 reads_in_scan1IdMap=101 bsj_emitted=203
+2026-04-20 20:27:52 :First scan completed 14
+2026-04-20 20:28:08 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=18 reads_seen=35626 reads_in_scan1IdMap=101 bsj_emitted=226
+2026-04-20 20:28:08 :First scan completed 18
+2026-04-20 20:28:22 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=33 reads_seen=34760 reads_in_scan1IdMap=123 bsj_emitted=235
+2026-04-20 20:28:22 :First scan completed 33
+2026-04-20 20:28:26 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=11 reads_seen=34865 reads_in_scan1IdMap=125 bsj_emitted=269
+2026-04-20 20:28:26 :First scan completed 11
+2026-04-20 20:28:39 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=51 reads_seen=34925 reads_in_scan1IdMap=117 bsj_emitted=252
+2026-04-20 20:28:39 :First scan completed 51
+2026-04-20 20:28:42 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=62 reads_seen=35581 reads_in_scan1IdMap=107 bsj_emitted=234
+2026-04-20 20:28:42 :First scan completed 62
+2026-04-20 20:28:57 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=20 reads_seen=35416 reads_in_scan1IdMap=101 bsj_emitted=237
+2026-04-20 20:28:57 :First scan completed 20
+2026-04-20 20:28:58 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=25 reads_seen=34695 reads_in_scan1IdMap=124 bsj_emitted=230
+2026-04-20 20:28:58 :First scan completed 25
+2026-04-20 20:29:09 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=40 reads_seen=35314 reads_in_scan1IdMap=118 bsj_emitted=257
+2026-04-20 20:29:09 :First scan completed 40
+2026-04-20 20:29:12 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=5 reads_seen=34751 reads_in_scan1IdMap=152 bsj_emitted=235
+2026-04-20 20:29:12 :First scan completed 5
+2026-04-20 20:29:14 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=28 reads_seen=35498 reads_in_scan1IdMap=125 bsj_emitted=246
+2026-04-20 20:29:14 :First scan completed 28
+2026-04-20 20:29:14 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=45 reads_seen=34661 reads_in_scan1IdMap=120 bsj_emitted=243
+2026-04-20 20:29:14 :First scan completed 45
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=35 reads_seen=34844 reads_in_scan1IdMap=121 bsj_emitted=259
+2026-04-20 20:29:17 :First scan completed 35
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=4 reads_seen=35415 reads_in_scan1IdMap=124 bsj_emitted=236
+2026-04-20 20:29:17 :First scan completed 4
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=8 reads_seen=35795 reads_in_scan1IdMap=107 bsj_emitted=213
+2026-04-20 20:29:17 :First scan completed 8
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=27 reads_seen=34954 reads_in_scan1IdMap=108 bsj_emitted=218
+2026-04-20 20:29:17 :First scan completed 27
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=22 reads_seen=35530 reads_in_scan1IdMap=112 bsj_emitted=218
+2026-04-20 20:29:17 :First scan completed 22
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=13 reads_seen=34716 reads_in_scan1IdMap=115 bsj_emitted=239
+2026-04-20 20:29:17 :First scan completed 13
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=2 reads_seen=35936 reads_in_scan1IdMap=95 bsj_emitted=223
+2026-04-20 20:29:17 :First scan completed 2
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=54 reads_seen=35634 reads_in_scan1IdMap=102 bsj_emitted=215
+2026-04-20 20:29:17 :First scan completed 54
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=12 reads_seen=35591 reads_in_scan1IdMap=105 bsj_emitted=244
+2026-04-20 20:29:17 :First scan completed 12
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=38 reads_seen=35411 reads_in_scan1IdMap=107 bsj_emitted=248
+2026-04-20 20:29:17 :First scan completed 38
+2026-04-20 20:29:17 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=47 reads_seen=34558 reads_in_scan1IdMap=122 bsj_emitted=257
+2026-04-20 20:29:17 :First scan completed 47
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=41 reads_seen=34898 reads_in_scan1IdMap=124 bsj_emitted=231
+2026-04-20 20:29:18 :First scan completed 41
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=29 reads_seen=34664 reads_in_scan1IdMap=99 bsj_emitted=241
+2026-04-20 20:29:18 :First scan completed 29
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=34 reads_seen=35275 reads_in_scan1IdMap=91 bsj_emitted=224
+2026-04-20 20:29:18 :First scan completed 34
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=19 reads_seen=34788 reads_in_scan1IdMap=141 bsj_emitted=292
+2026-04-20 20:29:18 :First scan completed 19
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=46 reads_seen=35658 reads_in_scan1IdMap=97 bsj_emitted=219
+2026-04-20 20:29:18 :First scan completed 46
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=32 reads_seen=35514 reads_in_scan1IdMap=114 bsj_emitted=219
+2026-04-20 20:29:18 :First scan completed 32
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=9 reads_seen=34894 reads_in_scan1IdMap=105 bsj_emitted=237
+2026-04-20 20:29:18 :First scan completed 9
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=56 reads_seen=35699 reads_in_scan1IdMap=87 bsj_emitted=243
+2026-04-20 20:29:18 :First scan completed 56
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=49 reads_seen=34909 reads_in_scan1IdMap=126 bsj_emitted=237
+2026-04-20 20:29:18 :First scan completed 49
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=1 reads_seen=34599 reads_in_scan1IdMap=109 bsj_emitted=256
+2026-04-20 20:29:18 :First scan completed 1
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=37 reads_seen=35094 reads_in_scan1IdMap=119 bsj_emitted=244
+2026-04-20 20:29:18 :First scan completed 37
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=42 reads_seen=35476 reads_in_scan1IdMap=99 bsj_emitted=216
+2026-04-20 20:29:18 :First scan completed 42
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=21 reads_seen=35005 reads_in_scan1IdMap=126 bsj_emitted=253
+2026-04-20 20:29:18 :First scan completed 21
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=6 reads_seen=35459 reads_in_scan1IdMap=99 bsj_emitted=227
+2026-04-20 20:29:18 :First scan completed 6
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=30 reads_seen=35490 reads_in_scan1IdMap=103 bsj_emitted=245
+2026-04-20 20:29:18 :First scan completed 30
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=31 reads_seen=34650 reads_in_scan1IdMap=118 bsj_emitted=262
+2026-04-20 20:29:18 :First scan completed 31
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=17 reads_seen=34616 reads_in_scan1IdMap=125 bsj_emitted=278
+2026-04-20 20:29:18 :First scan completed 17
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=61 reads_seen=34977 reads_in_scan1IdMap=113 bsj_emitted=245
+2026-04-20 20:29:18 :First scan completed 61
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=26 reads_seen=35520 reads_in_scan1IdMap=95 bsj_emitted=210
+2026-04-20 20:29:18 :First scan completed 26
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=55 reads_seen=34602 reads_in_scan1IdMap=116 bsj_emitted=262
+2026-04-20 20:29:18 :First scan completed 55
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=60 reads_seen=35352 reads_in_scan1IdMap=116 bsj_emitted=232
+2026-04-20 20:29:18 :First scan completed 60
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=7 reads_seen=34566 reads_in_scan1IdMap=107 bsj_emitted=232
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=44 reads_seen=35344 reads_in_scan1IdMap=99 bsj_emitted=243
+2026-04-20 20:29:18 :First scan completed 7
+2026-04-20 20:29:18 :First scan completed 44
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=36 reads_seen=35574 reads_in_scan1IdMap=123 bsj_emitted=271
+2026-04-20 20:29:18 :First scan completed 36
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=16 reads_seen=35533 reads_in_scan1IdMap=125 bsj_emitted=231
+2026-04-20 20:29:18 :First scan completed 16
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=10 reads_seen=35641 reads_in_scan1IdMap=97 bsj_emitted=219
+2026-04-20 20:29:18 :First scan completed 10
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=15 reads_seen=34639 reads_in_scan1IdMap=97 bsj_emitted=267
+2026-04-20 20:29:18 :First scan completed 15
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=24 reads_seen=35390 reads_in_scan1IdMap=112 bsj_emitted=218
+2026-04-20 20:29:18 :First scan completed 24
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=63 reads_seen=34652 reads_in_scan1IdMap=108 bsj_emitted=267
+2026-04-20 20:29:18 :First scan completed 63
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=50 reads_seen=35745 reads_in_scan1IdMap=105 bsj_emitted=235
+2026-04-20 20:29:18 :First scan completed 50
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=59 reads_seen=34652 reads_in_scan1IdMap=139 bsj_emitted=246
+2026-04-20 20:29:18 :First scan completed 59
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=48 reads_seen=35795 reads_in_scan1IdMap=101 bsj_emitted=223
+2026-04-20 20:29:18 :First scan completed 48
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=3 reads_seen=34634 reads_in_scan1IdMap=119 bsj_emitted=223
+2026-04-20 20:29:18 :First scan completed 3
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=53 reads_seen=34772 reads_in_scan1IdMap=101 bsj_emitted=242
+2026-04-20 20:29:18 :First scan completed 53
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=23 reads_seen=34682 reads_in_scan1IdMap=117 bsj_emitted=246
+2026-04-20 20:29:18 :First scan completed 23
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=57 reads_seen=34857 reads_in_scan1IdMap=133 bsj_emitted=272
+2026-04-20 20:29:18 :First scan completed 57
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=39 reads_seen=34993 reads_in_scan1IdMap=115 bsj_emitted=281
+2026-04-20 20:29:18 :First scan completed 39
+2026-04-20 20:29:18 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_1_S1/bwa.sam threadNum=58 reads_seen=35589 reads_in_scan1IdMap=94 bsj_emitted=200
+2026-04-20 20:29:18 :First scan completed 58
+2026-04-20 20:29:19 :DIAG scan1 BSJ1: total=36256 tag1=36209
+2026-04-20 20:29:19 :DIAG scan1 BSJ2: total=223 tag1=181
+2026-04-20 20:29:19 :DIAG scan1 BSJ3: total=223 tag1=180
+2026-04-20 20:29:19 :DIAG scan1 BSJ4: total=236 tag1=192
+2026-04-20 20:29:19 :DIAG scan1 BSJ5: total=235 tag1=194
+2026-04-20 20:29:19 :DIAG scan1 BSJ6: total=227 tag1=180
+2026-04-20 20:29:19 :DIAG scan1 BSJ7: total=232 tag1=185
+2026-04-20 20:29:19 :DIAG scan1 BSJ8: total=213 tag1=157
+2026-04-20 20:29:19 :DIAG scan1 BSJ9: total=237 tag1=194
+2026-04-20 20:29:19 :DIAG scan1 BSJ10: total=219 tag1=180
+2026-04-20 20:29:19 :DIAG scan1 BSJ11: total=269 tag1=216
+2026-04-20 20:29:19 :DIAG scan1 BSJ12: total=244 tag1=203
+2026-04-20 20:29:19 :DIAG scan1 BSJ13: total=239 tag1=189
+2026-04-20 20:29:19 :DIAG scan1 BSJ14: total=203 tag1=156
+2026-04-20 20:29:19 :DIAG scan1 BSJ15: total=267 tag1=209
+2026-04-20 20:29:19 :DIAG scan1 BSJ16: total=231 tag1=177
+2026-04-20 20:29:19 :DIAG scan1 BSJ17: total=278 tag1=235
+2026-04-20 20:29:19 :DIAG scan1 BSJ18: total=226 tag1=194
+2026-04-20 20:29:19 :DIAG scan1 BSJ19: total=292 tag1=229
+2026-04-20 20:29:19 :DIAG scan1 BSJ20: total=237 tag1=192
+2026-04-20 20:29:19 :DIAG scan1 BSJ21: total=253 tag1=205
+2026-04-20 20:29:19 :DIAG scan1 BSJ22: total=218 tag1=170
+2026-04-20 20:29:19 :DIAG scan1 BSJ23: total=246 tag1=188
+2026-04-20 20:29:19 :DIAG scan1 BSJ24: total=218 tag1=175
+2026-04-20 20:29:19 :DIAG scan1 BSJ25: total=230 tag1=189
+2026-04-20 20:29:19 :DIAG scan1 BSJ26: total=210 tag1=161
+2026-04-20 20:29:19 :DIAG scan1 BSJ27: total=218 tag1=176
+2026-04-20 20:29:19 :DIAG scan1 BSJ28: total=246 tag1=204
+2026-04-20 20:29:19 :DIAG scan1 BSJ29: total=241 tag1=193
+2026-04-20 20:29:19 :DIAG scan1 BSJ30: total=245 tag1=199
+2026-04-20 20:29:19 :DIAG scan1 BSJ31: total=262 tag1=207
+2026-04-20 20:29:19 :DIAG scan1 BSJ32: total=219 tag1=179
+2026-04-20 20:29:19 :DIAG scan1 BSJ33: total=235 tag1=176
+2026-04-20 20:29:19 :DIAG scan1 BSJ34: total=224 tag1=192
+2026-04-20 20:29:19 :DIAG scan1 BSJ35: total=259 tag1=196
+2026-04-20 20:29:19 :DIAG scan1 BSJ36: total=271 tag1=214
+2026-04-20 20:29:19 :DIAG scan1 BSJ37: total=244 tag1=199
+2026-04-20 20:29:19 :DIAG scan1 BSJ38: total=248 tag1=199
+2026-04-20 20:29:19 :DIAG scan1 BSJ39: total=281 tag1=227
+2026-04-20 20:29:19 :DIAG scan1 BSJ40: total=257 tag1=216
+2026-04-20 20:29:19 :DIAG scan1 BSJ41: total=231 tag1=178
+2026-04-20 20:29:19 :DIAG scan1 BSJ42: total=216 tag1=167
+2026-04-20 20:29:19 :DIAG scan1 BSJ43: total=251 tag1=200
+2026-04-20 20:29:19 :DIAG scan1 BSJ44: total=243 tag1=182
+2026-04-20 20:29:19 :DIAG scan1 BSJ45: total=243 tag1=197
+2026-04-20 20:29:19 :DIAG scan1 BSJ46: total=219 tag1=179
+2026-04-20 20:29:19 :DIAG scan1 BSJ47: total=257 tag1=197
+2026-04-20 20:29:19 :DIAG scan1 BSJ48: total=223 tag1=184
+2026-04-20 20:29:19 :DIAG scan1 BSJ49: total=237 tag1=190
+2026-04-20 20:29:19 :DIAG scan1 BSJ50: total=235 tag1=191
+2026-04-20 20:29:19 :DIAG scan1 BSJ51: total=252 tag1=192
+2026-04-20 20:29:19 :DIAG scan1 BSJ52: total=230 tag1=189
+2026-04-20 20:29:19 :DIAG scan1 BSJ53: total=242 tag1=199
+2026-04-20 20:29:19 :DIAG scan1 BSJ54: total=215 tag1=177
+2026-04-20 20:29:19 :DIAG scan1 BSJ55: total=262 tag1=219
+2026-04-20 20:29:19 :DIAG scan1 BSJ56: total=243 tag1=195
+2026-04-20 20:29:19 :DIAG scan1 BSJ57: total=272 tag1=228
+2026-04-20 20:29:19 :DIAG scan1 BSJ58: total=200 tag1=167
+2026-04-20 20:29:19 :DIAG scan1 BSJ59: total=246 tag1=203
+2026-04-20 20:29:19 :DIAG scan1 BSJ60: total=232 tag1=181
+2026-04-20 20:29:19 :DIAG scan1 BSJ61: total=245 tag1=202
+2026-04-20 20:29:19 :DIAG scan1 BSJ62: total=234 tag1=178
+2026-04-20 20:29:19 :DIAG scan1 BSJ63: total=267 tag1=210
+2026-04-20 20:29:19 :DIAG scan1 BSJ64: total=198 tag1=153
+2026-04-20 20:29:19 :DIAG scan1 BSJ_TOTAL: total=51305 tag1=48275 readLen=151
+2026-04-20 20:29:19 :Scan1 metadata written to /pastel/tools/circRNA_tools/test_data/decoupled_comparison/decoupled/scan1/PARDOS_1_S1.scan1_meta
+Program run time: 126668ms
+[PASS]  SCAN1 meta (PARDOS_1_S1) exists and is non-empty
+[PASS]  SCAN1 BSJ files present for PARDOS_1_S1 (64 splits)
+[INFO]    SCAN1: PARDOS_2_S2
+2026-04-20 20:30:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=38 reads_seen=57124 reads_in_scan1IdMap=125 bsj_emitted=189
+2026-04-20 20:30:00 :First scan completed 38
+2026-04-20 20:30:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=33 reads_seen=55468 reads_in_scan1IdMap=162 bsj_emitted=220
+2026-04-20 20:30:00 :First scan completed 33
+2026-04-20 20:30:00 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=22 reads_seen=57373 reads_in_scan1IdMap=143 bsj_emitted=173
+2026-04-20 20:30:00 :First scan completed 22
+2026-04-20 20:30:02 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=24 reads_seen=57124 reads_in_scan1IdMap=132 bsj_emitted=202
+2026-04-20 20:30:02 :First scan completed 24
+2026-04-20 20:30:02 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=5 reads_seen=55855 reads_in_scan1IdMap=161 bsj_emitted=208
+2026-04-20 20:30:02 :First scan completed 5
+2026-04-20 20:30:02 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=54 reads_seen=56923 reads_in_scan1IdMap=122 bsj_emitted=172
+2026-04-20 20:30:02 :First scan completed 54
+2026-04-20 20:30:03 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=59 reads_seen=55720 reads_in_scan1IdMap=184 bsj_emitted=208
+2026-04-20 20:30:03 :First scan completed 59
+2026-04-20 20:30:03 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=39 reads_seen=55516 reads_in_scan1IdMap=155 bsj_emitted=197
+2026-04-20 20:30:03 :First scan completed 39
+2026-04-20 20:30:03 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=45 reads_seen=55684 reads_in_scan1IdMap=160 bsj_emitted=202
+2026-04-20 20:30:03 :First scan completed 45
+2026-04-20 20:30:04 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=29 reads_seen=55755 reads_in_scan1IdMap=162 bsj_emitted=175
+2026-04-20 20:30:04 :First scan completed 29
+2026-04-20 20:30:04 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=20 reads_seen=56851 reads_in_scan1IdMap=153 bsj_emitted=185
+2026-04-20 20:30:04 :First scan completed 20
+2026-04-20 20:30:04 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=4 reads_seen=57308 reads_in_scan1IdMap=113 bsj_emitted=188
+2026-04-20 20:30:04 :First scan completed 4
+2026-04-20 20:30:04 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=63 reads_seen=55107 reads_in_scan1IdMap=177 bsj_emitted=198
+2026-04-20 20:30:04 :First scan completed 63
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=18 reads_seen=57090 reads_in_scan1IdMap=116 bsj_emitted=175
+2026-04-20 20:30:05 :First scan completed 18
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=1 reads_seen=55452 reads_in_scan1IdMap=184 bsj_emitted=193
+2026-04-20 20:30:05 :First scan completed 1
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=47 reads_seen=55239 reads_in_scan1IdMap=167 bsj_emitted=216
+2026-04-20 20:30:05 :First scan completed 47
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=36 reads_seen=57224 reads_in_scan1IdMap=117 bsj_emitted=193
+2026-04-20 20:30:05 :First scan completed 36
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=40 reads_seen=57273 reads_in_scan1IdMap=143 bsj_emitted=201
+2026-04-20 20:30:05 :First scan completed 40
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=10 reads_seen=57271 reads_in_scan1IdMap=130 bsj_emitted=184
+2026-04-20 20:30:05 :First scan completed 10
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=16 reads_seen=57045 reads_in_scan1IdMap=122 bsj_emitted=189
+2026-04-20 20:30:05 :First scan completed 16
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=27 reads_seen=55624 reads_in_scan1IdMap=177 bsj_emitted=204
+2026-04-20 20:30:05 :First scan completed 27
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=44 reads_seen=57123 reads_in_scan1IdMap=120 bsj_emitted=226
+2026-04-20 20:30:05 :First scan completed 44
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=12 reads_seen=57138 reads_in_scan1IdMap=112 bsj_emitted=201
+2026-04-20 20:30:05 :First scan completed 12
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=35 reads_seen=55550 reads_in_scan1IdMap=157 bsj_emitted=188
+2026-04-20 20:30:05 :First scan completed 35
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=52 reads_seen=56921 reads_in_scan1IdMap=169 bsj_emitted=188
+2026-04-20 20:30:05 :First scan completed 52
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=28 reads_seen=57076 reads_in_scan1IdMap=134 bsj_emitted=179
+2026-04-20 20:30:05 :First scan completed 28
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=62 reads_seen=57615 reads_in_scan1IdMap=128 bsj_emitted=187
+2026-04-20 20:30:05 :First scan completed 62
+2026-04-20 20:30:05 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=37 reads_seen=55493 reads_in_scan1IdMap=152 bsj_emitted=198
+2026-04-20 20:30:05 :First scan completed 37
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=30 reads_seen=57442 reads_in_scan1IdMap=148 bsj_emitted=192
+2026-04-20 20:30:06 :First scan completed 30
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=64 reads_seen=57321 reads_in_scan1IdMap=141 bsj_emitted=195
+2026-04-20 20:30:06 :First scan completed 64
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=13 reads_seen=55882 reads_in_scan1IdMap=141 bsj_emitted=193
+2026-04-20 20:30:06 :First scan completed 13
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=55 reads_seen=55167 reads_in_scan1IdMap=164 bsj_emitted=199
+2026-04-20 20:30:06 :First scan completed 55
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=51 reads_seen=55511 reads_in_scan1IdMap=183 bsj_emitted=188
+2026-04-20 20:30:06 :First scan completed 51
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=41 reads_seen=55395 reads_in_scan1IdMap=174 bsj_emitted=205
+2026-04-20 20:30:06 :First scan completed 41
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=17 reads_seen=55901 reads_in_scan1IdMap=160 bsj_emitted=181
+2026-04-20 20:30:06 :First scan completed 17
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=31 reads_seen=55308 reads_in_scan1IdMap=158 bsj_emitted=195
+2026-04-20 20:30:06 :First scan completed 31
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=9 reads_seen=55668 reads_in_scan1IdMap=153 bsj_emitted=178
+2026-04-20 20:30:06 :First scan completed 9
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=26 reads_seen=57357 reads_in_scan1IdMap=130 bsj_emitted=195
+2026-04-20 20:30:06 :First scan completed 26
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=14 reads_seen=57203 reads_in_scan1IdMap=135 bsj_emitted=200
+2026-04-20 20:30:06 :First scan completed 14
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=6 reads_seen=57787 reads_in_scan1IdMap=132 bsj_emitted=202
+2026-04-20 20:30:06 :First scan completed 6
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=3 reads_seen=54919 reads_in_scan1IdMap=156 bsj_emitted=191
+2026-04-20 20:30:06 :First scan completed 3
+2026-04-20 20:30:06 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=8 reads_seen=57427 reads_in_scan1IdMap=130 bsj_emitted=204
+2026-04-20 20:30:06 :First scan completed 8
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=49 reads_seen=55689 reads_in_scan1IdMap=152 bsj_emitted=198
+2026-04-20 20:30:07 :First scan completed 49
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=2 reads_seen=57458 reads_in_scan1IdMap=115 bsj_emitted=192
+2026-04-20 20:30:07 :First scan completed 2
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=23 reads_seen=55513 reads_in_scan1IdMap=146 bsj_emitted=220
+2026-04-20 20:30:07 :First scan completed 23
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=32 reads_seen=57281 reads_in_scan1IdMap=135 bsj_emitted=206
+2026-04-20 20:30:07 :First scan completed 32
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=50 reads_seen=57203 reads_in_scan1IdMap=155 bsj_emitted=183
+2026-04-20 20:30:07 :First scan completed 50
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=53 reads_seen=55574 reads_in_scan1IdMap=170 bsj_emitted=212
+2026-04-20 20:30:07 :First scan completed 53
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=11 reads_seen=55357 reads_in_scan1IdMap=175 bsj_emitted=205
+2026-04-20 20:30:07 :First scan completed 11
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=21 reads_seen=55673 reads_in_scan1IdMap=166 bsj_emitted=202
+2026-04-20 20:30:07 :First scan completed 21
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=15 reads_seen=55296 reads_in_scan1IdMap=159 bsj_emitted=198
+2026-04-20 20:30:07 :First scan completed 15
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=58 reads_seen=57667 reads_in_scan1IdMap=126 bsj_emitted=201
+2026-04-20 20:30:07 :First scan completed 58
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=25 reads_seen=55747 reads_in_scan1IdMap=164 bsj_emitted=188
+2026-04-20 20:30:07 :First scan completed 25
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=43 reads_seen=55407 reads_in_scan1IdMap=168 bsj_emitted=195
+2026-04-20 20:30:07 :First scan completed 43
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=48 reads_seen=57028 reads_in_scan1IdMap=136 bsj_emitted=193
+2026-04-20 20:30:07 :First scan completed 48
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=7 reads_seen=55257 reads_in_scan1IdMap=154 bsj_emitted=209
+2026-04-20 20:30:07 :First scan completed 7
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=46 reads_seen=57378 reads_in_scan1IdMap=130 bsj_emitted=169
+2026-04-20 20:30:07 :First scan completed 46
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=34 reads_seen=57428 reads_in_scan1IdMap=142 bsj_emitted=177
+2026-04-20 20:30:07 :First scan completed 34
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=19 reads_seen=55753 reads_in_scan1IdMap=144 bsj_emitted=178
+2026-04-20 20:30:07 :First scan completed 19
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=42 reads_seen=57481 reads_in_scan1IdMap=125 bsj_emitted=182
+2026-04-20 20:30:07 :First scan completed 42
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=56 reads_seen=57084 reads_in_scan1IdMap=129 bsj_emitted=174
+2026-04-20 20:30:07 :First scan completed 56
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=57 reads_seen=55314 reads_in_scan1IdMap=155 bsj_emitted=207
+2026-04-20 20:30:07 :First scan completed 57
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=60 reads_seen=57495 reads_in_scan1IdMap=134 bsj_emitted=185
+2026-04-20 20:30:07 :First scan completed 60
+2026-04-20 20:30:07 :DIAG_SCAN1 samFile=/pastel/tools/circRNA_tools/test_data/STAR_output_PARDOS_2_S2/bwa.sam threadNum=61 reads_seen=55748 reads_in_scan1IdMap=154 bsj_emitted=199
+2026-04-20 20:30:07 :First scan completed 61
+2026-04-20 20:30:07 :DIAG scan1 BSJ1: total=38662 tag1=38590
+2026-04-20 20:30:07 :DIAG scan1 BSJ2: total=192 tag1=134
+2026-04-20 20:30:07 :DIAG scan1 BSJ3: total=191 tag1=120
+2026-04-20 20:30:07 :DIAG scan1 BSJ4: total=188 tag1=114
+2026-04-20 20:30:07 :DIAG scan1 BSJ5: total=208 tag1=137
+2026-04-20 20:30:07 :DIAG scan1 BSJ6: total=202 tag1=126
+2026-04-20 20:30:07 :DIAG scan1 BSJ7: total=209 tag1=140
+2026-04-20 20:30:07 :DIAG scan1 BSJ8: total=204 tag1=129
+2026-04-20 20:30:07 :DIAG scan1 BSJ9: total=178 tag1=110
+2026-04-20 20:30:07 :DIAG scan1 BSJ10: total=184 tag1=124
+2026-04-20 20:30:07 :DIAG scan1 BSJ11: total=205 tag1=129
+2026-04-20 20:30:07 :DIAG scan1 BSJ12: total=201 tag1=133
+2026-04-20 20:30:07 :DIAG scan1 BSJ13: total=193 tag1=131
+2026-04-20 20:30:07 :DIAG scan1 BSJ14: total=200 tag1=127
+2026-04-20 20:30:07 :DIAG scan1 BSJ15: total=198 tag1=131
+2026-04-20 20:30:07 :DIAG scan1 BSJ16: total=189 tag1=116
+2026-04-20 20:30:07 :DIAG scan1 BSJ17: total=181 tag1=115
+2026-04-20 20:30:07 :DIAG scan1 BSJ18: total=175 tag1=115
+2026-04-20 20:30:07 :DIAG scan1 BSJ19: total=178 tag1=103
+2026-04-20 20:30:07 :DIAG scan1 BSJ20: total=185 tag1=120
+2026-04-20 20:30:07 :DIAG scan1 BSJ21: total=202 tag1=124
+2026-04-20 20:30:07 :DIAG scan1 BSJ22: total=173 tag1=116
+2026-04-20 20:30:07 :DIAG scan1 BSJ23: total=220 tag1=144
+2026-04-20 20:30:07 :DIAG scan1 BSJ24: total=202 tag1=130
+2026-04-20 20:30:07 :DIAG scan1 BSJ25: total=188 tag1=115
+2026-04-20 20:30:07 :DIAG scan1 BSJ26: total=195 tag1=135
+2026-04-20 20:30:07 :DIAG scan1 BSJ27: total=204 tag1=137
+2026-04-20 20:30:07 :DIAG scan1 BSJ28: total=179 tag1=114
+2026-04-20 20:30:07 :DIAG scan1 BSJ29: total=175 tag1=101
+2026-04-20 20:30:07 :DIAG scan1 BSJ30: total=192 tag1=126
+2026-04-20 20:30:07 :DIAG scan1 BSJ31: total=195 tag1=139
+2026-04-20 20:30:07 :DIAG scan1 BSJ32: total=206 tag1=142
+2026-04-20 20:30:07 :DIAG scan1 BSJ33: total=220 tag1=142
+2026-04-20 20:30:07 :DIAG scan1 BSJ34: total=177 tag1=111
+2026-04-20 20:30:07 :DIAG scan1 BSJ35: total=188 tag1=117
+2026-04-20 20:30:07 :DIAG scan1 BSJ36: total=193 tag1=120
+2026-04-20 20:30:07 :DIAG scan1 BSJ37: total=198 tag1=137
+2026-04-20 20:30:07 :DIAG scan1 BSJ38: total=189 tag1=121
+2026-04-20 20:30:07 :DIAG scan1 BSJ39: total=197 tag1=125
+2026-04-20 20:30:07 :DIAG scan1 BSJ40: total=201 tag1=132
+2026-04-20 20:30:07 :DIAG scan1 BSJ41: total=205 tag1=135
+2026-04-20 20:30:07 :DIAG scan1 BSJ42: total=182 tag1=110
+2026-04-20 20:30:07 :DIAG scan1 BSJ43: total=195 tag1=126
+2026-04-20 20:30:07 :DIAG scan1 BSJ44: total=226 tag1=146
+2026-04-20 20:30:07 :DIAG scan1 BSJ45: total=202 tag1=135
+2026-04-20 20:30:07 :DIAG scan1 BSJ46: total=169 tag1=111
+2026-04-20 20:30:07 :DIAG scan1 BSJ47: total=216 tag1=148
+2026-04-20 20:30:07 :DIAG scan1 BSJ48: total=193 tag1=133
+2026-04-20 20:30:07 :DIAG scan1 BSJ49: total=198 tag1=131
+2026-04-20 20:30:07 :DIAG scan1 BSJ50: total=183 tag1=116
+2026-04-20 20:30:07 :DIAG scan1 BSJ51: total=188 tag1=120
+2026-04-20 20:30:07 :DIAG scan1 BSJ52: total=188 tag1=118
+2026-04-20 20:30:07 :DIAG scan1 BSJ53: total=212 tag1=139
+2026-04-20 20:30:07 :DIAG scan1 BSJ54: total=172 tag1=114
+2026-04-20 20:30:07 :DIAG scan1 BSJ55: total=199 tag1=123
+2026-04-20 20:30:07 :DIAG scan1 BSJ56: total=174 tag1=106
+2026-04-20 20:30:07 :DIAG scan1 BSJ57: total=207 tag1=134
+2026-04-20 20:30:07 :DIAG scan1 BSJ58: total=201 tag1=131
+2026-04-20 20:30:07 :DIAG scan1 BSJ59: total=208 tag1=127
+2026-04-20 20:30:07 :DIAG scan1 BSJ60: total=185 tag1=118
+2026-04-20 20:30:07 :DIAG scan1 BSJ61: total=199 tag1=124
+2026-04-20 20:30:07 :DIAG scan1 BSJ62: total=187 tag1=135
+2026-04-20 20:30:07 :DIAG scan1 BSJ63: total=198 tag1=141
+2026-04-20 20:30:07 :DIAG scan1 BSJ64: total=195 tag1=123
+2026-04-20 20:30:07 :DIAG scan1 BSJ_TOTAL: total=50899 tag1=46516 readLen=151
+2026-04-20 20:30:07 :Scan1 metadata written to /pastel/tools/circRNA_tools/test_data/decoupled_comparison/decoupled/scan1/PARDOS_2_S2.scan1_meta
+Program run time: 48682ms
+[PASS]  SCAN1 meta (PARDOS_2_S2) exists and is non-empty
+[PASS]  SCAN1 BSJ files present for PARDOS_2_S2 (64 splits)
+[INFO]  --- Stage 2: BUILD_UNIVERSE ---
+2026-04-20 20:30:24 :Universe contains 33362 circRNA candidates
+2026-04-20 20:30:24 :Universe written to /pastel/tools/circRNA_tools/test_data/decoupled_comparison/decoupled/universe/cohort.universe
+[PASS]  Universe file exists and is non-empty
+[INFO]  Universe: 33362 circRNA candidates.
+[INFO]  --- Stage 3: SCAN2 ---
+[INFO]    SCAN2: PARDOS_1_S1
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ1: total=36256 tag1=36209
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ2: total=223 tag1=181
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ3: total=223 tag1=180
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ4: total=236 tag1=192
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ5: total=235 tag1=194
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ6: total=227 tag1=180
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ7: total=232 tag1=185
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ8: total=213 tag1=157
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ9: total=237 tag1=194
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ10: total=219 tag1=180
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ11: total=269 tag1=216
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ12: total=244 tag1=203
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ13: total=239 tag1=189
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ14: total=203 tag1=156
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ15: total=267 tag1=209
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ16: total=231 tag1=177
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ17: total=278 tag1=235
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ18: total=226 tag1=194
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ19: total=292 tag1=229
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ20: total=237 tag1=192
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ21: total=253 tag1=205
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ22: total=218 tag1=170
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ23: total=246 tag1=188
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ24: total=218 tag1=175
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ25: total=230 tag1=189
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ26: total=210 tag1=161
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ27: total=218 tag1=176
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ28: total=246 tag1=204
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ29: total=241 tag1=193
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ30: total=245 tag1=199
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ31: total=262 tag1=207
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ32: total=219 tag1=179
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ33: total=235 tag1=176
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ34: total=224 tag1=192
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ35: total=259 tag1=196
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ36: total=271 tag1=214
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ37: total=244 tag1=199
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ38: total=248 tag1=199
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ39: total=281 tag1=227
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ40: total=257 tag1=216
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ41: total=231 tag1=178
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ42: total=216 tag1=167
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ43: total=251 tag1=200
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ44: total=243 tag1=182
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ45: total=243 tag1=197
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ46: total=219 tag1=179
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ47: total=257 tag1=197
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ48: total=223 tag1=184
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ49: total=237 tag1=190
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ50: total=235 tag1=191
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ51: total=252 tag1=192
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ52: total=230 tag1=189
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ53: total=242 tag1=199
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ54: total=215 tag1=177
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ55: total=262 tag1=219
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ56: total=243 tag1=195
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ57: total=272 tag1=228
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ58: total=200 tag1=167
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ59: total=246 tag1=203
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ60: total=232 tag1=181
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ61: total=245 tag1=202
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ62: total=234 tag1=178
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ63: total=267 tag1=210
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ64: total=198 tag1=153
+2026-04-20 20:30:41 :DIAG after_scan1 BSJ_TOTAL: total=51305 tag1=48275
+2026-04-20 20:30:52 :unmapSam Second scan completed 5
+2026-04-20 20:30:53 :unmapSam Second scan completed 38
+2026-04-20 20:30:53 :unmapSam Second scan completed 46
+2026-04-20 20:30:54 :unmapSam Second scan completed 58
+2026-04-20 20:30:54 :unmapSam Second scan completed 52
+2026-04-20 20:30:54 :unmapSam Second scan completed 31
+2026-04-20 20:30:54 :unmapSam Second scan completed 12
+2026-04-20 20:30:54 :unmapSam Second scan completed 4
+2026-04-20 20:30:55 :unmapSam Second scan completed 14
+2026-04-20 20:30:55 :unmapSam Second scan completed 23
+2026-04-20 20:30:55 :unmapSam Second scan completed 6
+2026-04-20 20:30:55 :unmapSam Second scan completed 15
+2026-04-20 20:30:55 :unmapSam Second scan completed 48
+2026-04-20 20:30:55 :unmapSam Second scan completed 27
+2026-04-20 20:30:55 :unmapSam Second scan completed 16
+2026-04-20 20:30:55 :unmapSam Second scan completed 10
+2026-04-20 20:30:55 :unmapSam Second scan completed 8
+2026-04-20 20:30:55 :unmapSam Second scan completed 45
+2026-04-20 20:30:55 :unmapSam Second scan completed 60
+2026-04-20 20:30:56 :unmapSam Second scan completed 64
+2026-04-20 20:30:56 :unmapSam Second scan completed 20
+2026-04-20 20:30:58 :unmapSam Second scan completed 11
+2026-04-20 20:30:58 :unmapSam Second scan completed 9
+2026-04-20 20:31:03 :unmapSam Second scan completed 61
+2026-04-20 20:31:04 :unmapSam Second scan completed 7
+2026-04-20 20:31:04 :unmapSam Second scan completed 56
+2026-04-20 20:31:05 :unmapSam Second scan completed 54
+2026-04-20 20:31:05 :unmapSam Second scan completed 18
+2026-04-20 20:31:05 :unmapSam Second scan completed 47
+2026-04-20 20:31:07 :unmapSam Second scan completed 17
+2026-04-20 20:31:08 :unmapSam Second scan completed 32
+2026-04-20 20:31:08 :unmapSam Second scan completed 30
+2026-04-20 20:31:08 :unmapSam Second scan completed 53
+2026-04-20 20:31:08 :unmapSam Second scan completed 22
+2026-04-20 20:31:09 :unmapSam Second scan completed 42
+2026-04-20 20:31:10 :unmapSam Second scan completed 35
+2026-04-20 20:31:11 :unmapSam Second scan completed 43
+2026-04-20 20:31:13 :unmapSam Second scan completed 57
+2026-04-20 20:31:15 :unmapSam Second scan completed 63
+2026-04-20 20:31:15 :unmapSam Second scan completed 25
+2026-04-20 20:31:16 :unmapSam Second scan completed 29
+2026-04-20 20:31:16 :unmapSam Second scan completed 50
+2026-04-20 20:31:18 :unmapSam Second scan completed 1
+2026-04-20 20:31:19 :unmapSam Second scan completed 2
+2026-04-20 20:31:19 :unmapSam Second scan completed 26
+2026-04-20 20:31:20 :unmapSam Second scan completed 28
+2026-04-20 20:31:20 :unmapSam Second scan completed 55
+2026-04-20 20:31:21 :unmapSam Second scan completed 59
+2026-04-20 20:31:21 :unmapSam Second scan completed 62
+2026-04-20 20:31:22 :unmapSam Second scan completed 49
+2026-04-20 20:31:22 :unmapSam Second scan completed 13
+2026-04-20 20:31:23 :unmapSam Second scan completed 33
+2026-04-20 20:31:24 :unmapSam Second scan completed 36
+2026-04-20 20:31:24 :unmapSam Second scan completed 21
+2026-04-20 20:31:25 :unmapSam Second scan completed 19
+2026-04-20 20:31:26 :unmapSam Second scan completed 24
+2026-04-20 20:31:26 :unmapSam Second scan completed 39
+2026-04-20 20:31:27 :unmapSam Second scan completed 3
+2026-04-20 20:31:27 :unmapSam Second scan completed 41
+2026-04-20 20:31:27 :unmapSam Second scan completed 44
+2026-04-20 20:31:28 :unmapSam Second scan completed 37
+2026-04-20 20:31:28 :unmapSam Second scan completed 34
+2026-04-20 20:31:28 :unmapSam Second scan completed 51
+2026-04-20 20:31:29 :unmapSam Second scan completed 40
+2026-04-20 20:31:29 :BWA unmapped scan2 completed
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ1: total=36324 tag1=36268
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ2: total=275 tag1=224
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ3: total=302 tag1=245
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ4: total=326 tag1=252
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ5: total=318 tag1=254
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ6: total=307 tag1=235
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ7: total=320 tag1=249
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ8: total=302 tag1=225
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ9: total=302 tag1=247
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ10: total=295 tag1=231
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ11: total=337 tag1=266
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ12: total=334 tag1=274
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ13: total=321 tag1=251
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ14: total=300 tag1=223
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ15: total=346 tag1=271
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ16: total=306 tag1=239
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ17: total=357 tag1=288
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ18: total=301 tag1=247
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ19: total=366 tag1=277
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ20: total=299 tag1=244
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ21: total=334 tag1=259
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ22: total=293 tag1=227
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ23: total=312 tag1=241
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ24: total=285 tag1=222
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ25: total=313 tag1=246
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ26: total=281 tag1=213
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ27: total=304 tag1=242
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ28: total=338 tag1=263
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ29: total=306 tag1=241
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ30: total=317 tag1=253
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ31: total=343 tag1=268
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ32: total=304 tag1=242
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ33: total=300 tag1=226
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ34: total=315 tag1=262
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ35: total=333 tag1=250
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ36: total=337 tag1=256
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ37: total=314 tag1=253
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ38: total=318 tag1=252
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ39: total=357 tag1=281
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ40: total=324 tag1=261
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ41: total=316 tag1=238
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ42: total=294 tag1=230
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ43: total=322 tag1=253
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ44: total=320 tag1=245
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ45: total=318 tag1=251
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ46: total=287 tag1=230
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ47: total=337 tag1=260
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ48: total=308 tag1=247
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ49: total=310 tag1=251
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ50: total=316 tag1=245
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ51: total=336 tag1=256
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ52: total=299 tag1=240
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ53: total=334 tag1=275
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ54: total=299 tag1=238
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ55: total=339 tag1=280
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ56: total=310 tag1=247
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ57: total=353 tag1=292
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ58: total=284 tag1=237
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ59: total=309 tag1=249
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ60: total=303 tag1=228
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ61: total=332 tag1=270
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ62: total=297 tag1=227
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ63: total=337 tag1=261
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ64: total=274 tag1=208
+2026-04-20 20:31:29 :DIAG after_bwa_scan2 BSJ_TOTAL: total=56200 tag1=51926
+2026-04-20 20:31:49 :starsam Second scan completed 28
+2026-04-20 20:32:14 :starsam Second scan completed 39
+2026-04-20 20:32:19 :starsam Second scan completed 48
+2026-04-20 20:32:21 :starsam Second scan completed 35
+2026-04-20 20:32:21 :starsam Second scan completed 42
+2026-04-20 20:32:24 :starsam Second scan completed 64
+2026-04-20 20:32:24 :starsam Second scan completed 2
+2026-04-20 20:32:24 :starsam Second scan completed 22
+2026-04-20 20:32:25 :starsam Second scan completed 16
+2026-04-20 20:32:25 :starsam Second scan completed 31
+2026-04-20 20:32:25 :starsam Second scan completed 37
+2026-04-20 20:32:25 :starsam Second scan completed 34
+2026-04-20 20:32:26 :starsam Second scan completed 49
+2026-04-20 20:32:26 :starsam Second scan completed 33
+2026-04-20 20:32:26 :starsam Second scan completed 41
+2026-04-20 20:32:27 :starsam Second scan completed 44
+2026-04-20 20:32:27 :starsam Second scan completed 50
+2026-04-20 20:32:27 :starsam Second scan completed 1
+2026-04-20 20:32:27 :starsam Second scan completed 53
+2026-04-20 20:32:28 :starsam Second scan completed 30
+2026-04-20 20:32:28 :starsam Second scan completed 19
+2026-04-20 20:32:28 :starsam Second scan completed 9
+2026-04-20 20:32:29 :starsam Second scan completed 57
+2026-04-20 20:32:29 :starsam Second scan completed 43
+2026-04-20 20:32:29 :starsam Second scan completed 29
+2026-04-20 20:32:29 :starsam Second scan completed 47
+2026-04-20 20:32:29 :starsam Second scan completed 25
+2026-04-20 20:32:30 :starsam Second scan completed 59
+2026-04-20 20:32:30 :starsam Second scan completed 6
+2026-04-20 20:32:30 :starsam Second scan completed 45
+2026-04-20 20:32:30 :starsam Second scan completed 14
+2026-04-20 20:32:30 :starsam Second scan completed 11
+2026-04-20 20:32:31 :starsam Second scan completed 38
+2026-04-20 20:32:31 :starsam Second scan completed 3
+2026-04-20 20:32:31 :starsam Second scan completed 21
+2026-04-20 20:32:31 :starsam Second scan completed 27
+2026-04-20 20:32:31 :starsam Second scan completed 60
+2026-04-20 20:32:31 :starsam Second scan completed 8
+2026-04-20 20:32:31 :starsam Second scan completed 26
+2026-04-20 20:32:31 :starsam Second scan completed 7
+2026-04-20 20:32:31 :starsam Second scan completed 20
+2026-04-20 20:32:31 :starsam Second scan completed 17
+2026-04-20 20:32:31 :starsam Second scan completed 61
+2026-04-20 20:32:31 :starsam Second scan completed 15
+2026-04-20 20:32:31 :starsam Second scan completed 18
+2026-04-20 20:32:31 :starsam Second scan completed 5
+2026-04-20 20:32:31 :starsam Second scan completed 52
+2026-04-20 20:32:32 :starsam Second scan completed 36
+2026-04-20 20:32:32 :starsam Second scan completed 23
+2026-04-20 20:32:32 :starsam Second scan completed 13
+2026-04-20 20:32:32 :starsam Second scan completed 12
+2026-04-20 20:32:32 :starsam Second scan completed 56
+2026-04-20 20:32:32 :starsam Second scan completed 4
+2026-04-20 20:32:32 :starsam Second scan completed 24
+2026-04-20 20:32:32 :starsam Second scan completed 63
+2026-04-20 20:32:32 :starsam Second scan completed 10
+2026-04-20 20:32:32 :starsam Second scan completed 40
+2026-04-20 20:32:32 :starsam Second scan completed 46
+2026-04-20 20:32:32 :starsam Second scan completed 58
+2026-04-20 20:32:32 :starsam Second scan completed 55
+2026-04-20 20:32:32 :starsam Second scan completed 62
+2026-04-20 20:32:33 :starsam Second scan completed 54
+2026-04-20 20:32:33 :starsam Second scan completed 32
+2026-04-20 20:32:33 :starsam Second scan completed 51
+2026-04-20 20:32:33 :STAR scan2 completed
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ1: total=36563 tag1=36504
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ2: total=520 tag1=466
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ3: total=565 tag1=503
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ4: total=535 tag1=458
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ5: total=562 tag1=495
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ6: total=559 tag1=484
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ7: total=568 tag1=491
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ8: total=553 tag1=475
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ9: total=541 tag1=482
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ10: total=541 tag1=474
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ11: total=542 tag1=468
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ12: total=587 tag1=527
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ13: total=559 tag1=484
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ14: total=546 tag1=466
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ15: total=592 tag1=514
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ16: total=554 tag1=484
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ17: total=597 tag1=524
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ18: total=537 tag1=480
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ19: total=576 tag1=485
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ20: total=556 tag1=495
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ21: total=574 tag1=493
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ22: total=545 tag1=477
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ23: total=546 tag1=473
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ24: total=511 tag1=445
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ25: total=574 tag1=502
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ26: total=506 tag1=428
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ27: total=546 tag1=482
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ28: total=568 tag1=489
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ29: total=517 tag1=447
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ30: total=547 tag1=483
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ31: total=587 tag1=509
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ32: total=535 tag1=468
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ33: total=560 tag1=476
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ34: total=551 tag1=496
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ35: total=554 tag1=469
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ36: total=583 tag1=495
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ37: total=558 tag1=495
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ38: total=588 tag1=517
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ39: total=612 tag1=530
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ40: total=549 tag1=483
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ41: total=566 tag1=485
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ42: total=533 tag1=468
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ43: total=555 tag1=478
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ44: total=572 tag1=493
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ45: total=550 tag1=477
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ46: total=522 tag1=461
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ47: total=596 tag1=514
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ48: total=548 tag1=481
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ49: total=539 tag1=477
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ50: total=546 tag1=474
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ51: total=579 tag1=498
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ52: total=510 tag1=449
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ53: total=589 tag1=522
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ54: total=559 tag1=491
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ55: total=598 tag1=536
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ56: total=539 tag1=474
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ57: total=578 tag1=514
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ58: total=520 tag1=470
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ59: total=544 tag1=478
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ60: total=538 tag1=460
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ61: total=592 tag1=528
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ62: total=528 tag1=456
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ63: total=588 tag1=508
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ64: total=509 tag1=437
+2026-04-20 20:32:33 :DIAG after_star_scan2 BSJ_TOTAL: total=71562 tag1=67045
+2026-04-20 20:32:33 :FSJ counts written to /pastel/tools/circRNA_tools/test_data/decoupled_comparison/decoupled/scan2/PARDOS_1_S1.fsj_counts
+Program run time: 128640ms
+[PASS]  SCAN2 FSJ counts (PARDOS_1_S1) exists and is non-empty
+[INFO]    SCAN2: PARDOS_2_S2
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ1: total=38662 tag1=38590
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ2: total=192 tag1=134
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ3: total=191 tag1=120
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ4: total=188 tag1=114
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ5: total=208 tag1=137
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ6: total=202 tag1=126
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ7: total=209 tag1=140
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ8: total=204 tag1=129
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ9: total=178 tag1=110
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ10: total=184 tag1=124
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ11: total=205 tag1=129
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ12: total=201 tag1=133
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ13: total=193 tag1=131
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ14: total=200 tag1=127
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ15: total=198 tag1=131
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ16: total=189 tag1=116
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ17: total=181 tag1=115
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ18: total=175 tag1=115
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ19: total=178 tag1=103
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ20: total=185 tag1=120
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ21: total=202 tag1=124
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ22: total=173 tag1=116
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ23: total=220 tag1=144
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ24: total=202 tag1=130
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ25: total=188 tag1=115
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ26: total=195 tag1=135
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ27: total=204 tag1=137
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ28: total=179 tag1=114
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ29: total=175 tag1=101
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ30: total=192 tag1=126
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ31: total=195 tag1=139
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ32: total=206 tag1=142
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ33: total=220 tag1=142
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ34: total=177 tag1=111
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ35: total=188 tag1=117
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ36: total=193 tag1=120
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ37: total=198 tag1=137
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ38: total=189 tag1=121
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ39: total=197 tag1=125
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ40: total=201 tag1=132
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ41: total=205 tag1=135
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ42: total=182 tag1=110
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ43: total=195 tag1=126
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ44: total=226 tag1=146
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ45: total=202 tag1=135
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ46: total=169 tag1=111
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ47: total=216 tag1=148
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ48: total=193 tag1=133
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ49: total=198 tag1=131
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ50: total=183 tag1=116
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ51: total=188 tag1=120
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ52: total=188 tag1=118
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ53: total=212 tag1=139
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ54: total=172 tag1=114
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ55: total=199 tag1=123
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ56: total=174 tag1=106
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ57: total=207 tag1=134
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ58: total=201 tag1=131
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ59: total=208 tag1=127
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ60: total=185 tag1=118
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ61: total=199 tag1=124
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ62: total=187 tag1=135
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ63: total=198 tag1=141
+2026-04-20 20:32:48 :DIAG after_scan1 BSJ64: total=195 tag1=123
+2026-

@@ -1,10 +1,214 @@
+## About This Fork
+
+This repository is a fork of [CIRI3](https://github.com/gyjames/CIRI3) that adds four decoupled sub-commands — **SCAN1**, **BUILD_UNIVERSE**, **SCAN2**, and **FINALIZE** — designed to improve high-throughput processing of large cohorts. In the original pipeline, all samples must be processed together in a single JVM invocation. The decoupled sub-commands split the pipeline so that per-sample stages can run independently (and in parallel across a cluster), while the two joint stages run once after all per-sample jobs complete.
+
+---
+
+## High-Throughput Processing
+
+This fork adds four decoupled sub-commands that split the joint pipeline into independently schedulable stages, enabling efficient processing of large cohorts where per-sample steps can run in parallel:
+
+```
+[SCAN1]          per sample — first-pass BSJ detection
+[BUILD_UNIVERSE] joint      — build shared circRNA universe from all SCAN1 outputs
+[SCAN2]          per sample — second-pass FSJ counting against the universe
+[FINALIZE]       joint      — merge results and write expression matrices
+```
+
+### Sub-command reference
+
+#### `SCAN1` — per-sample first scan
+
+```
+java -jar CIRI3.jar SCAN1 \
+    -I  sample.sam          \  # SAM/BAM (or chimeric,aligned,bwa triple for -Ma 1)
+    -O  sample_prefix       \  # output prefix; writes {prefix}.scan1_meta
+    -F  ref.fa              \
+   [-A  ref.gtf]            \  # annotation (optional, needed for -It 1)
+   [-T  8]                  \  # threads (default: 1)
+   [-Ma 0]                     # 0 = BWA-MEM (default), 1 = STAR
+```
+
+Outputs:
+- `{sample_prefix}.scan1_meta` — checkpoint metadata (readLen, fileSplitNum, etc.)
+- `{sample.sam}BSJ{1..N}` — per-thread BSJ fragment files
+
+#### `BUILD_UNIVERSE` — joint universe construction
+
+```
+java -jar CIRI3.jar BUILD_UNIVERSE \
+    -I  samples_scan1.tsv   \  # two-column TSV: samFile<TAB>scan1_meta_path
+    -F  ref.fa              \
+    -O  cohort_prefix          # output prefix; writes {prefix}.universe
+```
+
+`samples_scan1.tsv` format (one row per sample):
+```
+/abs/path/sample1.sam   /abs/path/sample1.scan1_meta
+/abs/path/sample2.sam   /abs/path/sample2.scan1_meta
+```
+
+#### `SCAN2` — per-sample second scan
+
+```
+java -jar CIRI3.jar SCAN2 \
+    -I  sample.sam          \  # same SAM/BAM as SCAN1 (BSJ files must exist)
+    -CU cohort.universe     \  # universe file from BUILD_UNIVERSE
+    -O  sample_scan2_prefix \  # output prefix; writes {prefix}.fsj_counts
+    -F  ref.fa              \
+   [-T  8]                  \  # threads (should match SCAN1 thread count)
+   [-Ma 0]                     # must match -Ma used in SCAN1
+```
+
+#### `FINALIZE` — joint merge and matrix writing
+
+```
+java -jar CIRI3.jar FINALIZE \
+    -I  finalize_samples.tsv \  # four-column TSV (see below)
+    -F  ref.fa               \
+    -O  cohort_prefix        \  # output prefix; writes result, BSJ_Matrix, FSJ_Matrix
+   [-A  ref.gtf]             \  # annotation (optional)
+   [-S  2]                   \  # strigency (0/1/2, default: 2)
+   [-E  0]                   \  # rel_exp threshold (default: 0)
+   [-It 0]                      # intronic circRNAs (0/1, default: 0)
+```
+
+`finalize_samples.tsv` format (one row per sample):
+```
+/abs/path/sample1.sam   /abs/path/sample1.fsj_counts   8   sample1
+/abs/path/sample2.sam   /abs/path/sample2.fsj_counts   8   sample2
+```
+Columns: SAM path, `.fsj_counts` path, `fileSplitNum` (from `.scan1_meta`), sample name.
+
+### Intermediate file formats
+
+**`.scan1_meta`** — written by SCAN1, read by BUILD_UNIVERSE / FINALIZE
+```
+samFile=/abs/path/sample.sam
+readLen=151
+readNum=10503264
+fileSplitNum=8
+```
+
+**`.universe`** — written by BUILD_UNIVERSE, read by SCAN2
+```
+seqLen=139
+chr1	1379083	1414681
+chr1	1384101	1397537
+```
+First line: `seqLen=<int>` (global max readLen − 12). Subsequent lines: one circRNA candidate per line (`chr start end`).
+
+**`.fsj_counts`** — written by SCAN2, read by FINALIZE
+```
+chr1	1379083	1414681	3
+chr1	1384101	1397537	0
+```
+Tab-separated: `chr start end fsjCount` — one line per circRNA in the universe.
+
+---
+
+## Validation
+
+Three regression scripts verify the decoupled pipeline produces matrices
+equivalent to the joint `-W 1` pipeline:
+
+- `scripts/test_decoupled_pipeline.sh` — small BWA test data bundled with
+  the repo.
+- `scripts/test_decoupled_pipeline_bwa_fullsize.sh` — full-size BWA data
+  (edit `DATA_DIR` and `SAMPLES` at the top of the script).
+- `scripts/test_decoupled_pipeline_star_fullsize.sh` — full-size STAR
+  data (same pattern).
+
+All three support `--threads N`, `--keep` (preserve the output
+directory), and — on the full-size scripts — `--intron` (enable intron
+mode `-It 1`) and `--use-current-joint` (use this repo's jar for the
+joint run instead of `CIRI3_Java_1.8.0.jar`, for apples-to-apples
+equivalence testing).
+
+After running one of the full-size scripts with `--keep`, render the
+validation report:
+
+```bash
+Rscript -e "rmarkdown::render('scripts/validation_report.Rmd')"
+# or point at a different test output directory:
+Rscript -e "rmarkdown::render('scripts/validation_report.Rmd', \
+    params=list(out_root='/path/to/decoupled_comparison'))"
+```
+
+That produces
+[`scripts/validation_report.html`](./scripts/validation_report.html)
+(view rendered on GitHub via
+[htmlpreview](https://htmlpreview.github.io/?https://github.com/RushAlz/CIRI3/blob/main/scripts/validation_report.html))
+— per-sample BSJ/FSJ scatter plots, cell-level agreement tables,
+Pearson/Spearman correlations, the largest remaining disagreements, and
+the per-stage benchmark (wall time, CPU%, peak RAM) collected by
+`scripts/_bench.sh`.
+
+---
+
+## Building from Source
+
+### Prerequisites
+
+- JDK 8 or later (`javac`, `jar`)
+- `lib/htsjdk-3.0.4.jar` (included in the repository)
+
+### Quick build (recommended)
+
+```bash
+bash scripts/build_jar.sh
+```
+
+This compiles `src/` with `-source 8 -target 8`, bundles
+`lib/htsjdk-3.0.4.jar`, and writes a runnable
+`CIRI3_decoupled.jar` at the repository root. The jar is also checked
+in — you only need to rebuild it if you change Java sources.
+
+### Manual compile
+
+```bash
+mkdir -p bin
+find src -name "*.java" > sources.txt
+javac -source 8 -target 8 -cp "lib/htsjdk-3.0.4.jar" -d bin @sources.txt
+rm sources.txt
+```
+
+### Manual distributable JAR
+
+Create a manifest file that sets the main class and bundles the htsjdk dependency:
+
+```bash
+# Extract htsjdk into the bin directory so it is included in the JAR
+cd bin
+jar xf ../lib/htsjdk-3.0.4.jar
+cd ..
+
+# Write the manifest
+cat > MANIFEST.MF <<'EOF'
+Manifest-Version: 1.0
+Main-Class: com.zx.test.TestParameters
+EOF
+
+# Build the JAR (name it after your Java version, e.g. CIRI3_Java_1.8.0.jar)
+JAVA_VERSION=$(java -version 2>&1 | head -1 | awk -F'"' '{print $2}')
+jar cfm "CIRI3_Java_${JAVA_VERSION}.jar" MANIFEST.MF -C bin .
+rm MANIFEST.MF
+```
+
+The resulting `CIRI3_Java_<version>.jar` (or `CIRI3_decoupled.jar` from
+the helper script) is self-contained and can be used as:
+
+```bash
+java -jar CIRI3_decoupled.jar -I sample.sam -O result -F ref.fa
+java -jar CIRI3_decoupled.jar SCAN1 -I sample.sam -O sample -F ref.fa -T 8
+```
+
+---
+
 <p align="center">
   <img src="./data/CIRI3_logo.png" width="60%">
 </p>
 
-## About This Fork
-
-This repository is a fork of [CIRI3](https://github.com/gyjames/CIRI3) that adds four decoupled sub-commands — **SCAN1**, **BUILD_UNIVERSE**, **SCAN2**, and **FINALIZE** — designed to improve high-throughput processing of large cohorts. In the original pipeline, all samples must be processed together in a single JVM invocation. The decoupled sub-commands split the pipeline so that per-sample stages can run independently (and in parallel across a cluster), while the two joint stages run once after all per-sample jobs complete.
 
 ## About
 
@@ -396,159 +600,6 @@ The three main output files are:
   + Each detected circRNA is reported on a separate line.
 * `result.txt.FSJ_Matrix` is a FSJ expression matrix file for predicted circRNA.
 * `result.txt.Score` is a enrichment ratio information file for predicted circRNA.
-
-
-
-
----
-
-## High-Throughput Processing
-
-This fork adds four decoupled sub-commands that split the joint pipeline into independently schedulable stages, enabling efficient processing of large cohorts where per-sample steps can run in parallel:
-
-```
-[SCAN1]          per sample — first-pass BSJ detection
-[BUILD_UNIVERSE] joint      — build shared circRNA universe from all SCAN1 outputs
-[SCAN2]          per sample — second-pass FSJ counting against the universe
-[FINALIZE]       joint      — merge results and write expression matrices
-```
-
-### Sub-command reference
-
-#### `SCAN1` — per-sample first scan
-
-```
-java -jar CIRI3.jar SCAN1 \
-    -I  sample.sam          \  # SAM/BAM (or chimeric,aligned,bwa triple for -Ma 1)
-    -O  sample_prefix       \  # output prefix; writes {prefix}.scan1_meta
-    -F  ref.fa              \
-   [-A  ref.gtf]            \  # annotation (optional, needed for -It 1)
-   [-T  8]                  \  # threads (default: 1)
-   [-Ma 0]                     # 0 = BWA-MEM (default), 1 = STAR
-```
-
-Outputs:
-- `{sample_prefix}.scan1_meta` — checkpoint metadata (readLen, fileSplitNum, etc.)
-- `{sample.sam}BSJ{1..N}` — per-thread BSJ fragment files
-
-#### `BUILD_UNIVERSE` — joint universe construction
-
-```
-java -jar CIRI3.jar BUILD_UNIVERSE \
-    -I  samples_scan1.tsv   \  # two-column TSV: samFile<TAB>scan1_meta_path
-    -F  ref.fa              \
-    -O  cohort_prefix          # output prefix; writes {prefix}.universe
-```
-
-`samples_scan1.tsv` format (one row per sample):
-```
-/abs/path/sample1.sam   /abs/path/sample1.scan1_meta
-/abs/path/sample2.sam   /abs/path/sample2.scan1_meta
-```
-
-#### `SCAN2` — per-sample second scan
-
-```
-java -jar CIRI3.jar SCAN2 \
-    -I  sample.sam          \  # same SAM/BAM as SCAN1 (BSJ files must exist)
-    -CU cohort.universe     \  # universe file from BUILD_UNIVERSE
-    -O  sample_scan2_prefix \  # output prefix; writes {prefix}.fsj_counts
-    -F  ref.fa              \
-   [-T  8]                  \  # threads (should match SCAN1 thread count)
-   [-Ma 0]                     # must match -Ma used in SCAN1
-```
-
-#### `FINALIZE` — joint merge and matrix writing
-
-```
-java -jar CIRI3.jar FINALIZE \
-    -I  finalize_samples.tsv \  # four-column TSV (see below)
-    -F  ref.fa               \
-    -O  cohort_prefix        \  # output prefix; writes result, BSJ_Matrix, FSJ_Matrix
-   [-A  ref.gtf]             \  # annotation (optional)
-   [-S  2]                   \  # strigency (0/1/2, default: 2)
-   [-E  0]                   \  # rel_exp threshold (default: 0)
-   [-It 0]                      # intronic circRNAs (0/1, default: 0)
-```
-
-`finalize_samples.tsv` format (one row per sample):
-```
-/abs/path/sample1.sam   /abs/path/sample1.fsj_counts   8   sample1
-/abs/path/sample2.sam   /abs/path/sample2.fsj_counts   8   sample2
-```
-Columns: SAM path, `.fsj_counts` path, `fileSplitNum` (from `.scan1_meta`), sample name.
-
-### Intermediate file formats
-
-**`.scan1_meta`** — written by SCAN1, read by BUILD_UNIVERSE / FINALIZE
-```
-samFile=/abs/path/sample.sam
-readLen=151
-readNum=10503264
-fileSplitNum=8
-```
-
-**`.universe`** — written by BUILD_UNIVERSE, read by SCAN2
-```
-seqLen=139
-chr1	1379083	1414681
-chr1	1384101	1397537
-```
-First line: `seqLen=<int>` (global max readLen − 12). Subsequent lines: one circRNA candidate per line (`chr start end`).
-
-**`.fsj_counts`** — written by SCAN2, read by FINALIZE
-```
-chr1	1379083	1414681	3
-chr1	1384101	1397537	0
-```
-Tab-separated: `chr start end fsjCount` — one line per circRNA in the universe.
-
----
-
-## Building from Source
-
-### Prerequisites
-
-- JDK 8 or later (`javac`, `jar`)
-- `lib/htsjdk-3.0.4.jar` (included in the repository)
-
-### Compile
-
-```bash
-mkdir -p bin
-find src -name "*.java" > sources.txt
-javac -source 8 -target 8 -cp "lib/htsjdk-3.0.4.jar" -d bin @sources.txt
-rm sources.txt
-```
-
-### Create a distributable JAR
-
-Create a manifest file that sets the main class and bundles the htsjdk dependency:
-
-```bash
-# Extract htsjdk into the bin directory so it is included in the JAR
-cd bin
-jar xf ../lib/htsjdk-3.0.4.jar
-cd ..
-
-# Write the manifest
-cat > MANIFEST.MF <<'EOF'
-Manifest-Version: 1.0
-Main-Class: com.zx.test.TestParameters
-EOF
-
-# Build the JAR (name it after your Java version, e.g. CIRI3_Java_1.8.0.jar)
-JAVA_VERSION=$(java -version 2>&1 | head -1 | awk -F'"' '{print $2}')
-jar cfm "CIRI3_Java_${JAVA_VERSION}.jar" MANIFEST.MF -C bin .
-rm MANIFEST.MF
-```
-
-The resulting `CIRI3_Java_<version>.jar` is self-contained and can be used as:
-
-```bash
-java -jar CIRI3_Java_<version>.jar -I sample.sam -O result -F ref.fa
-java -jar CIRI3_Java_<version>.jar SCAN1 -I sample.sam -O sample -F ref.fa -T 8
-```
 
 ---
 

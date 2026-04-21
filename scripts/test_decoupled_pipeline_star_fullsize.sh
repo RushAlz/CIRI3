@@ -2,9 +2,14 @@
 # =============================================================================
 # test_decoupled_pipeline_star_fullsize.sh
 #
-# Runs the original joint (-W 1) CIRI3 pipeline AND the four-stage decoupled
-# pipeline (SCAN1 → BUILD_UNIVERSE → SCAN2 → FINALIZE) on full-size STAR data,
-# then verifies that both pipelines produce identical BSJ and FSJ matrices.
+# Runs the original joint (-W 1, -Ma 1) STAR CIRI3 pipeline AND the four-stage
+# decoupled pipeline (SCAN1 -> BUILD_UNIVERSE -> SCAN2 -> FINALIZE) on
+# full-size STAR data, then verifies that both pipelines produce identical
+# BSJ and FSJ matrices.
+#
+# The original (joint) pipeline runs the stock CIRI3_Java_1.8.0.jar so the
+# comparison is against the published ground truth. The decoupled pipeline
+# runs CIRI3_decoupled.jar, the jar built from this repo's src/ tree.
 #
 # Assumes alignment is already complete (STAR + BWA-MEM re-alignment of
 # unmapped reads) and STAR output directories exist under DATA_DIR.
@@ -15,9 +20,15 @@
 # Usage:
 #   bash scripts/test_decoupled_pipeline_star_fullsize.sh [options]
 #
-#   --threads N      threads for each per-sample stage (default: 8)
-#   --output-dir D   output directory (default: DATA_DIR/decoupled_comparison)
-#   --keep           keep output directory after the run
+#   --threads N          threads for each per-sample stage (default: 8)
+#   --output-dir D       output directory (default: DATA_DIR/decoupled_comparison)
+#   --intron             run with intron mode (-It 1) in both pipelines
+#   --use-current-joint  run the joint pipeline from CIRI3_decoupled.jar (this
+#                        repo's current source) instead of CIRI3_Java_1.8.0.jar.
+#                        Use this to test the decoupled decomposition against
+#                        the exact same BSJ-detection code, isolating any
+#                        version-drift differences in the published jar.
+#   --keep               keep output directory after the run
 # =============================================================================
 set -euo pipefail
 
@@ -27,17 +38,21 @@ set -euo pipefail
 THREADS=8
 KEEP=0
 OUT_ROOT=""
+INTRON_FLAG=()
+USE_CURRENT_JOINT=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --threads)     THREADS="$2";  shift 2 ;;
-        --output-dir)  OUT_ROOT="$2"; shift 2 ;;
-        --keep)        KEEP=1;        shift   ;;
+        --threads)            THREADS="$2";  shift 2 ;;
+        --output-dir)         OUT_ROOT="$2"; shift 2 ;;
+        --intron)             INTRON_FLAG=(-It 1); shift ;;
+        --use-current-joint)  USE_CURRENT_JOINT=1; shift ;;
+        --keep)               KEEP=1;        shift   ;;
         *) echo "Unknown argument: $1"; exit 1 ;;
     esac
 done
 
 # ---------------------------------------------------------------------------
-# Paths — edit to match your environment
+# Paths - edit to match your environment
 # ---------------------------------------------------------------------------
 DATA_DIR=/pastel/tools/circRNA_tools/test_data
 REF_FA=${DATA_DIR}/GRCh38_full_analysis_set_plus_decoy_hla.fa
@@ -54,9 +69,9 @@ SAMPLES=(
 # Derived paths
 # ---------------------------------------------------------------------------
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BIN_DIR="${REPO_ROOT}/bin"
-LIB_DIR="${REPO_ROOT}/lib"
-CLASSPATH="${BIN_DIR}:${LIB_DIR}/htsjdk-3.0.4.jar"
+
+ORIGINAL_JAR="${REPO_ROOT}/CIRI3_Java_1.8.0.jar"       # published ground truth
+DECOUPLED_JAR="${REPO_ROOT}/CIRI3_decoupled.jar"       # built from this repo
 
 [[ -z "$OUT_ROOT" ]] && OUT_ROOT="${DATA_DIR}/decoupled_comparison"
 
@@ -69,22 +84,31 @@ FINALIZE_DIR="${DECOUPLED_DIR}/finalize"
 
 SCAN1_META_TSV="${UNIVERSE_DIR}/samples_scan1.tsv"
 FINALIZE_TSV="${FINALIZE_DIR}/finalize_samples.tsv"
+BENCH_DIR="${OUT_ROOT}/bench"
+
+# shellcheck source=/dev/null
+source "${REPO_ROOT}/scripts/_bench.sh"
 
 PASS=0
 FAIL=0
 
 # ---------------------------------------------------------------------------
-# Java commands — use the same JVM for both original and decoupled pipelines
-# so there is no version mismatch between the JAR and the compiled source.
+# Java invocations - prefer the conda-managed JVM when available
 # ---------------------------------------------------------------------------
 if [[ -n "${CONDA_PREFIX:-}" ]] && [[ -x "${CONDA_PREFIX}/bin/java" ]]; then
     JAVA_BIN="${CONDA_PREFIX}/bin/java"
 else
     JAVA_BIN="$(command -v java)"
 fi
-JAVAC_FLAGS="-source 8 -target 8"   # compile to class-file version 52 (Java 8)
 
-JAVA_SRC="${JAVA_BIN} -cp ${CLASSPATH} com.zx.test.TestParameters"
+JAVA_NEW=(${JAVA_BIN} -jar "${DECOUPLED_JAR}")
+if [[ $USE_CURRENT_JOINT -eq 1 ]]; then
+    JAVA_ORIG=(${JAVA_BIN} -jar "${DECOUPLED_JAR}")
+    JOINT_LABEL="CIRI3_decoupled.jar (current source, -W 1)"
+else
+    JAVA_ORIG=(${JAVA_BIN} -jar "${ORIGINAL_JAR}")
+    JOINT_LABEL="CIRI3_Java_1.8.0.jar (published, -W 1)"
+fi
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -114,9 +138,11 @@ trap cleanup EXIT
 # 0. Pre-flight checks
 # ---------------------------------------------------------------------------
 info "=== Pre-flight checks ==="
-[[ -f "$REF_FA"   ]] || die "Reference FASTA not found: $REF_FA"
-[[ -f "$GTF_FILE" ]] || die "GTF not found: $GTF_FILE"
-[[ -x "$JAVA_BIN" ]] || die "Java not found at: $JAVA_BIN (is the CIRI3 conda env active?)"
+[[ -f "$REF_FA"        ]] || die "Reference FASTA not found: $REF_FA"
+[[ -f "$GTF_FILE"      ]] || die "GTF not found: $GTF_FILE"
+[[ -x "$JAVA_BIN"      ]] || die "Java not found at: $JAVA_BIN (is the CIRI3 conda env active?)"
+[[ -f "$ORIGINAL_JAR"  ]] || die "Original jar not found: $ORIGINAL_JAR"
+[[ -f "$DECOUPLED_JAR" ]] || die "Decoupled jar not found: $DECOUPLED_JAR (run: scripts/build_jar.sh or see README)"
 
 for S in "${SAMPLES[@]}"; do
     STAR_DIR="${DATA_DIR}/STAR_output_${S}"
@@ -126,27 +152,15 @@ for S in "${SAMPLES[@]}"; do
 done
 info "All input files found for ${#SAMPLES[@]} samples."
 info "Output directory: ${OUT_ROOT}"
+info "Joint pipeline: ${JOINT_LABEL}"
+info "Decoupled jar:  ${DECOUPLED_JAR}"
 
-mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR"
-
-# ---------------------------------------------------------------------------
-# 1. Compile from source
-#    Compile to Java 8 class-file format (-source 8 -target 8) so the classes
-#    run on the Java 8 JVM bundled with the CIRI3 conda environment.
-# ---------------------------------------------------------------------------
-info "=== Compiling from source (target: Java 8) ==="
-find "${REPO_ROOT}/src" -name "*.java" > /tmp/ciri3_sources_$$.txt
-# shellcheck disable=SC2086
-javac ${JAVAC_FLAGS} -cp "${CLASSPATH}" -d "${BIN_DIR}" \
-    @/tmp/ciri3_sources_$$.txt 2>&1 \
-    | grep -v "^\(warning\|Note\)" || true
-rm -f /tmp/ciri3_sources_$$.txt
-info "Compilation complete."
+mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR" "$BENCH_DIR"
 
 # ---------------------------------------------------------------------------
-# 2. ORIGINAL pipeline (-W 1, STAR mode, compiled source)
+# 1. ORIGINAL pipeline (-W 1, STAR) from CIRI3_Java_1.8.0.jar
 # ---------------------------------------------------------------------------
-info "=== Stage 0: ORIGINAL pipeline (-W 1, STAR, source) ==="
+info "=== Stage 0: ORIGINAL pipeline (CIRI3_Java_1.8.0.jar, -W 1, -Ma 1) ==="
 
 ORIG_BSJ="${ORIG_DIR}/result.BSJ_Matrix"
 if [[ -s "$ORIG_BSJ" ]]; then
@@ -156,18 +170,49 @@ else
     > "$ORIG_TSV"
     for S in "${SAMPLES[@]}"; do
         STAR_DIR="${DATA_DIR}/STAR_output_${S}"
+        # Wipe any BSJ files left over from a previous test run; joint opens
+        # BSJ{threadNum} in APPEND mode, so stale records would accumulate.
+        rm -f "${STAR_DIR}/bwa.sam"BSJ*
         echo "${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam" \
             >> "$ORIG_TSV"
     done
 
-    ${JAVA_SRC} \
-        -I  "${ORIG_TSV}" \
-        -O  "${ORIG_DIR}/result" \
-        -F  "${REF_FA}" \
-        -A  "${GTF_FILE}" \
-        -W  1 -Ma 1 -T "${THREADS}" -S 0 \
+    bench_run "00_original_joint" \
+        "${JAVA_ORIG[@]}" \
+            -I "${ORIG_TSV}" \
+            -O "${ORIG_DIR}/result" \
+            -F "${REF_FA}" \
+            -A "${GTF_FILE}" \
+            -W 1 -Ma 1 -T "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
         2>&1 | tee "${ORIG_DIR}/run.log" \
-        | grep -E "CIRI3|scan|completed|circRNA|Mapped|time" || true
+        | grep -E "CIRI3|scan|completed|circRNA|Mapped|time|Exception|Error|^\t?at |DIAG" || true
+fi
+
+if [[ ! -s "${ORIG_DIR}/result.BSJ_Matrix" ]]; then
+    echo "[ERROR] Original pipeline produced no BSJ_Matrix — aborting." >&2
+    echo "        Inspect: ${ORIG_DIR}/run.log" >&2
+    tail -40 "${ORIG_DIR}/run.log" >&2 || true
+    exit 1
+fi
+
+# Snapshot joint BSJ files for later direct diff against decoupled BSJ files.
+# Only effective when the user runs with CIRI3_KEEP_BSJ=1 (which tells current-
+# source MutFileSTARTest to skip its internal BSJ deletion). If the env-var
+# wasn't set, the joint BSJ files are already gone and we just skip.
+JOINT_BSJ_SNAPSHOT="${OUT_ROOT}/joint_bsj_snapshot"
+if [[ -n "${CIRI3_KEEP_BSJ:-}" ]]; then
+    mkdir -p "${JOINT_BSJ_SNAPSHOT}"
+    for S in "${SAMPLES[@]}"; do
+        STAR_DIR="${DATA_DIR}/STAR_output_${S}"
+        BWA_SAM="${STAR_DIR}/bwa.sam"
+        mkdir -p "${JOINT_BSJ_SNAPSHOT}/${S}"
+        # Move (not copy) so they don't interfere with decoupled SCAN1's pre-clean.
+        for f in "${BWA_SAM}BSJ"*; do
+            [[ -f "$f" ]] || continue
+            mv "$f" "${JOINT_BSJ_SNAPSHOT}/${S}/"
+        done
+    done
+    info "Joint BSJ files snapshotted to ${JOINT_BSJ_SNAPSHOT}/"
 fi
 
 check_exists "Original BSJ_Matrix" "${ORIG_DIR}/result.BSJ_Matrix"
@@ -176,18 +221,18 @@ ORIG_CIRCS=$(tail -n +2 "${ORIG_DIR}/result.BSJ_Matrix" | wc -l)
 info "Original pipeline: ${ORIG_CIRCS} circRNAs."
 
 # ---------------------------------------------------------------------------
-# 3. DECOUPLED pipeline (compiled source, STAR mode)
+# 2. DECOUPLED pipeline (CIRI3_decoupled.jar, STAR)
 # ---------------------------------------------------------------------------
-info "=== Decoupled pipeline (compiled source, STAR mode) ==="
+info "=== Decoupled pipeline (CIRI3_decoupled.jar, STAR) ==="
 
-# Reset TSV files — rebuild them from meta/counts files each run
-# (they reference absolute paths so this is fast and harmless)
 > "$SCAN1_META_TSV"
 > "$FINALIZE_TSV"
 
 # --- Stage 1: SCAN1 (per sample) ---
 info "--- Stage 1: SCAN1 ---"
+SCAN1_IDX=0
 for S in "${SAMPLES[@]}"; do
+    SCAN1_IDX=$((SCAN1_IDX+1))
     STAR_DIR="${DATA_DIR}/STAR_output_${S}"
     TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
     BWA_SAM="${STAR_DIR}/bwa.sam"
@@ -197,13 +242,17 @@ for S in "${SAMPLES[@]}"; do
     if [[ -s "$META" ]]; then
         info "  [SKIP] SCAN1 already done for $S"
     else
+        # Wipe any stale BSJ files from a previous run (different -T) so that
+        # SCAN2's on-disk BSJ enumeration only sees files from this run.
+        rm -f "${BWA_SAM}BSJ"*
         info "  SCAN1: $S"
-        ${JAVA_SRC} SCAN1 \
-            -I  "${TRIPLE}" \
-            -O  "${OUT_PREFIX}" \
-            -F  "${REF_FA}" \
-            -A  "${GTF_FILE}" \
-            -T  "${THREADS}" -Ma 1 -S 0 \
+        bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${S}")" \
+            "${JAVA_NEW[@]}" SCAN1 \
+                -I "${TRIPLE}" \
+                -O "${OUT_PREFIX}" \
+                -F "${REF_FA}" \
+                -A "${GTF_FILE}" \
+                -T "${THREADS}" -Ma 1 -S 0 "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|meta|time|Mapped" || true
     fi
 
@@ -216,20 +265,20 @@ for S in "${SAMPLES[@]}"; do
     done
     [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for $S (${SPLIT_NUM} splits)"
 
-    # BSJ files live next to bwa.sam for STAR mode
     echo -e "${BWA_SAM}\t${META}" >> "$SCAN1_META_TSV"
 done
 
-# --- Stage 2a: BUILD_UNIVERSE ---
-info "--- Stage 2a: BUILD_UNIVERSE ---"
+# --- Stage 2: BUILD_UNIVERSE ---
+info "--- Stage 2: BUILD_UNIVERSE ---"
 UNIVERSE_FILE="${UNIVERSE_DIR}/cohort.universe"
 if [[ -s "$UNIVERSE_FILE" ]]; then
     info "  [SKIP] Universe already exists"
 else
-    ${JAVA_SRC} BUILD_UNIVERSE \
-        -I  "${SCAN1_META_TSV}" \
-        -F  "${REF_FA}" \
-        -O  "${UNIVERSE_DIR}/cohort" \
+    bench_run "20_build_universe" \
+        "${JAVA_NEW[@]}" BUILD_UNIVERSE \
+            -I "${SCAN1_META_TSV}" \
+            -F "${REF_FA}" \
+            -O "${UNIVERSE_DIR}/cohort" \
         2>&1 | grep -E "Universe|circRNA|time" || true
 fi
 check_exists "Universe file" "${UNIVERSE_FILE}"
@@ -238,7 +287,9 @@ info "Universe: ${UNIVERSE_CIRCS} circRNA candidates."
 
 # --- Stage 3: SCAN2 (per sample) ---
 info "--- Stage 3: SCAN2 ---"
+SCAN2_IDX=0
 for S in "${SAMPLES[@]}"; do
+    SCAN2_IDX=$((SCAN2_IDX+1))
     STAR_DIR="${DATA_DIR}/STAR_output_${S}"
     TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
     BWA_SAM="${STAR_DIR}/bwa.sam"
@@ -251,12 +302,13 @@ for S in "${SAMPLES[@]}"; do
         info "  [SKIP] SCAN2 already done for $S"
     else
         info "  SCAN2: $S"
-        ${JAVA_SRC} SCAN2 \
-            -I  "${TRIPLE}" \
-            -CU "${UNIVERSE_FILE}" \
-            -O  "${OUT_PREFIX}" \
-            -F  "${REF_FA}" \
-            -T  "${THREADS}" -Ma 1 \
+        bench_run "$(printf '30_scan2_%02d_%s' "${SCAN2_IDX}" "${S}")" \
+            "${JAVA_NEW[@]}" SCAN2 \
+                -I "${TRIPLE}" \
+                -CU "${UNIVERSE_FILE}" \
+                -O "${OUT_PREFIX}" \
+                -F "${REF_FA}" \
+                -T "${THREADS}" -Ma 1 "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|FSJ|BSJ|time" || true
     fi
     check_exists "SCAN2 FSJ counts ($S)" "${FSJ_COUNTS}"
@@ -270,12 +322,14 @@ FINAL_BSJ="${FINALIZE_DIR}/result.BSJ_Matrix"
 if [[ -s "$FINAL_BSJ" ]]; then
     info "  [SKIP] FINALIZE already done"
 else
-    ${JAVA_SRC} FINALIZE \
-        -I  "${FINALIZE_TSV}" \
-        -F  "${REF_FA}" \
-        -O  "${FINALIZE_DIR}/result" \
-        -A  "${GTF_FILE}" \
-        -S  0 \
+    bench_run "40_finalize" \
+        "${JAVA_NEW[@]}" FINALIZE \
+            -I "${FINALIZE_TSV}" \
+            -CU "${UNIVERSE_FILE}" \
+            -F "${REF_FA}" \
+            -O "${FINALIZE_DIR}/result" \
+            -A "${GTF_FILE}" \
+            -S 0 "${INTRON_FLAG[@]}" \
         2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
 fi
 check_exists "Decoupled BSJ_Matrix" "${FINAL_BSJ}"
@@ -284,7 +338,7 @@ DECOUPLED_CIRCS=$(tail -n +2 "${FINAL_BSJ}" | wc -l)
 info "Decoupled pipeline: ${DECOUPLED_CIRCS} circRNAs."
 
 # ---------------------------------------------------------------------------
-# 4. Compare outputs
+# 3. Compare outputs
 # ---------------------------------------------------------------------------
 info "=== Comparing outputs ==="
 
@@ -304,7 +358,7 @@ if [[ "$A_BSJ" == "$B_BSJ" ]]; then
     ok "BSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_CIRCS} circRNAs)"
 else
     fail "BSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_BSJ") <(echo "$B_BSJ") | head -40
+    { diff <(echo "$A_BSJ") <(echo "$B_BSJ") || true; } | head -40 || true
 fi
 
 A_FSJ=$(normalise_matrix "${ORIG_DIR}/result.FSJ_Matrix")
@@ -313,7 +367,7 @@ if [[ "$A_FSJ" == "$B_FSJ" ]]; then
     ok "FSJ_Matrix: original and decoupled are IDENTICAL (${ORIG_CIRCS} circRNAs)"
 else
     fail "FSJ_Matrix: original and decoupled DIFFER"
-    diff <(echo "$A_FSJ") <(echo "$B_FSJ") | head -40
+    { diff <(echo "$A_FSJ") <(echo "$B_FSJ") || true; } | head -40 || true
 fi
 
 info "Checking universe coverage..."
@@ -324,12 +378,45 @@ if [[ "$MISSING" -eq 0 ]]; then
     ok "Universe coverage: all original circRNAs present in universe"
 else
     fail "Universe coverage: $MISSING original circRNAs missing from universe"
-    comm -23 <(echo "$ORIG_IDS") <(echo "$UNIV_IDS") | head -10
+    { comm -23 <(echo "$ORIG_IDS") <(echo "$UNIV_IDS") || true; } | head -10 || true
+fi
+
+# Per-sample, per-BSJ-file diff between joint's snapshotted BSJ files and the
+# decoupled run's BSJ files. Only active when CIRI3_KEEP_BSJ was set for joint.
+if [[ -d "${JOINT_BSJ_SNAPSHOT:-}" ]]; then
+    info "=== Per-BSJ-file joint vs decoupled diff ==="
+    for S in "${SAMPLES[@]}"; do
+        STAR_DIR="${DATA_DIR}/STAR_output_${S}"
+        BWA_SAM="${STAR_DIR}/bwa.sam"
+        for i in 1 2 3 4 5; do
+            joint_f="${JOINT_BSJ_SNAPSHOT}/${S}/$(basename "$BWA_SAM")BSJ${i}"
+            dec_f="${BWA_SAM}BSJ${i}"
+            [[ -f "$joint_f" && -f "$dec_f" ]] || continue
+            joint_sz=$(wc -l < "$joint_f")
+            dec_sz=$(wc -l < "$dec_f")
+            if [[ "$joint_sz" == "$dec_sz" ]] && cmp -s \
+                   <(sort "$joint_f") <(sort "$dec_f"); then
+                info "  ${S} BSJ${i}: IDENTICAL (${joint_sz} lines)"
+            else
+                fail "  ${S} BSJ${i}: joint=${joint_sz} lines, decoupled=${dec_sz} lines"
+                if [[ "$i" == "2" ]]; then
+                    echo "    lines in joint only (first 5):"
+                    { comm -23 <(sort "$joint_f") <(sort "$dec_f") || true; } \
+                        | head -5 | sed 's/^/      /' || true
+                    echo "    lines in decoupled only (first 5):"
+                    { comm -13 <(sort "$joint_f") <(sort "$dec_f") || true; } \
+                        | head -5 | sed 's/^/      /' || true
+                fi
+            fi
+        done
+    done
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Summary
+# 4. Benchmark + test summary
 # ---------------------------------------------------------------------------
+bench_report
+
 echo ""
 echo "========================================"
 echo "  TEST SUMMARY"
@@ -343,6 +430,6 @@ if [[ $FAIL -eq 0 ]]; then
     echo "  ALL TESTS PASSED"
     exit 0
 else
-    echo "  SOME TESTS FAILED — see output above"
+    echo "  SOME TESTS FAILED - see output above"
     exit 1
 fi

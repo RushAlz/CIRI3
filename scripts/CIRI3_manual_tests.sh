@@ -140,7 +140,7 @@ for SAMPLE in "${SAMPLES[@]}"; do
   -F ${REF_FASTA} \
   -A ${GTF_FILE} \
   -Ma 1 \
-  -W 0 \
+  -S 0 \
   -T ${THREADS}
 done
 
@@ -186,4 +186,5 @@ $CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} FINALIZE \
 -CU test_decoupled_manual/universe/cohort.universe \
 -F  ${REF_FASTA} \
 -O  test_decoupled_manual/result \
--A  ${GTF_FILE}
+-A  ${GTF_FILE} \
+-S  0

@@ -258,6 +258,7 @@ for i in "${!SAMPLES[@]}"; do
         # bwa.sam-adjacent location so SCAN2's BSJ enumeration is clean.
         rm -f "${OUT_PREFIX}BSJ"* "${BWA_SAM}BSJ"*
         info "  SCAN1: ${SAMPLE_ID} (STAR dir: ${S})"
+        local scan1_stdout="${BENCH_DIR}/scan1_${SAMPLE_ID}.stdout"
         bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${SAMPLE_ID}")" \
             "${JAVA_NEW[@]}" SCAN1 \
                 -I "${TRIPLE}" \
@@ -265,17 +266,34 @@ for i in "${!SAMPLES[@]}"; do
                 -F "${REF_FA}" \
                 -A "${GTF_FILE}" \
                 -T "${THREADS}" -Ma 1 -S 2 "${INTRON_FLAG[@]}" \
-            2>&1 | grep -E "scan|meta|time|Mapped" || true
+            2>&1 | tee "${scan1_stdout}" | grep -iE "SCAN1|scan.*completed|meta|time|Mapped|Exception|Error|BrokenBarrier" || true
+        # If meta still missing, surface the tail of the captured output and the Java log
+        if [[ ! -s "$META" ]]; then
+            echo "[DEBUG] Last 30 lines of SCAN1 stdout (${scan1_stdout}):"
+            tail -30 "${scan1_stdout}" 2>/dev/null || echo "  (no stdout captured)"
+            local java_log="${OUT_PREFIX}.log"
+            if [[ -s "$java_log" ]]; then
+                echo "[DEBUG] Last 30 lines of Java log (${java_log}):"
+                tail -30 "${java_log}"
+            else
+                echo "[DEBUG] Java log not found: ${java_log}"
+            fi
+        fi
     fi
 
     check_exists "SCAN1 meta (${SAMPLE_ID})" "${META}"
 
-    SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
-    local_fail=0
-    for bsj_i in $(seq 1 "${SPLIT_NUM}"); do
-        [[ -f "${OUT_PREFIX}BSJ${bsj_i}" ]] || { fail "Missing BSJ file: ${OUT_PREFIX}BSJ${bsj_i}"; local_fail=1; }
-    done
-    [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for ${SAMPLE_ID} (${SPLIT_NUM} splits)"
+    # Guard: if meta is missing (SCAN1 failed), skip BSJ checks for this sample.
+    if [[ ! -s "$META" ]]; then
+        SPLIT_NUM=0
+    else
+        SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
+        local_fail=0
+        for bsj_i in $(seq 1 "${SPLIT_NUM}"); do
+            [[ -f "${OUT_PREFIX}BSJ${bsj_i}" ]] || { fail "Missing BSJ file: ${OUT_PREFIX}BSJ${bsj_i}"; local_fail=1; }
+        done
+        [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for ${SAMPLE_ID} (${SPLIT_NUM} splits)"
+    fi
 
     echo -e "${BWA_SAM}\t${META}" >> "$SCAN1_META_TSV"
 done

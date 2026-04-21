@@ -132,11 +132,11 @@ for SAMPLE in "${SAMPLES[@]}"; do
   ChimericOutJunction=${STARDIR}/STAR_output_${SAMPLE}/Chimeric.out.junction
   AlignedOutSam=${STARDIR}/STAR_output_${SAMPLE}/Aligned.out.sam
   BWASam=${STARDIR}/STAR_output_${SAMPLE}/bwa.sam
-  
-  mkdir -p test_decoupled_manual/${SAMPLE}.SCAN1
+
+  mkdir -p test_decoupled_manual/${SAMPLE}
   $CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} SCAN1 \
-  -I "${ChimericOutJunction},${AlignedOutSam},${BWASam},${SAMPLE}" \
-  -O test_decoupled_manual/${SAMPLE}.SCAN1/ \
+  -I "${ChimericOutJunction},${AlignedOutSam},${BWASam}" \
+  -O test_decoupled_manual/${SAMPLE}/${SAMPLE} \
   -F ${REF_FASTA} \
   -A ${GTF_FILE} \
   -Ma 1 \
@@ -144,47 +144,46 @@ for SAMPLE in "${SAMPLES[@]}"; do
   -T ${THREADS}
 done
 
-cat /dev/null > samples_scan1.tsv
+cat /dev/null > test_decoupled_manual/samples_scan1.tsv
 for SAMPLE in "${SAMPLES[@]}"; do
-  BWASam=${PWD}/STAR_output_${SAMPLE}/bwa.sam
-  echo "${BWASam}\t${SAMPLE}.SCAN1.scan1_meta" >> samples_scan1.tsv
+  BWASam=${STARDIR}/STAR_output_${SAMPLE}/bwa.sam
+  META=${PWD}/test_decoupled_manual/${SAMPLE}/${SAMPLE}.scan1_meta
+  echo -e "${BWASam}\t${META}" >> test_decoupled_manual/samples_scan1.tsv
 done
 
 # BUILD_UNIVERSE
+mkdir -p test_decoupled_manual/universe
 $CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} BUILD_UNIVERSE \
--I  samples_scan1.tsv \
+-I  test_decoupled_manual/samples_scan1.tsv \
 -F  ${REF_FASTA} \
--O  decoupled_test
+-O  test_decoupled_manual/universe/cohort
 
 # SCAN2
+cat /dev/null > test_decoupled_manual/finalize_samples.tsv
 for SAMPLE in "${SAMPLES[@]}"; do
-  ChimericOutJunction=${PWD}/STAR_output_${SAMPLE}/Chimeric.out.junction
-  AlignedOutSam=${PWD}/STAR_output_${SAMPLE}/Aligned.out.sam
-  BWASam=${PWD}/STAR_output_${SAMPLE}/bwa.sam
-  
+  ChimericOutJunction=${STARDIR}/STAR_output_${SAMPLE}/Chimeric.out.junction
+  AlignedOutSam=${STARDIR}/STAR_output_${SAMPLE}/Aligned.out.sam
+  BWASam=${STARDIR}/STAR_output_${SAMPLE}/bwa.sam
+  META=${PWD}/test_decoupled_manual/${SAMPLE}/${SAMPLE}.scan1_meta
+  SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
+  OUT_PREFIX=${PWD}/test_decoupled_manual/${SAMPLE}/${SAMPLE}
+
   $CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} SCAN2 \
   -I "${ChimericOutJunction},${AlignedOutSam},${BWASam}" \
-  -CU decoupled_test.universe \
-  -O ${SAMPLE}.SCAN2 \
+  -CU test_decoupled_manual/universe/cohort.universe \
+  -SM "${META}" \
+  -O "${OUT_PREFIX}" \
   -F ${REF_FASTA} \
   -Ma 1 \
   -T ${THREADS}
+
+  echo -e "${BWASam}\t${OUT_PREFIX}.fsj_counts\t${SPLIT_NUM}\t${SAMPLE}\t${OUT_PREFIX}" >> test_decoupled_manual/finalize_samples.tsv
 done
 
 # FINALIZE
-cat /dev/null > finalize_samples.tsv
-# /abs/path/sample1.sam   /abs/path/sample1.fsj_counts   8   sample1
-# /abs/path/sample2.sam   /abs/path/sample2.fsj_counts   8   sample2
-
-for SAMPLE in "${SAMPLES[@]}"; do
-  BWASam=${PWD}/STAR_output_${SAMPLE}/bwa.sam
-  FSJ_counts=${PWD}/${SAMPLE}.SCAN2.fsj_counts
-  echo "${BWASam}\t${FSJ_counts}\t8\t${SAMPLE}" >> finalize_samples.tsv
-done
-
-
 $CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} FINALIZE \
--I  samples_scan1.tsv \
+-I  test_decoupled_manual/finalize_samples.tsv \
+-CU test_decoupled_manual/universe/cohort.universe \
 -F  ${REF_FASTA} \
--O  decoupled_test \
--A ${GTF_FILE}
+-O  test_decoupled_manual/result \
+-A  ${GTF_FILE}

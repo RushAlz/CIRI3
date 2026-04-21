@@ -258,7 +258,7 @@ for i in "${!SAMPLES[@]}"; do
         # bwa.sam-adjacent location so SCAN2's BSJ enumeration is clean.
         rm -f "${OUT_PREFIX}BSJ"* "${BWA_SAM}BSJ"*
         info "  SCAN1: ${SAMPLE_ID} (STAR dir: ${S})"
-        local scan1_stdout="${BENCH_DIR}/scan1_${SAMPLE_ID}.stdout"
+        scan1_stdout="${BENCH_DIR}/scan1_${SAMPLE_ID}.stdout"
         bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${SAMPLE_ID}")" \
             "${JAVA_NEW[@]}" SCAN1 \
                 -I "${TRIPLE}" \
@@ -271,7 +271,7 @@ for i in "${!SAMPLES[@]}"; do
         if [[ ! -s "$META" ]]; then
             echo "[DEBUG] Last 30 lines of SCAN1 stdout (${scan1_stdout}):"
             tail -30 "${scan1_stdout}" 2>/dev/null || echo "  (no stdout captured)"
-            local java_log="${OUT_PREFIX}.log"
+            java_log="${OUT_PREFIX}.log"
             if [[ -s "$java_log" ]]; then
                 echo "[DEBUG] Last 30 lines of Java log (${java_log}):"
                 tail -30 "${java_log}"

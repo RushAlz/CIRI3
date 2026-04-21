@@ -1,23 +1,26 @@
 package com.zx.findcircrna;
 
+import java.util.regex.Pattern;
+
 public class Misd {
-	
-	
-	
-	
+
+	private static final Pattern CIGAR_SPLIT  = Pattern.compile("[MSIDH]");
+	private static final Pattern ALPHA_STRIP  = Pattern.compile("[^a-zA-Z]");
+	private static final Pattern H_TO_S       = Pattern.compile("H");
+
 public int[] misd(String oldCIGAR,int seqLength) {
 	int[] CIGARite = {0,0,0,0};
-	String CIGAR = oldCIGAR.replaceAll("H", "S");
-	String[] classNumStr = CIGAR.split("M|S|I|D|H");
-	String classCIGAR = CIGAR.replaceAll("[^(a-zA-Z)]", "");
+	String CIGAR = H_TO_S.matcher(oldCIGAR).replaceAll("S");
+	String[] classNumStr = CIGAR_SPLIT.split(CIGAR);
+	String classCIGAR = ALPHA_STRIP.matcher(CIGAR).replaceAll("");
 	if (classNumStr.length==1) {
 		if (classCIGAR.equalsIgnoreCase("M")) {
 			CIGARite[3]=  seqLength;//[0, 0, 0, seqLength];
 		}else {
 			CIGARite[3]=  -1;//[0, 0, 0, -1];
 		}
-		
-	}else {		
+
+	}else {
 		if (classNumStr.length==2) {
 			if (classCIGAR.equalsIgnoreCase("MS")) {
 				CIGARite[0]=  1;
@@ -64,7 +67,7 @@ public int[] misd(String oldCIGAR,int seqLength) {
 				CIGARite[2]=  M_sum +D_sum-1;
 				CIGARite[3]=  M_sum+D_sum;//[1, $read_length-$counts[-1], $M_sum+$D_sum-1, $M_sum+$D_sum];
 			}
-			
+
 		}else if (classCIGAR.substring(0,1).equalsIgnoreCase("S") && classCIGAR.substring(classCIGAR.length()-1).equalsIgnoreCase("M")) {
 			int M_sum = 0,D_sum = 0;
 			for (int i = 1; i < classNumStr.length; i++) {
@@ -121,7 +124,7 @@ public int[] misd(String oldCIGAR,int seqLength) {
 			}
 		} else {
 			CIGARite[3]=  -2;//[0, undef, undef, -2];
-		} 
+		}
 	}
 	return CIGARite;
 }

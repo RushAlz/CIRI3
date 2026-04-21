@@ -36,7 +36,7 @@ public class MutFindCircRNAScan1 extends FindCircRNAScan1{
 			fileStart = 0;
 			fileEnd = (long) (Math.floor((fileSize / threads) * (threadNum) / 1024.0) * 1024);		
 		}else {
-			fileStart = (long) (Math.floor((fileSize / threads) * (threadNum - 1) / 1024.0) * 1024)-2049;
+			fileStart = (long) (Math.floor((fileSize / threads) * (threadNum - 1) / 1024.0) * 1024)-65536;
 			fileEnd = (long) (Math.floor((fileSize / threads) * (threadNum) / 1024.0) * 1024);		
 		}
 		HashMap<Integer, ArrayList<String[]>> readsMap = new HashMap<Integer, ArrayList<String[]>>();
@@ -47,13 +47,13 @@ public class MutFindCircRNAScan1 extends FindCircRNAScan1{
 		int oneRead = 0,alignNum = 0,seqLen = 0;
 		HashMap<Integer, String> standMap = new HashMap<Integer, String>();
 		//读取数据		
-		FileReader fileReader = new FileReader(fileChannel, 1024, fileStart);
+		FileReader fileReader = new FileReader(fileChannel, 65536, fileStart);
 		line = fileReader.readline();
 		// 判断来自第几个线程
 		if (threadNum != 1) {			
 			line = fileReader.readline();
 			while (true) {
-				if(fileChannel.position() <= fileStart + 2049) {
+				if(fileReader.getLastLineStart() <= fileStart + 65536) {
 					String[] lineArr = line.split("\t",2);
 					id = lineArr[0];
 					line = fileReader.readline();

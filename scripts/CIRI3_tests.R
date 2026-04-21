@@ -116,6 +116,70 @@ $CONDA_PREFIX/bin/java -jar ${CIRI3_JAR_PATH} -I my_samples.tsv \
 -Ma 1 \
 -T ${THREADS}
 
+# Decoupled processing
+DECOUPLED_JAR="/pastel/Github_scripts/CIRI3/CIRI3_decoupled.jar"
+
+# SCAN1
+for SAMPLE in "${SAMPLES[@]}"; do
+  ChimericOutJunction=${PWD}/STAR_output_${SAMPLE}/Chimeric.out.junction
+  AlignedOutSam=${PWD}/STAR_output_${SAMPLE}/Aligned.out.sam
+  BWASam=${PWD}/STAR_output_${SAMPLE}/bwa.sam
+  
+  $CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} SCAN1 \
+  -I "${ChimericOutJunction},${AlignedOutSam},${BWASam}" \
+  -O ${SAMPLE}.SCAN1 \
+  -F ${REF_FASTA} \
+  -A ${GTF_FILE} \
+  -Ma 1 \
+  -W 0 \
+  -T ${THREADS}
+done
+
+cat /dev/null > samples_scan1.tsv
+for SAMPLE in "${SAMPLES[@]}"; do
+  BWASam=${PWD}/STAR_output_${SAMPLE}/bwa.sam
+  echo "${BWASam}\t${SAMPLE}.SCAN1.scan1_meta" >> samples_scan1.tsv
+done
+
+# BUILD_UNIVERSE
+$CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} BUILD_UNIVERSE \
+-I  samples_scan1.tsv \
+-F  ${REF_FASTA} \
+-O  decoupled_test
+
+# SCAN2
+for SAMPLE in "${SAMPLES[@]}"; do
+  ChimericOutJunction=${PWD}/STAR_output_${SAMPLE}/Chimeric.out.junction
+  AlignedOutSam=${PWD}/STAR_output_${SAMPLE}/Aligned.out.sam
+  BWASam=${PWD}/STAR_output_${SAMPLE}/bwa.sam
+  
+  $CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} SCAN2 \
+  -I "${ChimericOutJunction},${AlignedOutSam},${BWASam}" \
+  -CU decoupled_test.universe \
+  -O ${SAMPLE}.SCAN2 \
+  -F ${REF_FASTA} \
+  -Ma 1 \
+  -T ${THREADS}
+done
+
+# FINALIZE
+cat /dev/null > finalize_samples.tsv
+# /abs/path/sample1.sam   /abs/path/sample1.fsj_counts   8   sample1
+# /abs/path/sample2.sam   /abs/path/sample2.fsj_counts   8   sample2
+
+for SAMPLE in "${SAMPLES[@]}"; do
+  BWASam=${PWD}/STAR_output_${SAMPLE}/bwa.sam
+  FSJ_counts=${PWD}/${SAMPLE}.SCAN2.fsj_counts
+  echo "${BWASam}\t${FSJ_counts}\t8\t${SAMPLE}" >> finalize_samples.tsv
+done
+
+
+$CONDA_PREFIX/bin/java -jar ${DECOUPLED_JAR} FINALIZE \
+-I  samples_scan1.tsv \
+-F  ${REF_FASTA} \
+-O  decoupled_test \
+-A ${GTF_FILE}
+
 # ============================================================================
 # CIRI3 Test Data Analysis (R Script - Downstream)
 # ============================================================================

@@ -8,6 +8,8 @@ joint_res_df = read_tsv("original/result")
 head(joint_res_df)
 joint_BSJ_res = read_tsv("original/result.BSJ_Matrix")
 joint_FSJ_res = read_tsv("original/result.FSJ_Matrix")
+# joint_BSJ_res = read_tsv("/pastel/tools/circRNA_tools/test_data/CIRI3_joint_results.txt.BSJ_Matrix")
+# joint_FSJ_res = read_tsv("/pastel/tools/circRNA_tools/test_data/CIRI3_joint_results.txt.FSJ_Matrix")
 
 # Compare results from decoupled analysis
 decoupled_res_df = read_tsv("decoupled/finalize/result")

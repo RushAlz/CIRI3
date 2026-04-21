@@ -24,7 +24,7 @@ public class MutFindCircRNASTARScan1 extends FindCircRNASTARScan1{
 	//只是多了scan1IdMap
 	public void findCircRNAScan1(String samFile, int threads, int threadNum, HashMap<String, String> scan1IdMap, String bsjPrefix) throws IOException {
 		long diagReadsSeen = 0, diagReadsInScan1Id = 0, diagBsjEmitted = 0;
-		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(bsjPrefix+"BSJ"+threadNum),true));
+		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(bsjPrefix+"BSJ"+threadNum),true), 262144);
 		FileInputStream fileIn = new FileInputStream(samFile);
 		FileChannel fileChannel = fileIn.getChannel();
 		long fileSize = fileChannel.size();
@@ -43,7 +43,7 @@ public class MutFindCircRNASTARScan1 extends FindCircRNASTARScan1{
 		int oneRead = 0,alignNum = 0,seqLen = 0;
 		HashMap<Integer, String> standMap = new HashMap<Integer, String>();
 		//读取数据		
-		FileReader fileReader = new FileReader(fileChannel, 1024, fileStart);
+		FileReader fileReader = new FileReader(fileChannel, 65536, fileStart);
 		line = fileReader.readline();
 		// 判断来自第几个线程
 		if (threadNum != 1) {			
@@ -76,7 +76,7 @@ public class MutFindCircRNASTARScan1 extends FindCircRNASTARScan1{
 					//判断是否匹配上
 				    //判断是否含有BSJ
 					diagReadsSeen++;
-					if(alignNum > 2 || readsMap.keySet().size() == 1) {
+					if(alignNum > 2 || readsMap.size() == 1) {
 						if(!scan1IdMap.containsKey(id)) {
 							String circInfor = isBSJScan1.isBSJScan1(readsMap, standMap);
 							if(circInfor != null) {
@@ -137,7 +137,7 @@ public class MutFindCircRNASTARScan1 extends FindCircRNASTARScan1{
 
 				    //判断是否含有BSJ
 					diagReadsSeen++;
-					if(alignNum > 2 || readsMap.keySet().size() == 1) {
+					if(alignNum > 2 || readsMap.size() == 1) {
 						if(!scan1IdMap.containsKey(id)) {
 							String circInfor = isBSJScan1.isBSJScan1(readsMap, standMap);
 							if(circInfor != null) {

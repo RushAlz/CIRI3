@@ -106,7 +106,8 @@ public class Scan2Test {
 
         // Step 3: Reconstruct circFSJMap and site-index structures from universe
         // (identical logic to MutTest lines 282-358, but reading from universeDataMap)
-        circFSJMap = new HashMap<String, Integer>();
+        int uniSize = universeDataMap.size();
+        circFSJMap = new HashMap<String, Integer>(uniSize * 2);
         chrSiteMap1 = new HashMap<String, HashMap<Integer, ArrayList<SiteSort>>>();
         chrSiteMap2 = new HashMap<String, HashMap<Integer, ArrayList<SiteSort>>>();
         siteArrayMap1 = new HashMap<String, byte[]>();
@@ -196,11 +197,11 @@ public class Scan2Test {
                             } else {
                                 scan1IdMap.clear();
                                 BufferedReader BSJbr = new BufferedReader(
-                                        new FileReader(new File(bsjPrefixFinal + "BSJ" + threadNum)));
+                                        new FileReader(new File(bsjPrefixFinal + "BSJ" + threadNum)), 262144);
                                 String line = BSJbr.readLine();
                                 while (line != null) {
-                                    String[] BSJArr = line.split("\t", 2);
-                                    scan1IdMap.put(BSJArr[0], "");
+                                    int tab = line.indexOf('\t');
+                                    scan1IdMap.put(tab < 0 ? line : line.substring(0, tab), "");
                                     line = BSJbr.readLine();
                                 }
                                 BSJbr.close();

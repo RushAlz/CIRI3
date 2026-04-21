@@ -34,7 +34,7 @@ public class IsBSJScan1 {
 	}
 	
 	public String isBSJScan1(HashMap<Integer, ArrayList<String[]>> readsMap,HashMap<Integer, String> standMap) throws IOException {
-		int isParied = readsMap.keySet().size()-1;		
+		int isParied = readsMap.size()-1;		
 		for (int n = 0; n <= isParied; n++) {
 			int seqLen = standMap.get(n).length() - 1;
 			for (int i = 0; i < readsMap.get(n).size()-1; i++) {

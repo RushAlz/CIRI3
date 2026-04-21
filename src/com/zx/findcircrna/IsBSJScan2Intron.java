@@ -19,7 +19,7 @@ public class IsBSJScan2Intron extends IsBSJScan2 {
 		// TODO Auto-generated constructor stub
 	}	
 	public String isCandidate(HashMap<Integer, ArrayList<String[]>> readsMap, HashMap<Integer, String> standMap, int temSeqLen) {
-		int isParied = readsMap.keySet().size()-1;		
+		int isParied = readsMap.size()-1;		
 		temFSJId.clear();
 		//boolean lable = true;
 		for (int n = 0; n <= isParied; n++) {

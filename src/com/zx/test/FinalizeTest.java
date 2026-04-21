@@ -185,7 +185,7 @@ public class FinalizeTest {
             long totalLines = 0, tagOneLines = 0, unknownCirc = 0;
             for (int j = 1; j <= splitNum; j++) {
                 long fileLines = 0, fileTagOne = 0;
-                BufferedReader BSJBr = new BufferedReader(new FileReader(new File(bsjPrefix + "BSJ" + j)));
+                BufferedReader BSJBr = new BufferedReader(new FileReader(new File(bsjPrefix + "BSJ" + j)), 262144);
                 String line = BSJBr.readLine();
                 while (line != null) {
                     fileLines++;
@@ -193,11 +193,7 @@ public class FinalizeTest {
                     if (circLineArr[2].equals("1")) {
                         fileTagOne++;
                         String chrStartEnd = circLineArr[3] + "\t" + circLineArr[4] + "\t" + circLineArr[5];
-                        if (!circMap.containsKey(chrStartEnd)) {
-                            circMap.put(chrStartEnd, 1);
-                        } else {
-                            circMap.put(chrStartEnd, circMap.get(chrStartEnd) + 1);
-                        }
+                        circMap.merge(chrStartEnd, 1, Integer::sum);
                     }
                     line = BSJBr.readLine();
                 }

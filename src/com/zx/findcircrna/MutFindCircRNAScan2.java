@@ -26,7 +26,7 @@ public class MutFindCircRNAScan2 extends FindCircRNAScan2{
 
 	public void findCircRNAScan2(String samFile, HashMap<String, String> scan1IdMap, int threads, int threadNum, String bsjPrefix) throws IOException {
 		//存放第一遍扫描的circRNA id
-		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(bsjPrefix+"BSJ"+threadNum),true));
+		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(bsjPrefix+"BSJ"+threadNum),true), 262144);
 		FileInputStream fileIn = new FileInputStream(samFile);
 		FileChannel fileChannel = fileIn.getChannel();
 		long fileSize = fileChannel.size();
@@ -50,7 +50,7 @@ public class MutFindCircRNAScan2 extends FindCircRNAScan2{
 		//standMap.put(0, "");
 		//standMap.put(1, "");
 		//读取数据		
-		FileReader fileReader = new FileReader(fileChannel, 1024, fileStart);
+		FileReader fileReader = new FileReader(fileChannel, 65536, fileStart);
 		line = fileReader.readline();
 		// 判断来自第几个线程
 		if (threadNum != 1) {			

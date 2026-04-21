@@ -92,19 +92,12 @@ public class BuildUniverseTest {
             int splitNum = fileSplitNumMap.get(samFilePath);
             String bsjBase = bsjPrefixMap.containsKey(samFilePath) ? bsjPrefixMap.get(samFilePath) : samFilePath;
             for (int j = 1; j <= splitNum; j++) {
-                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjBase + "BSJ" + j)));
+                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjBase + "BSJ" + j)), 262144);
                 String line = BSJbr.readLine();
                 while (line != null) {
                     String[] BSJArr = line.split("\t", 5);
-                    if (!chrCircSiteMap.containsKey(BSJArr[3])) {
-                        circSiteSet = new HashSet<String>();
-                        circSiteSet.add(BSJArr[4]);
-                        chrCircSiteMap.put(BSJArr[3], circSiteSet);
-                    } else {
-                        circSiteSet = chrCircSiteMap.get(BSJArr[3]);
-                        circSiteSet.add(BSJArr[4]);
-                        chrCircSiteMap.put(BSJArr[3], circSiteSet);
-                    }
+                    circSiteSet = chrCircSiteMap.computeIfAbsent(BSJArr[3], k -> new HashSet<>());
+                    circSiteSet.add(BSJArr[4]);
                     line = BSJbr.readLine();
                 }
                 BSJbr.close();

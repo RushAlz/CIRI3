@@ -48,7 +48,7 @@ public class IsBSJScan2Star {
 	}
 	public String isCandidate(HashMap<Integer, ArrayList<String[]>> readsMap, HashMap<Integer, String> standMap) throws IOException {
 		// 初始化记录FSJ的Set
-		int isParied = readsMap.keySet().size()-1;		
+		int isParied = readsMap.size()-1;		
 		temFSJId.clear();
 		for (int n = 0; n <= isParied; n++) {
 			if (standMap.get(n) == null) {

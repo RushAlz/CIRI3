@@ -29,6 +29,6 @@ public class SiteSort implements Comparable<SiteSort> {
 	public int compareTo(SiteSort other) {
 		int cmp = this.site - other.site;
 		if (cmp != 0) return cmp;
-		return this.tieKey - other.tieKey;
+		return other.tieKey - this.tieKey;
 	}
 }

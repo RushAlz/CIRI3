@@ -25,7 +25,7 @@ java -jar CIRI3_decoupled.jar SCAN1 \
    [-A  ref.gtf]            \  # annotation (optional; required for -It 1)
    [-T  8]                  \  # threads (default: 1)
    [-Ma 0]                  \  # 0 = BWA-MEM (default), 1 = STAR
-   [-S  0]                     # strigency filter applied during scan (default: 0)
+   [-S  0]                     # strigency filter applied during scan (0/1/2)
 ```
 
 Outputs written to `{output_prefix}.*`:
@@ -76,7 +76,7 @@ java -jar CIRI3_decoupled.jar FINALIZE \
     -F  ref.fa               \
     -O  finalize/result      \  # output prefix; writes .BSJ_Matrix and .FSJ_Matrix
    [-A  ref.gtf]             \  # annotation (optional)
-   [-S  0]                   \  # strigency (0/1/2, default: 2)
+   [-S  0]                   \  # strigency (0/1/2)
    [-E  0]                   \  # rel_exp threshold (default: 0)
    [-It 0]                      # intronic circRNAs (0/1, default: 0)
 ```
@@ -125,7 +125,7 @@ Tab-separated: `chr start end fsjCount` — one line per circRNA in the universe
 
 ### Complete example (STAR-based cohort)
 
-The following mirrors `scripts/CIRI3_manual_tests.sh`. Adjust paths at the top then run each block as a separate job (or sequentially).
+Adjust paths at the top then run each block as a separate job (or sequentially).
 
 ```bash
 # ── configuration ────────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ for SAMPLE in "${SAMPLES[@]}"; do
     -O "${OUT_PREFIX}" \
     -F "${REF_FASTA}" \
     -A "${GTF_FILE}" \
-    -Ma 1 -S 0 -T "${THREADS}"
+    -Ma 1 -S 2 -T "${THREADS}"
 
   echo -e "${BWA_SAM}\t${META}" >> "${WORKDIR}/samples_scan1.tsv"
 done
@@ -204,7 +204,7 @@ java -jar "${DECOUPLED_JAR}" FINALIZE \
   -F  "${REF_FASTA}" \
   -O  "${WORKDIR}/result" \
   -A  "${GTF_FILE}" \
-  -S  0
+  -S  2
 ```
 
 **Output directory layout after a successful run:**

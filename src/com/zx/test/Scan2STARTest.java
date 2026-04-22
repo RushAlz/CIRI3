@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -126,16 +127,16 @@ public class Scan2STARTest {
         siteArrayMap1 = new HashMap<String, byte[]>();
         siteArrayMap2 = new HashMap<String, byte[]>();
 
-        HashMap<String, HashMap<String, String[]>> chrUniverseMap = new HashMap<String, HashMap<String, String[]>>();
+        HashMap<String, LinkedHashMap<String, String[]>> chrUniverseMap = new HashMap<String, LinkedHashMap<String, String[]>>();
         for (String circKey : universeDataMap.keySet()) {
             String chrKey = circKey.split("\t")[0];
             if (!chrUniverseMap.containsKey(chrKey)) {
-                chrUniverseMap.put(chrKey, new HashMap<String, String[]>());
+                chrUniverseMap.put(chrKey, new LinkedHashMap<String, String[]>());
             }
             chrUniverseMap.get(chrKey).put(circKey, universeDataMap.get(circKey));
         }
         for (String chrKey : chrUniverseMap.keySet()) {
-            HashMap<String, String[]> circMap = chrUniverseMap.get(chrKey);
+            LinkedHashMap<String, String[]> circMap = chrUniverseMap.get(chrKey);
             byte[] siteArray1 = new byte[(chrLenMap.get(chrKey) / seqLen) + 1];
             byte[] siteArray2 = new byte[(chrLenMap.get(chrKey) / seqLen) + 1];
             HashMap<Integer, ArrayList<SiteSort>> SiteMap1 = new HashMap<Integer, ArrayList<SiteSort>>();

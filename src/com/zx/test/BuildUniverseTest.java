@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 import com.zx.findcircrna.CircRNAUniverseIO;
 import com.zx.findcircrna.ReadFaFile;
@@ -118,7 +119,8 @@ public class BuildUniverseTest {
         ArrayList<SiteSort> siteList2 = new ArrayList<SiteSort>();
 
         // universeDataMap: circFSJMap-key -> siteInfor (for writing the universe file)
-        HashMap<String, String> universeDataMap = new HashMap<String, String>();
+        // LinkedHashMap preserves HashSet iteration order so universe file order matches.
+        LinkedHashMap<String, String> universeDataMap = new LinkedHashMap<String, String>();
 
         for (String chrKey : chrCircSiteMap.keySet()) {
             circSiteSet = chrCircSiteMap.get(chrKey);

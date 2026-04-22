@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class CircRNAUniverseIO {
 
@@ -35,7 +36,7 @@ public class CircRNAUniverseIO {
      */
     public static HashMap<String, String[]> readUniverse(String universePath,
             int[] seqLenOut) throws IOException {
-        HashMap<String, String[]> result = new HashMap<String, String[]>();
+        LinkedHashMap<String, String[]> result = new LinkedHashMap<String, String[]>();
         BufferedReader br = new BufferedReader(new FileReader(new File(universePath)));
         String line = br.readLine();
         // first line: seqLen=N

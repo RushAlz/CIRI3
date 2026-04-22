@@ -150,11 +150,11 @@ public class Scan2STARTest {
                 if (!SiteMap1.containsKey(site1)) {
                     SiteMap1.put(site1, new ArrayList<SiteSort>());
                 }
-                SiteMap1.get(site1).add(new SiteSort(Integer.parseInt(arr[0]), arr, Integer.parseInt(arr[1])));
+                SiteMap1.get(site1).add(new SiteSort(Integer.parseInt(arr[0]), arr));
                 if (!SiteMap2.containsKey(site2)) {
                     SiteMap2.put(site2, new ArrayList<SiteSort>());
                 }
-                SiteMap2.get(site2).add(new SiteSort(Integer.parseInt(arr[1]), arr, Integer.parseInt(arr[0])));
+                SiteMap2.get(site2).add(new SiteSort(Integer.parseInt(arr[1]), arr));
             }
             for (Integer site : SiteMap1.keySet()) {
                 Collections.sort(SiteMap1.get(site));

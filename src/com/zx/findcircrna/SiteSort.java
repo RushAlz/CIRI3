@@ -8,13 +8,7 @@ public class SiteSort implements Comparable<SiteSort> {
 	public SiteSort(int site, String[] length) {
 		this.site = site;
 		this.length = length;
-		this.tieKey = 0;
-	}
-
-	public SiteSort(int site, String[] length, int tieKey) {
-		this.site = site;
-		this.length = length;
-		this.tieKey = tieKey;
+		this.tieKey = String.join("\t", length).hashCode();
 	}
 
 	public String[] getLength() {
@@ -29,6 +23,6 @@ public class SiteSort implements Comparable<SiteSort> {
 	public int compareTo(SiteSort other) {
 		int cmp = this.site - other.site;
 		if (cmp != 0) return cmp;
-		return other.tieKey - this.tieKey;
+		return Integer.compare(this.tieKey, other.tieKey);
 	}
 }

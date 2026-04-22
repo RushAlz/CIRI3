@@ -234,23 +234,23 @@ public class FileTsvTest {
 				if (!SiteMap1.containsKey(site1)) {
 					////////// map1
 					siteList1 = new ArrayList<SiteSort>();
-					siteList1.add(new SiteSort(Integer.parseInt(arr[0]),arr,Integer.parseInt(arr[1])));
+					siteList1.add(new SiteSort(Integer.parseInt(arr[0]),arr));
 					SiteMap1.put(site1, siteList1);
 				} else {
 					////////// map1
 					siteList1 = SiteMap1.get(site1);
-					siteList1.add(new SiteSort(Integer.parseInt(arr[0]),arr,Integer.parseInt(arr[1])));
+					siteList1.add(new SiteSort(Integer.parseInt(arr[0]),arr));
 					SiteMap1.put(site1, siteList1);
 				}
 				if (!SiteMap2.containsKey(site2)) {
 					////////// map2
 					siteList2 = new ArrayList<SiteSort>();
-					siteList2.add(new SiteSort(Integer.parseInt(arr[1]),arr,Integer.parseInt(arr[0])));
+					siteList2.add(new SiteSort(Integer.parseInt(arr[1]),arr));
 					SiteMap2.put(site2, siteList2);
 				} else {
 					////////// map2
 					siteList2 = SiteMap2.get(site2);
-					siteList2.add(new SiteSort(Integer.parseInt(arr[1]),arr,Integer.parseInt(arr[0])));
+					siteList2.add(new SiteSort(Integer.parseInt(arr[1]),arr));
 					SiteMap2.put(site2, siteList2);
 				}
 			}

@@ -51,6 +51,19 @@ public class FinalizeTest {
      */
     public void finalize(String finalizeInputTsv, String faFile, String annotationFile,
             String outputPrefix, String universeFile) throws IOException {
+        finalize(finalizeInputTsv, faFile, annotationFile, outputPrefix, universeFile, null);
+    }
+
+    /**
+     * Variant with a frozen circRNA filter loaded from an existing BSJ_Matrix file.
+     * When freezeMatrixFile is non-null, Summary re-evaluation is skipped entirely:
+     * the accepted circRNA set is taken verbatim from the first column of that matrix.
+     * This is the correct mode when adding a new sample to an existing cohort — the
+     * new sample's BSJ evidence must not alter which circRNAs were accepted for the
+     * original samples.
+     */
+    public void finalize(String finalizeInputTsv, String faFile, String annotationFile,
+            String outputPrefix, String universeFile, String freezeMatrixFile) throws IOException {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println(df.format(System.currentTimeMillis()) + " :FINALIZE start");
 
@@ -213,13 +226,32 @@ public class FinalizeTest {
         }
         System.out.println(df.format(System.currentTimeMillis()) + " :BSJ matrix built");
 
-        // Step 6: Run Summary
-        Summary summary = new Summary(strigency, chrTCGAMap);
-        ArrayList<String> SummaryCircList = summary.summary(bsjPrefixList, bsjPrefixSplitNumMap, circFSJMerged, "");
-        HashMap<String, String> circTrueIdMap = summary.getCircMap();
-        summary = null;
+        // Step 6: Determine accepted circRNA set
+        // Normal mode: run Summary on all BSJ files to filter by stringency.
+        // Freeze mode: load the accepted set from a prior BSJ_Matrix; Summary is
+        //   skipped so the new sample's BSJ evidence cannot alter the row set.
+        ArrayList<String> SummaryCircList = new ArrayList<String>();
+        HashMap<String, String> circTrueIdMap;
+        if (freezeMatrixFile != null && !freezeMatrixFile.isEmpty()) {
+            circTrueIdMap = new HashMap<String, String>();
+            BufferedReader freezeBr = new BufferedReader(new FileReader(new File(freezeMatrixFile)));
+            freezeBr.readLine(); // skip header
+            String freezeLine = freezeBr.readLine();
+            while (freezeLine != null) {
+                String circId = freezeLine.split("\t")[0];
+                circTrueIdMap.put(circId, "");
+                freezeLine = freezeBr.readLine();
+            }
+            freezeBr.close();
+            System.out.println(df.format(System.currentTimeMillis()) + " :Frozen circRNA set from " + freezeMatrixFile + ": " + circTrueIdMap.size() + " circRNAs (Summary skipped)");
+        } else {
+            Summary summary = new Summary(strigency, chrTCGAMap);
+            SummaryCircList = summary.summary(bsjPrefixList, bsjPrefixSplitNumMap, circFSJMerged, "");
+            circTrueIdMap = summary.getCircMap();
+            summary = null;
+            System.out.println(df.format(System.currentTimeMillis()) + " :Summary completed");
+        }
         chrTCGAMap = null;
-        System.out.println(df.format(System.currentTimeMillis()) + " :Summary completed");
 
         // Write BSJ_Matrix and FSJ_Matrix (identical to MutFileTest lines 509-541)
         String outPutBSJCountFile = outputPrefix + ".BSJ_Matrix";

@@ -576,7 +576,7 @@ public class TestParameters {
 				}
 			}
 		}else if (Parameters[0].equals("FINALIZE")) {
-			String inputFile = null, outputFile = null, annotationFile, faFile = null, universeFile = null;
+			String inputFile = null, outputFile = null, annotationFile, faFile = null, universeFile = null, freezeMatrixFile = null;
 			int minMapqUni = 10, maxCircle = 200000, minCircle = 140, linear_range_size_min = 50000, strigency, relExp;
 			boolean intronLable, mLable = false, spLable = false;
 			String mitochondrion = "chrM";
@@ -584,6 +584,7 @@ public class TestParameters {
 			parameterMap.put("-I", "F"); parameterMap.put("-O", "F"); parameterMap.put("-F", "F");
 			parameterMap.put("-A", "F"); parameterMap.put("-S", "2"); parameterMap.put("-E", "0");
 			parameterMap.put("-It", "0"); parameterMap.put("-H", "F"); parameterMap.put("-CU", "F");
+			parameterMap.put("-FM", "F"); parameterMap.put("--freeze-matrix", "F");
 			parameterMap.put("--in", "F"); parameterMap.put("--out", "F"); parameterMap.put("--ref_file", "F");
 			parameterMap.put("--anno", "F"); parameterMap.put("--strigency", "2"); parameterMap.put("--rel_exp", "0");
 			parameterMap.put("--intron", "0"); parameterMap.put("--help", "F"); parameterMap.put("--circ_universe", "F");
@@ -614,8 +615,10 @@ public class TestParameters {
 				intronLable = !parameterMap.get("-It").equals("0") || !parameterMap.get("--intron").equals("0");
 				if (!parameterMap.get("-CU").equals("F")) { universeFile = new File(parameterMap.get("-CU")).getCanonicalPath(); }
 				else if (!parameterMap.get("--circ_universe").equals("F")) { universeFile = new File(parameterMap.get("--circ_universe")).getCanonicalPath(); }
+				if (!parameterMap.get("-FM").equals("F")) { freezeMatrixFile = new File(parameterMap.get("-FM")).getCanonicalPath(); }
+				else if (!parameterMap.get("--freeze-matrix").equals("F")) { freezeMatrixFile = new File(parameterMap.get("--freeze-matrix")).getCanonicalPath(); }
 				FinalizeTest ft = new FinalizeTest(minMapqUni, maxCircle, minCircle, linear_range_size_min, intronLable, strigency, relExp, mitochondrion, mLable, spLable);
-				ft.finalize(inputFile, faFile, annotationFile, outputFile, universeFile);
+				ft.finalize(inputFile, faFile, annotationFile, outputFile, universeFile, freezeMatrixFile);
 			}
 		}else {
 			String inputFile = null,outputFile = null,UserGivecircRNA = "",annotationFile,faFile = null,mitochondrion;

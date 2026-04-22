@@ -137,10 +137,10 @@ DECOUPLED_JAR=/path/to/CIRI3_decoupled.jar
 WORKDIR=/path/to/workdir
 
 SAMPLES=(
-  "Div_100_S91"
-  "Div_101_S92"
-  "PARDOS_1_S1"
-  "PARDOS_2_S2"
+  "SAMPLE1"
+  "SAMPLE2"
+  "SAMPLE3"
+  "SAMPLE4"
 )
 
 # ── SCAN1  (one job per sample) ───────────────────────────────────────────────
@@ -211,11 +211,11 @@ java -jar "${DECOUPLED_JAR}" FINALIZE \
 
 ```
 workdir/
-  Div_100_S91/
-    Div_100_S91.scan1_meta      ← SCAN1 checkpoint
-    Div_100_S91BSJ1 … BSJ{N}   ← BSJ fragment files
-    Div_100_S91.fsj_counts      ← SCAN2 output
-  Div_101_S92/  …
+  SAMPLE1/
+    SAMPLE1.scan1_meta      ← SCAN1 checkpoint
+    SAMPLE1BSJ1 … BSJ{N}   ← BSJ fragment files
+    SAMPLE1.fsj_counts      ← SCAN2 output
+  SAMPLE2/  …
   universe/
     cohort.universe             ← shared circRNA universe
   samples_scan1.tsv

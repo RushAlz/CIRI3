@@ -375,11 +375,12 @@ else
         "${CIRI3[@]}" FINALIZE \
             -I "${FINALIZE_4_TSV}" \
             -CU "${UNIVERSE_FILE}" \
+            -FM "${FINAL_3_BSJ}" \
             -F "${REF_FA}" \
             -O "${FINALIZE_4_DIR}/result_4samples" \
             -A "${GTF_FILE}" \
             -S 2 "${INTRON_FLAG[@]}" \
-        2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
+        2>&1 | grep -E "FINALIZE|Summary|Frozen|Matrix|circRNA|time" || true
 fi
 check_exists "4-sample BSJ_Matrix" "${FINAL_4_BSJ}"
 check_exists "4-sample FSJ_Matrix" "${FINALIZE_4_DIR}/result_4samples.FSJ_Matrix"
@@ -392,43 +393,78 @@ info "4-sample result: $(matrix_dims "${FINAL_4_BSJ}")"
 echo ""
 info "=== Verification ==="
 
-# 3-sample matrix must have exactly 3 sample columns
+# --- Column structure ---
 COL_3=$(head -1 "${FINAL_3_BSJ}" | awk '{print NF-1}')
-if [[ "$COL_3" -eq 3 ]]; then
-    ok "3-sample BSJ_Matrix has exactly 3 sample columns"
-else
-    fail "3-sample BSJ_Matrix: expected 3 columns, got $COL_3"
-fi
+[[ "$COL_3" -eq 3 ]] && ok "3-sample BSJ_Matrix has exactly 3 sample columns" \
+    || fail "3-sample BSJ_Matrix: expected 3 columns, got $COL_3"
 
-# 4-sample matrix must have exactly 4 sample columns
 COL_4=$(head -1 "${FINAL_4_BSJ}" | awk '{print NF-1}')
-if [[ "$COL_4" -eq 4 ]]; then
-    ok "4-sample BSJ_Matrix has exactly 4 sample columns"
-else
-    fail "4-sample BSJ_Matrix: expected 4 columns, got $COL_4"
-fi
+[[ "$COL_4" -eq 4 ]] && ok "4-sample BSJ_Matrix has exactly 4 sample columns" \
+    || fail "4-sample BSJ_Matrix: expected 4 columns, got $COL_4"
 
-# PARDOS_2_S2 column present in 4-sample matrix
-if head -1 "${FINAL_4_BSJ}" | grep -q "${NEW_SAMPLE}"; then
-    ok "${NEW_SAMPLE} column is present in 4-sample BSJ_Matrix"
-else
-    fail "${NEW_SAMPLE} column is MISSING from 4-sample BSJ_Matrix"
-fi
+head -1 "${FINAL_4_BSJ}" | grep -q "${NEW_SAMPLE}" \
+    && ok "${NEW_SAMPLE} column present in 4-sample BSJ_Matrix" \
+    || fail "${NEW_SAMPLE} column MISSING from 4-sample BSJ_Matrix"
 
-# 4-sample circRNA count >= 3-sample count
-if [[ "$CIRCS_4" -ge "$CIRCS_3" ]]; then
-    ok "4-sample circRNA count ($CIRCS_4) >= 3-sample count ($CIRCS_3)"
-else
-    fail "4-sample circRNA count ($CIRCS_4) < 3-sample count ($CIRCS_3)"
-fi
-
-# All original 3 sample columns retained in 4-sample matrix
 for S in "${INITIAL_SAMPLES[@]}"; do
-    if head -1 "${FINAL_4_BSJ}" | grep -q "$S"; then
-        ok "Column '$S' retained in 4-sample matrix"
-    else
-        fail "Column '$S' missing from 4-sample matrix"
-    fi
+    head -1 "${FINAL_4_BSJ}" | grep -q "$S" \
+        && ok "Column '$S' retained in 4-sample matrix" \
+        || fail "Column '$S' missing from 4-sample matrix"
+done
+
+# --- circRNA row identity ---
+# The 4-sample matrix must have the same rows as the 3-sample matrix.
+# Adding a new sample must not change which circRNAs are reported.
+IDS_3=$(tail -n +2 "${FINAL_3_BSJ}" | awk '{print $1}' | sort)
+IDS_4=$(tail -n +2 "${FINAL_4_BSJ}" | awk '{print $1}' | sort)
+
+if [[ "$CIRCS_3" -eq "$CIRCS_4" ]]; then
+    ok "circRNA row count identical: ${CIRCS_3} in both 3-sample and 4-sample matrices"
+else
+    fail "circRNA row count differs: 3-sample=${CIRCS_3}, 4-sample=${CIRCS_4} (expected equal)"
+fi
+
+if [[ "$IDS_3" == "$IDS_4" ]]; then
+    ok "circRNA IDs identical between 3-sample and 4-sample matrices"
+else
+    ONLY_3=$(comm -23 <(echo "$IDS_3") <(echo "$IDS_4") | wc -l)
+    ONLY_4=$(comm -13 <(echo "$IDS_3") <(echo "$IDS_4") | wc -l)
+    fail "circRNA IDs differ: ${ONLY_3} only in 3-sample, ${ONLY_4} only in 4-sample"
+    info "  (first 5 only in 3-sample):"; comm -23 <(echo "$IDS_3") <(echo "$IDS_4") | head -5 | sed 's/^/    /' || true
+    info "  (first 5 only in 4-sample):"; comm -13 <(echo "$IDS_3") <(echo "$IDS_4") | head -5 | sed 's/^/    /' || true
+fi
+
+# --- Count identity for original 3 samples ---
+# BSJ and FSJ counts for the original samples must be byte-for-byte identical.
+# Only the PARDOS_2_S2 column should differ.
+for MATRIX_SUFFIX in BSJ_Matrix FSJ_Matrix; do
+    F3="${FINALIZE_3_DIR}/result_3samples.${MATRIX_SUFFIX}"
+    F4="${FINALIZE_4_DIR}/result_4samples.${MATRIX_SUFFIX}"
+    [[ -s "$F3" && -s "$F4" ]] || continue
+
+    # Build sorted (circRNA_ID, col_value) pairs for each original sample
+    HDR_3=$(head -1 "${F3}")
+    HDR_4=$(head -1 "${F4}")
+    mismatch=0
+    for S in "${INITIAL_SAMPLES[@]}"; do
+        # Column index in 3-sample matrix (1-based field; col 1 = circRNA_ID)
+        C3=$(echo "$HDR_3" | tr '\t' '\n' | grep -n "^${S}$" | cut -d: -f1)
+        C4=$(echo "$HDR_4" | tr '\t' '\n' | grep -n "^${S}$" | cut -d: -f1)
+        if [[ -z "$C3" || -z "$C4" ]]; then
+            fail "${MATRIX_SUFFIX}: column '${S}' not found in one of the matrices"
+            mismatch=1; continue
+        fi
+        DATA_3=$(tail -n +2 "${F3}" | awk -v c="$C3" 'BEGIN{OFS="\t"}{print $1,$c}' | sort)
+        DATA_4=$(tail -n +2 "${F4}" | awk -v c="$C4" 'BEGIN{OFS="\t"}{print $1,$c}' | sort)
+        if [[ "$DATA_3" == "$DATA_4" ]]; then
+            ok "${MATRIX_SUFFIX}: counts for '${S}' identical in 3-sample and 4-sample matrices"
+        else
+            NDIFF=$(diff <(echo "$DATA_3") <(echo "$DATA_4") | grep -c "^[<>]" || true)
+            fail "${MATRIX_SUFFIX}: counts for '${S}' differ (${NDIFF} differing lines)"
+            diff <(echo "$DATA_3") <(echo "$DATA_4") | head -10 || true
+            mismatch=1
+        fi
+    done
 done
 
 # ============================================================================

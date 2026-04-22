@@ -17,7 +17,8 @@
 #   --keep        do not delete the working directory after the test
 #
 # Requirements:
-#   - JDK 11+ (javac / java on PATH or in $CONDA_PREFIX/bin)
+#   - CIRI3_decoupled.jar at the repository root (build with scripts/build_jar.sh)
+#   - java on PATH or in $CONDA_PREFIX/bin
 #   - sample{1,2,3,4}.sam in data/circRNA/Mutiple/
 #   - Reference FASTA at data/circRNA/ref.fa
 # =============================================================================
@@ -45,13 +46,9 @@ cd "$REPO_ROOT"
 # shellcheck source=/dev/null
 source "$REPO_ROOT/scripts/_bench.sh"
 
-SRC_DIR="$REPO_ROOT/src"
-BIN_DIR="$REPO_ROOT/bin"
-LIB_DIR="$REPO_ROOT/lib"
+JAR="$REPO_ROOT/CIRI3_decoupled.jar"
 DATA_DIR="$REPO_ROOT/data/circRNA/Mutiple"
 REF_FA="$REPO_ROOT/data/circRNA/ref.fa"
-CLASSPATH="$BIN_DIR:$LIB_DIR/htsjdk-3.0.4.jar"
-MAIN_CLASS="com.zx.test.TestParameters"
 
 WORK_DIR="$REPO_ROOT/test_add_sample_$$"
 SCAN1_DIR="$WORK_DIR/scan1"
@@ -72,8 +69,6 @@ if [[ -n "${CONDA_PREFIX:-}" ]] && [[ -x "${CONDA_PREFIX}/bin/java" ]]; then
 else
     JAVA_BIN="$(command -v java)"
 fi
-JAVAC_FLAGS="-source 8 -target 8"
-JAVA_SRC="${JAVA_BIN} -cp ${CLASSPATH} ${MAIN_CLASS}"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -111,6 +106,7 @@ trap cleanup EXIT
 # Pre-flight checks
 # ---------------------------------------------------------------------------
 info "=== Pre-flight checks ==="
+[[ -f "$JAR"     ]] || die "JAR not found: $JAR — run: bash scripts/build_jar.sh"
 [[ -d "$DATA_DIR" ]] || die "Test data not found at $DATA_DIR"
 [[ -f "$REF_FA"  ]] || die "Reference FASTA not found at $REF_FA"
 [[ -x "$JAVA_BIN"  ]] || die "Java not found (is the CIRI3 conda env active?)"
@@ -118,19 +114,8 @@ info "=== Pre-flight checks ==="
 for s in 1 2 3 4; do
     [[ -f "$DATA_DIR/sample${s}.sam" ]] || die "Missing test SAM: $DATA_DIR/sample${s}.sam"
 done
+info "JAR: $JAR"
 info "Found all 4 sample SAM files."
-
-# ---------------------------------------------------------------------------
-# Compile from source
-# ---------------------------------------------------------------------------
-info "=== Compiling from source (target: Java 8) ==="
-find "${REPO_ROOT}/src" -name "*.java" > /tmp/ciri3_sources_$$.txt
-# shellcheck disable=SC2086
-javac ${JAVAC_FLAGS} -cp "${CLASSPATH}" -d "${BIN_DIR}" \
-    @/tmp/ciri3_sources_$$.txt 2>&1 \
-    | grep -v "^\(warning\|Note\)" || true
-rm -f /tmp/ciri3_sources_$$.txt
-info "Compilation complete."
 
 mkdir -p "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" \
          "$FINALIZE_3_DIR" "$FINALIZE_4_DIR" "$BENCH_DIR"
@@ -141,6 +126,9 @@ FINALIZE_3_TSV="$FINALIZE_3_DIR/finalize_samples.tsv"
 FINALIZE_4_TSV="$FINALIZE_4_DIR/finalize_samples.tsv"
 > "$SCAN1_META_TSV"
 > "$FINALIZE_3_TSV"
+
+# Shorthand for running the JAR
+CIRI3="${JAVA_BIN} -jar ${JAR}"
 
 # ============================================================================
 # PHASE 1: Full 4-step pipeline with the initial 3 samples
@@ -160,13 +148,13 @@ for SAMPLE_NAME in "${INITIAL_SAMPLES[@]}"; do
     OUT_PREFIX="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}"
     info "  SCAN1: $SAMPLE_NAME"
     bench_run "10_scan1_${SAMPLE_NAME}" \
-        ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN1 \
+        ${CIRI3} SCAN1 \
             -I "$SAM" \
             -O "$OUT_PREFIX" \
             -F "$REF_FA" \
             -T "$THREADS" \
             -S 2 \
-        2>&1 | grep -E "scan|completed|meta|time" || true
+        2>&1 | grep -E "scan|completed|meta|time|ERROR|Exception" || true
     check_exists "SCAN1 meta ($SAMPLE_NAME)" "${OUT_PREFIX}.scan1_meta"
     echo -e "$SAM\t${OUT_PREFIX}.scan1_meta" >> "$SCAN1_META_TSV"
 done
@@ -174,11 +162,11 @@ done
 # --- Stage 2: BUILD_UNIVERSE (3 samples) ---
 info "--- Phase 1 / Stage 2: BUILD_UNIVERSE ---"
 bench_run "20_build_universe_3samples" \
-    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" BUILD_UNIVERSE \
+    ${CIRI3} BUILD_UNIVERSE \
         -I "$SCAN1_META_TSV" \
         -F "$REF_FA" \
         -O "$UNIVERSE_DIR/cohort" \
-    2>&1 | grep -E "Universe|circRNA|time" || true
+    2>&1 | grep -E "Universe|circRNA|time|ERROR|Exception" || true
 check_exists "Universe file (3 samples)" "$UNIVERSE_DIR/cohort.universe"
 UNIVERSE_LINES=$(grep -c "^chr" "$UNIVERSE_DIR/cohort.universe" || true)
 info "Universe (3 samples) contains $UNIVERSE_LINES circRNA candidates."
@@ -194,14 +182,14 @@ for SAMPLE_NAME in "${INITIAL_SAMPLES[@]}"; do
     OUT_PREFIX="$SCAN2_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}"
     info "  SCAN2: $SAMPLE_NAME"
     bench_run "30_scan2_${SAMPLE_NAME}" \
-        ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN2 \
+        ${CIRI3} SCAN2 \
             -I "$SAM" \
             -CU "$UNIVERSE_DIR/cohort.universe" \
             -SM "$SCAN1_META" \
             -O "$OUT_PREFIX" \
             -F "$REF_FA" \
             -T "$THREADS" \
-        2>&1 | grep -E "scan|completed|FSJ|time" || true
+        2>&1 | grep -E "scan|completed|FSJ|time|ERROR|Exception" || true
     check_exists "SCAN2 FSJ counts ($SAMPLE_NAME)" "${OUT_PREFIX}.fsj_counts"
     echo -e "$SAM\t${OUT_PREFIX}.fsj_counts\t${SPLIT_NUM}\t${SAMPLE_NAME}\t${SCAN1_PREFIX}" \
         >> "$FINALIZE_3_TSV"
@@ -210,13 +198,13 @@ done
 # --- Stage 4: FINALIZE (3 samples) ---
 info "--- Phase 1 / Stage 4: FINALIZE (3 samples) ---"
 bench_run "40_finalize_3samples" \
-    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" FINALIZE \
+    ${CIRI3} FINALIZE \
         -I "$FINALIZE_3_TSV" \
         -CU "$UNIVERSE_DIR/cohort.universe" \
         -F "$REF_FA" \
         -O "$FINALIZE_3_DIR/result_3samples" \
         -S 2 \
-    2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
+    2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time|ERROR|Exception" || true
 check_exists "3-sample BSJ_Matrix" "$FINALIZE_3_DIR/result_3samples.BSJ_Matrix"
 check_exists "3-sample FSJ_Matrix" "$FINALIZE_3_DIR/result_3samples.FSJ_Matrix"
 info "3-sample result: $(matrix_dims "$FINALIZE_3_DIR/result_3samples.BSJ_Matrix")"
@@ -240,13 +228,13 @@ info "--- Phase 2 / Stage 1: SCAN1 (PARDOS_2_S2) ---"
 mkdir -p "$SCAN1_DIR/${NEW_SAMPLE_NAME}"
 NEW_SCAN1_PREFIX="$SCAN1_DIR/${NEW_SAMPLE_NAME}/${NEW_SAMPLE_NAME}"
 bench_run "50_scan1_${NEW_SAMPLE_NAME}" \
-    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN1 \
+    ${CIRI3} SCAN1 \
         -I "$NEW_SAM" \
         -O "$NEW_SCAN1_PREFIX" \
         -F "$REF_FA" \
         -T "$THREADS" \
         -S 2 \
-    2>&1 | grep -E "scan|completed|meta|time" || true
+    2>&1 | grep -E "scan|completed|meta|time|ERROR|Exception" || true
 check_exists "SCAN1 meta ($NEW_SAMPLE_NAME)" "${NEW_SCAN1_PREFIX}.scan1_meta"
 
 # --- Stage 2: SCAN2 for PARDOS_2_S2 against the existing 3-sample universe ---
@@ -256,14 +244,14 @@ NEW_SPLIT_NUM=$(grep "^fileSplitNum=" "$NEW_SCAN1_META" | cut -d= -f2)
 mkdir -p "$SCAN2_DIR/${NEW_SAMPLE_NAME}"
 NEW_SCAN2_PREFIX="$SCAN2_DIR/${NEW_SAMPLE_NAME}/${NEW_SAMPLE_NAME}"
 bench_run "60_scan2_${NEW_SAMPLE_NAME}" \
-    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" SCAN2 \
+    ${CIRI3} SCAN2 \
         -I "$NEW_SAM" \
         -CU "$UNIVERSE_DIR/cohort.universe" \
         -SM "$NEW_SCAN1_META" \
         -O "$NEW_SCAN2_PREFIX" \
         -F "$REF_FA" \
         -T "$THREADS" \
-    2>&1 | grep -E "scan|completed|FSJ|time" || true
+    2>&1 | grep -E "scan|completed|FSJ|time|ERROR|Exception" || true
 check_exists "SCAN2 FSJ counts ($NEW_SAMPLE_NAME)" "${NEW_SCAN2_PREFIX}.fsj_counts"
 
 # --- Stage 3: FINALIZE with all 4 samples ---
@@ -275,13 +263,13 @@ echo -e "$NEW_SAM\t${NEW_SCAN2_PREFIX}.fsj_counts\t${NEW_SPLIT_NUM}\t${NEW_SAMPL
     >> "$FINALIZE_4_TSV"
 
 bench_run "70_finalize_4samples" \
-    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" FINALIZE \
+    ${CIRI3} FINALIZE \
         -I "$FINALIZE_4_TSV" \
         -CU "$UNIVERSE_DIR/cohort.universe" \
         -F "$REF_FA" \
         -O "$FINALIZE_4_DIR/result_4samples" \
         -S 2 \
-    2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
+    2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time|ERROR|Exception" || true
 check_exists "4-sample BSJ_Matrix" "$FINALIZE_4_DIR/result_4samples.BSJ_Matrix"
 check_exists "4-sample FSJ_Matrix" "$FINALIZE_4_DIR/result_4samples.FSJ_Matrix"
 info "4-sample result: $(matrix_dims "$FINALIZE_4_DIR/result_4samples.BSJ_Matrix")"
@@ -324,7 +312,6 @@ else
     fail "4-sample matrix circRNA count ($ROWS_4) < 3-sample count ($ROWS_3)"
 fi
 
-# Confirm universe was not rebuilt in Phase 2 (file modification time unchanged)
 info "Universe file used: $UNIVERSE_DIR/cohort.universe ($UNIVERSE_LINES candidates)"
 
 # Original 3 sample columns must still be present in the 4-sample matrix

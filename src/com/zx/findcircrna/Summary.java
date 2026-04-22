@@ -234,6 +234,10 @@ public class Summary {
 		
 		
 		for (String chrStartEnd : circMap.keySet()) {
+			// Skip circRNAs absent from the universe — no FSJ entry, can't be reported.
+			if (!circFSJNewMap.containsKey(chrStartEnd)) {
+				continue;
+			}
 			String[] chrStartEndArr = chrStartEnd.split("\t");
 			circSet = circMap.get(chrStartEnd);
 			int TPReads = 0, nonReads = 0, FPReads = 0,TPReads3 = 0, nonReads3 = 0, FPReads3 = 0,tag = 0;

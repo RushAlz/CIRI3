@@ -2,61 +2,84 @@
 # =============================================================================
 # test_add_sample.sh
 #
-# Tests the incremental-sample use case:
-#   Phase 1 — Full 4-step pipeline with 3 samples (sample1, sample2, sample3)
-#             to create a universe and produce a 3-sample expression matrix.
-#   Phase 2 — Add PARDOS_2_S2 (sample4.sam) WITHOUT re-running SCAN2 for the
-#             original 3 samples.  Only SCAN1 and SCAN2 are run for the new
-#             sample; FINALIZE is then re-run with all 4 samples against the
-#             same universe, producing a 4-sample expression matrix.
+# Tests the incremental-sample use case with full-size STAR data:
+#   Phase 1 — Full 4-step decoupled pipeline on 3 samples
+#             (Div_100_S91, Div_101_S92, PARDOS_1_S1) to build a universe
+#             and produce a 3-sample expression matrix.
+#   Phase 2 — Add PARDOS_2_S2 WITHOUT re-running SCAN2 for the original 3.
+#             Only SCAN1 and SCAN2 are run for the new sample; FINALIZE is
+#             re-run with all 4 samples using the same universe, producing
+#             a 4-sample expression matrix.
 #
 # Usage:
-#   bash scripts/test_add_sample.sh [--threads N] [--keep]
+#   bash scripts/test_add_sample.sh [options]
 #
-#   --threads N   number of threads for per-sample stages (default: 1)
-#   --keep        do not delete the working directory after the test
+#   --threads N      threads for each per-sample stage (default: 8)
+#   --output-dir D   output directory (default: DATA_DIR/add_sample_test)
+#   --intron         run with intron mode (-It 1)
+#   --keep           keep output directory after the run
 #
 # Requirements:
-#   - CIRI3_decoupled.jar at the repository root (build with scripts/build_jar.sh)
+#   - CIRI3_decoupled.jar at the repository root (run: bash scripts/build_jar.sh)
 #   - java on PATH or in $CONDA_PREFIX/bin
-#   - sample{1,2,3,4}.sam in data/circRNA/Mutiple/
-#   - Reference FASTA at data/circRNA/ref.fa
+#   - STAR output directories for all 4 samples under DATA_DIR
+#   - Reference FASTA and GTF at the paths configured below
 # =============================================================================
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
-THREADS=1
+THREADS=8
 KEEP=0
+OUT_ROOT=""
+INTRON_FLAG=()
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --threads) THREADS="$2"; shift 2 ;;
-        --keep)    KEEP=1; shift ;;
+        --threads)    THREADS="$2";  shift 2 ;;
+        --output-dir) OUT_ROOT="$2"; shift 2 ;;
+        --intron)     INTRON_FLAG=(-It 1); shift ;;
+        --keep)       KEEP=1;        shift   ;;
         *) echo "Unknown argument: $1"; exit 1 ;;
     esac
 done
 
 # ---------------------------------------------------------------------------
-# Paths
+# Paths - edit to match your environment
+# ---------------------------------------------------------------------------
+DATA_DIR=/pastel/tools/circRNA_tools/test_data
+REF_FA=${DATA_DIR}/GRCh38_full_analysis_set_plus_decoy_hla.fa
+GTF_FILE=${DATA_DIR}/gencode.v32.primary_assembly.annotation.gtf
+
+# First 3 samples form the initial universe; PARDOS_2_S2 is added in Phase 2.
+INITIAL_SAMPLES=(
+    "Div_100_S91"
+    "Div_101_S92"
+    "PARDOS_1_S1"
+)
+NEW_SAMPLE="PARDOS_2_S2"
+
+# ---------------------------------------------------------------------------
+# Derived paths
 # ---------------------------------------------------------------------------
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$REPO_ROOT"
+DECOUPLED_JAR="${REPO_ROOT}/CIRI3_decoupled.jar"
+
+[[ -z "$OUT_ROOT" ]] && OUT_ROOT="${DATA_DIR}/add_sample_test"
+
+SCAN1_DIR="${OUT_ROOT}/scan1"
+UNIVERSE_DIR="${OUT_ROOT}/universe"
+SCAN2_DIR="${OUT_ROOT}/scan2"
+FINALIZE_3_DIR="${OUT_ROOT}/finalize_3samples"
+FINALIZE_4_DIR="${OUT_ROOT}/finalize_4samples"
+BENCH_DIR="${OUT_ROOT}/bench"
+
+SCAN1_META_TSV="${UNIVERSE_DIR}/samples_scan1.tsv"
+FINALIZE_3_TSV="${FINALIZE_3_DIR}/finalize_samples.tsv"
+FINALIZE_4_TSV="${FINALIZE_4_DIR}/finalize_samples.tsv"
 
 # shellcheck source=/dev/null
-source "$REPO_ROOT/scripts/_bench.sh"
-
-JAR="$REPO_ROOT/CIRI3_decoupled.jar"
-DATA_DIR="$REPO_ROOT/data/circRNA/Mutiple"
-REF_FA="$REPO_ROOT/data/circRNA/ref.fa"
-
-WORK_DIR="$REPO_ROOT/test_add_sample_$$"
-SCAN1_DIR="$WORK_DIR/scan1"
-UNIVERSE_DIR="$WORK_DIR/universe"
-SCAN2_DIR="$WORK_DIR/scan2"
-FINALIZE_3_DIR="$WORK_DIR/finalize_3samples"
-FINALIZE_4_DIR="$WORK_DIR/finalize_4samples"
-BENCH_DIR="$WORK_DIR/bench"
+source "${REPO_ROOT}/scripts/_bench.sh"
 
 PASS=0
 FAIL=0
@@ -69,6 +92,7 @@ if [[ -n "${CONDA_PREFIX:-}" ]] && [[ -x "${CONDA_PREFIX}/bin/java" ]]; then
 else
     JAVA_BIN="$(command -v java)"
 fi
+CIRI3=("${JAVA_BIN}" -jar "${DECOUPLED_JAR}")
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -94,10 +118,10 @@ matrix_dims() {
 
 cleanup() {
     if [[ $KEEP -eq 0 ]]; then
-        rm -rf "$WORK_DIR"
-        info "Working directory removed."
+        rm -rf "$OUT_ROOT"
+        info "Output directory removed."
     else
-        info "Working directory kept at: $WORK_DIR"
+        info "Outputs kept at: $OUT_ROOT"
     fi
 }
 trap cleanup EXIT
@@ -106,29 +130,27 @@ trap cleanup EXIT
 # Pre-flight checks
 # ---------------------------------------------------------------------------
 info "=== Pre-flight checks ==="
-[[ -f "$JAR"     ]] || die "JAR not found: $JAR — run: bash scripts/build_jar.sh"
-[[ -d "$DATA_DIR" ]] || die "Test data not found at $DATA_DIR"
-[[ -f "$REF_FA"  ]] || die "Reference FASTA not found at $REF_FA"
-[[ -x "$JAVA_BIN"  ]] || die "Java not found (is the CIRI3 conda env active?)"
+[[ -f "$DECOUPLED_JAR" ]] || die "JAR not found: $DECOUPLED_JAR — run: bash scripts/build_jar.sh"
+[[ -f "$REF_FA"        ]] || die "Reference FASTA not found: $REF_FA"
+[[ -f "$GTF_FILE"      ]] || die "GTF not found: $GTF_FILE"
+[[ -x "$JAVA_BIN"      ]] || die "Java not found (is the CIRI3 conda env active?)"
 
-for s in 1 2 3 4; do
-    [[ -f "$DATA_DIR/sample${s}.sam" ]] || die "Missing test SAM: $DATA_DIR/sample${s}.sam"
+ALL_SAMPLES=("${INITIAL_SAMPLES[@]}" "$NEW_SAMPLE")
+for S in "${ALL_SAMPLES[@]}"; do
+    STAR_DIR="${DATA_DIR}/STAR_output_${S}"
+    [[ -f "${STAR_DIR}/Chimeric.out.junction" ]] || die "Missing: ${STAR_DIR}/Chimeric.out.junction"
+    [[ -f "${STAR_DIR}/Aligned.out.sam"       ]] || die "Missing: ${STAR_DIR}/Aligned.out.sam"
+    [[ -f "${STAR_DIR}/bwa.sam"               ]] || die "Missing: ${STAR_DIR}/bwa.sam"
 done
-info "JAR: $JAR"
-info "Found all 4 sample SAM files."
+info "All input files found for ${#ALL_SAMPLES[@]} samples."
+info "Output directory: ${OUT_ROOT}"
+info "Decoupled JAR:    ${DECOUPLED_JAR}"
 
 mkdir -p "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" \
          "$FINALIZE_3_DIR" "$FINALIZE_4_DIR" "$BENCH_DIR"
 
-# TSV files built incrementally
-SCAN1_META_TSV="$UNIVERSE_DIR/samples_scan1.tsv"
-FINALIZE_3_TSV="$FINALIZE_3_DIR/finalize_samples.tsv"
-FINALIZE_4_TSV="$FINALIZE_4_DIR/finalize_samples.tsv"
 > "$SCAN1_META_TSV"
 > "$FINALIZE_3_TSV"
-
-# Shorthand for running the JAR
-CIRI3="${JAVA_BIN} -jar ${JAR}"
 
 # ============================================================================
 # PHASE 1: Full 4-step pipeline with the initial 3 samples
@@ -138,141 +160,231 @@ echo "############################################################"
 echo "#  PHASE 1: Build universe from 3 samples (full pipeline)  #"
 echo "############################################################"
 
-INITIAL_SAMPLES=("sample1" "sample2" "sample3")
-
-# --- Stage 1: SCAN1 (sample1, sample2, sample3) ---
+# --- Stage 1: SCAN1 (Div_100_S91, Div_101_S92, PARDOS_1_S1) ---
 info "--- Phase 1 / Stage 1: SCAN1 ---"
-for SAMPLE_NAME in "${INITIAL_SAMPLES[@]}"; do
-    SAM="$DATA_DIR/${SAMPLE_NAME}.sam"
-    mkdir -p "$SCAN1_DIR/${SAMPLE_NAME}"
-    OUT_PREFIX="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}"
-    info "  SCAN1: $SAMPLE_NAME"
-    bench_run "10_scan1_${SAMPLE_NAME}" \
-        ${CIRI3} SCAN1 \
-            -I "$SAM" \
-            -O "$OUT_PREFIX" \
-            -F "$REF_FA" \
-            -T "$THREADS" \
-            -S 2 \
-        2>&1 | grep -E "scan|completed|meta|time|ERROR|Exception" || true
-    check_exists "SCAN1 meta ($SAMPLE_NAME)" "${OUT_PREFIX}.scan1_meta"
-    echo -e "$SAM\t${OUT_PREFIX}.scan1_meta" >> "$SCAN1_META_TSV"
+SCAN1_IDX=0
+for SAMPLE_ID in "${INITIAL_SAMPLES[@]}"; do
+    SCAN1_IDX=$((SCAN1_IDX+1))
+    STAR_DIR="${DATA_DIR}/STAR_output_${SAMPLE_ID}"
+    TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
+    BWA_SAM="${STAR_DIR}/bwa.sam"
+    mkdir -p "${SCAN1_DIR}/${SAMPLE_ID}"
+    OUT_PREFIX="${SCAN1_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
+    META="${OUT_PREFIX}.scan1_meta"
+
+    if [[ -s "$META" ]]; then
+        info "  [SKIP] SCAN1 already done for ${SAMPLE_ID}"
+    else
+        rm -f "${OUT_PREFIX}BSJ"* "${BWA_SAM}BSJ"*
+        info "  SCAN1: ${SAMPLE_ID}"
+        scan1_stdout="${BENCH_DIR}/scan1_${SAMPLE_ID}.stdout"
+        bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${SAMPLE_ID}")" \
+            "${CIRI3[@]}" SCAN1 \
+                -I "${TRIPLE}" \
+                -O "${OUT_PREFIX}" \
+                -F "${REF_FA}" \
+                -A "${GTF_FILE}" \
+                -T "${THREADS}" -Ma 1 -S 2 "${INTRON_FLAG[@]}" \
+            2>&1 | tee "${scan1_stdout}" \
+            | grep -iE "SCAN1|scan.*completed|meta|time|Mapped|Exception|Error|BrokenBarrier" || true
+        if [[ ! -s "$META" ]]; then
+            echo "[DEBUG] Last 30 lines of SCAN1 stdout (${scan1_stdout}):"
+            tail -30 "${scan1_stdout}" 2>/dev/null || echo "  (no stdout captured)"
+            java_log="${OUT_PREFIX}.log"
+            [[ -s "$java_log" ]] && { echo "[DEBUG] Java log:"; tail -30 "${java_log}"; }
+        fi
+    fi
+
+    check_exists "SCAN1 meta (${SAMPLE_ID})" "${META}"
+
+    if [[ ! -s "$META" ]]; then
+        SPLIT_NUM=0
+    else
+        SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
+        local_fail=0
+        for bsj_i in $(seq 1 "${SPLIT_NUM}"); do
+            [[ -f "${OUT_PREFIX}BSJ${bsj_i}" ]] || { fail "Missing BSJ file: ${OUT_PREFIX}BSJ${bsj_i}"; local_fail=1; }
+        done
+        [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for ${SAMPLE_ID} (${SPLIT_NUM} splits)"
+    fi
+
+    echo -e "${BWA_SAM}\t${META}" >> "$SCAN1_META_TSV"
 done
 
 # --- Stage 2: BUILD_UNIVERSE (3 samples) ---
 info "--- Phase 1 / Stage 2: BUILD_UNIVERSE ---"
-bench_run "20_build_universe_3samples" \
-    ${CIRI3} BUILD_UNIVERSE \
-        -I "$SCAN1_META_TSV" \
-        -F "$REF_FA" \
-        -O "$UNIVERSE_DIR/cohort" \
-    2>&1 | grep -E "Universe|circRNA|time|ERROR|Exception" || true
-check_exists "Universe file (3 samples)" "$UNIVERSE_DIR/cohort.universe"
-UNIVERSE_LINES=$(grep -c "^chr" "$UNIVERSE_DIR/cohort.universe" || true)
-info "Universe (3 samples) contains $UNIVERSE_LINES circRNA candidates."
+UNIVERSE_FILE="${UNIVERSE_DIR}/cohort.universe"
+if [[ -s "$UNIVERSE_FILE" ]]; then
+    info "  [SKIP] Universe already exists"
+else
+    bench_run "20_build_universe_3samples" \
+        "${CIRI3[@]}" BUILD_UNIVERSE \
+            -I "${SCAN1_META_TSV}" \
+            -F "${REF_FA}" \
+            -O "${UNIVERSE_DIR}/cohort" \
+        2>&1 | grep -E "Universe|circRNA|time" || true
+fi
+check_exists "Universe file (3 samples)" "${UNIVERSE_FILE}"
+UNIVERSE_CIRCS=$(grep -c "^chr" "${UNIVERSE_FILE}" || true)
+info "Universe (3 samples): ${UNIVERSE_CIRCS} circRNA candidates."
 
-# --- Stage 3: SCAN2 (sample1, sample2, sample3) ---
+# --- Stage 3: SCAN2 (Div_100_S91, Div_101_S92, PARDOS_1_S1) ---
 info "--- Phase 1 / Stage 3: SCAN2 (initial 3 samples) ---"
-for SAMPLE_NAME in "${INITIAL_SAMPLES[@]}"; do
-    SAM="$DATA_DIR/${SAMPLE_NAME}.sam"
-    SCAN1_META="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}.scan1_meta"
-    SPLIT_NUM=$(grep "^fileSplitNum=" "$SCAN1_META" | cut -d= -f2)
-    SCAN1_PREFIX="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}"
-    mkdir -p "$SCAN2_DIR/${SAMPLE_NAME}"
-    OUT_PREFIX="$SCAN2_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}"
-    info "  SCAN2: $SAMPLE_NAME"
-    bench_run "30_scan2_${SAMPLE_NAME}" \
-        ${CIRI3} SCAN2 \
-            -I "$SAM" \
-            -CU "$UNIVERSE_DIR/cohort.universe" \
-            -SM "$SCAN1_META" \
-            -O "$OUT_PREFIX" \
-            -F "$REF_FA" \
-            -T "$THREADS" \
-        2>&1 | grep -E "scan|completed|FSJ|time|ERROR|Exception" || true
-    check_exists "SCAN2 FSJ counts ($SAMPLE_NAME)" "${OUT_PREFIX}.fsj_counts"
-    echo -e "$SAM\t${OUT_PREFIX}.fsj_counts\t${SPLIT_NUM}\t${SAMPLE_NAME}\t${SCAN1_PREFIX}" \
-        >> "$FINALIZE_3_TSV"
+SCAN2_IDX=0
+for SAMPLE_ID in "${INITIAL_SAMPLES[@]}"; do
+    SCAN2_IDX=$((SCAN2_IDX+1))
+    STAR_DIR="${DATA_DIR}/STAR_output_${SAMPLE_ID}"
+    TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
+    BWA_SAM="${STAR_DIR}/bwa.sam"
+    SCAN1_PREFIX="${SCAN1_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
+    META="${SCAN1_PREFIX}.scan1_meta"
+    SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
+    mkdir -p "${SCAN2_DIR}/${SAMPLE_ID}"
+    OUT_PREFIX="${SCAN2_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
+    FSJ_COUNTS="${OUT_PREFIX}.fsj_counts"
+
+    if [[ -s "$FSJ_COUNTS" ]]; then
+        info "  [SKIP] SCAN2 already done for ${SAMPLE_ID}"
+    else
+        info "  SCAN2: ${SAMPLE_ID}"
+        bench_run "$(printf '30_scan2_%02d_%s' "${SCAN2_IDX}" "${SAMPLE_ID}")" \
+            "${CIRI3[@]}" SCAN2 \
+                -I "${TRIPLE}" \
+                -CU "${UNIVERSE_FILE}" \
+                -SM "${META}" \
+                -O "${OUT_PREFIX}" \
+                -F "${REF_FA}" \
+                -T "${THREADS}" -Ma 1 "${INTRON_FLAG[@]}" \
+            2>&1 | grep -E "scan|FSJ|BSJ|time" || true
+    fi
+    check_exists "SCAN2 FSJ counts (${SAMPLE_ID})" "${FSJ_COUNTS}"
+    echo -e "${BWA_SAM}\t${FSJ_COUNTS}\t${SPLIT_NUM}\t${SAMPLE_ID}\t${SCAN1_PREFIX}" >> "$FINALIZE_3_TSV"
 done
 
 # --- Stage 4: FINALIZE (3 samples) ---
 info "--- Phase 1 / Stage 4: FINALIZE (3 samples) ---"
-bench_run "40_finalize_3samples" \
-    ${CIRI3} FINALIZE \
-        -I "$FINALIZE_3_TSV" \
-        -CU "$UNIVERSE_DIR/cohort.universe" \
-        -F "$REF_FA" \
-        -O "$FINALIZE_3_DIR/result_3samples" \
-        -S 2 \
-    2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time|ERROR|Exception" || true
-check_exists "3-sample BSJ_Matrix" "$FINALIZE_3_DIR/result_3samples.BSJ_Matrix"
-check_exists "3-sample FSJ_Matrix" "$FINALIZE_3_DIR/result_3samples.FSJ_Matrix"
-info "3-sample result: $(matrix_dims "$FINALIZE_3_DIR/result_3samples.BSJ_Matrix")"
+FINAL_3_BSJ="${FINALIZE_3_DIR}/result_3samples.BSJ_Matrix"
+if [[ -s "$FINAL_3_BSJ" ]]; then
+    info "  [SKIP] 3-sample FINALIZE already done"
+else
+    bench_run "40_finalize_3samples" \
+        "${CIRI3[@]}" FINALIZE \
+            -I "${FINALIZE_3_TSV}" \
+            -CU "${UNIVERSE_FILE}" \
+            -F "${REF_FA}" \
+            -O "${FINALIZE_3_DIR}/result_3samples" \
+            -A "${GTF_FILE}" \
+            -S 2 "${INTRON_FLAG[@]}" \
+        2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
+fi
+check_exists "3-sample BSJ_Matrix" "${FINAL_3_BSJ}"
+check_exists "3-sample FSJ_Matrix" "${FINALIZE_3_DIR}/result_3samples.FSJ_Matrix"
+CIRCS_3=$(tail -n +2 "${FINAL_3_BSJ}" | wc -l)
+info "3-sample result: $(matrix_dims "${FINAL_3_BSJ}")"
 
 # ============================================================================
-# PHASE 2: Add PARDOS_2_S2 (sample4) — SCAN1 + SCAN2 only for the new sample
+# PHASE 2: Add PARDOS_2_S2 — SCAN1 + SCAN2 only, reuse existing universe
 # ============================================================================
 echo ""
 echo "###########################################################"
 echo "#  PHASE 2: Add PARDOS_2_S2 — skip SCAN2 for original 3  #"
 echo "###########################################################"
 
-NEW_SAMPLE_NAME="PARDOS_2_S2"
-NEW_SAM="$DATA_DIR/sample4.sam"
+info "New sample: ${NEW_SAMPLE}"
+info "Universe reused from Phase 1 — SCAN2 is NOT re-run for the original 3 samples."
 
-info "New sample: $NEW_SAMPLE_NAME (data: sample4.sam)"
-info "Universe reused from Phase 1 — no SCAN2 re-run for sample1/sample2/sample3."
+NEW_STAR_DIR="${DATA_DIR}/STAR_output_${NEW_SAMPLE}"
+NEW_TRIPLE="${NEW_STAR_DIR}/Chimeric.out.junction,${NEW_STAR_DIR}/Aligned.out.sam,${NEW_STAR_DIR}/bwa.sam"
+NEW_BWA_SAM="${NEW_STAR_DIR}/bwa.sam"
+NEW_SCAN1_PREFIX="${SCAN1_DIR}/${NEW_SAMPLE}/${NEW_SAMPLE}"
+NEW_META="${NEW_SCAN1_PREFIX}.scan1_meta"
 
-# --- Stage 1: SCAN1 for PARDOS_2_S2 ---
-info "--- Phase 2 / Stage 1: SCAN1 (PARDOS_2_S2) ---"
-mkdir -p "$SCAN1_DIR/${NEW_SAMPLE_NAME}"
-NEW_SCAN1_PREFIX="$SCAN1_DIR/${NEW_SAMPLE_NAME}/${NEW_SAMPLE_NAME}"
-bench_run "50_scan1_${NEW_SAMPLE_NAME}" \
-    ${CIRI3} SCAN1 \
-        -I "$NEW_SAM" \
-        -O "$NEW_SCAN1_PREFIX" \
-        -F "$REF_FA" \
-        -T "$THREADS" \
-        -S 2 \
-    2>&1 | grep -E "scan|completed|meta|time|ERROR|Exception" || true
-check_exists "SCAN1 meta ($NEW_SAMPLE_NAME)" "${NEW_SCAN1_PREFIX}.scan1_meta"
+# --- Phase 2 / Stage 1: SCAN1 for PARDOS_2_S2 ---
+info "--- Phase 2 / Stage 1: SCAN1 (${NEW_SAMPLE}) ---"
+mkdir -p "${SCAN1_DIR}/${NEW_SAMPLE}"
+if [[ -s "$NEW_META" ]]; then
+    info "  [SKIP] SCAN1 already done for ${NEW_SAMPLE}"
+else
+    rm -f "${NEW_SCAN1_PREFIX}BSJ"* "${NEW_BWA_SAM}BSJ"*
+    info "  SCAN1: ${NEW_SAMPLE}"
+    scan1_stdout="${BENCH_DIR}/scan1_${NEW_SAMPLE}.stdout"
+    bench_run "50_scan1_${NEW_SAMPLE}" \
+        "${CIRI3[@]}" SCAN1 \
+            -I "${NEW_TRIPLE}" \
+            -O "${NEW_SCAN1_PREFIX}" \
+            -F "${REF_FA}" \
+            -A "${GTF_FILE}" \
+            -T "${THREADS}" -Ma 1 -S 2 "${INTRON_FLAG[@]}" \
+        2>&1 | tee "${scan1_stdout}" \
+        | grep -iE "SCAN1|scan.*completed|meta|time|Mapped|Exception|Error|BrokenBarrier" || true
+    if [[ ! -s "$NEW_META" ]]; then
+        echo "[DEBUG] Last 30 lines of SCAN1 stdout (${scan1_stdout}):"
+        tail -30 "${scan1_stdout}" 2>/dev/null || echo "  (no stdout captured)"
+        java_log="${NEW_SCAN1_PREFIX}.log"
+        [[ -s "$java_log" ]] && { echo "[DEBUG] Java log:"; tail -30 "${java_log}"; }
+    fi
+fi
 
-# --- Stage 2: SCAN2 for PARDOS_2_S2 against the existing 3-sample universe ---
-info "--- Phase 2 / Stage 2: SCAN2 (PARDOS_2_S2) against existing universe ---"
-NEW_SCAN1_META="${NEW_SCAN1_PREFIX}.scan1_meta"
-NEW_SPLIT_NUM=$(grep "^fileSplitNum=" "$NEW_SCAN1_META" | cut -d= -f2)
-mkdir -p "$SCAN2_DIR/${NEW_SAMPLE_NAME}"
-NEW_SCAN2_PREFIX="$SCAN2_DIR/${NEW_SAMPLE_NAME}/${NEW_SAMPLE_NAME}"
-bench_run "60_scan2_${NEW_SAMPLE_NAME}" \
-    ${CIRI3} SCAN2 \
-        -I "$NEW_SAM" \
-        -CU "$UNIVERSE_DIR/cohort.universe" \
-        -SM "$NEW_SCAN1_META" \
-        -O "$NEW_SCAN2_PREFIX" \
-        -F "$REF_FA" \
-        -T "$THREADS" \
-    2>&1 | grep -E "scan|completed|FSJ|time|ERROR|Exception" || true
-check_exists "SCAN2 FSJ counts ($NEW_SAMPLE_NAME)" "${NEW_SCAN2_PREFIX}.fsj_counts"
+check_exists "SCAN1 meta (${NEW_SAMPLE})" "${NEW_META}"
 
-# --- Stage 3: FINALIZE with all 4 samples ---
+if [[ ! -s "$NEW_META" ]]; then
+    NEW_SPLIT_NUM=0
+else
+    NEW_SPLIT_NUM=$(grep "^fileSplitNum=" "${NEW_META}" | cut -d= -f2)
+    new_local_fail=0
+    for bsj_i in $(seq 1 "${NEW_SPLIT_NUM}"); do
+        [[ -f "${NEW_SCAN1_PREFIX}BSJ${bsj_i}" ]] || { fail "Missing BSJ file: ${NEW_SCAN1_PREFIX}BSJ${bsj_i}"; new_local_fail=1; }
+    done
+    [[ $new_local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for ${NEW_SAMPLE} (${NEW_SPLIT_NUM} splits)"
+fi
+
+# --- Phase 2 / Stage 2: SCAN2 for PARDOS_2_S2 against the existing universe ---
+info "--- Phase 2 / Stage 2: SCAN2 (${NEW_SAMPLE}) against existing 3-sample universe ---"
+mkdir -p "${SCAN2_DIR}/${NEW_SAMPLE}"
+NEW_SCAN2_PREFIX="${SCAN2_DIR}/${NEW_SAMPLE}/${NEW_SAMPLE}"
+NEW_FSJ_COUNTS="${NEW_SCAN2_PREFIX}.fsj_counts"
+
+if [[ -s "$NEW_FSJ_COUNTS" ]]; then
+    info "  [SKIP] SCAN2 already done for ${NEW_SAMPLE}"
+else
+    bench_run "60_scan2_${NEW_SAMPLE}" \
+        "${CIRI3[@]}" SCAN2 \
+            -I "${NEW_TRIPLE}" \
+            -CU "${UNIVERSE_FILE}" \
+            -SM "${NEW_META}" \
+            -O "${NEW_SCAN2_PREFIX}" \
+            -F "${REF_FA}" \
+            -T "${THREADS}" -Ma 1 "${INTRON_FLAG[@]}" \
+        2>&1 | grep -E "scan|FSJ|BSJ|time" || true
+fi
+check_exists "SCAN2 FSJ counts (${NEW_SAMPLE})" "${NEW_FSJ_COUNTS}"
+
+# --- Phase 2 / Stage 3: FINALIZE with all 4 samples ---
 info "--- Phase 2 / Stage 3: FINALIZE (all 4 samples) ---"
+FINAL_4_BSJ="${FINALIZE_4_DIR}/result_4samples.BSJ_Matrix"
 
-# Build the 4-sample FINALIZE TSV: reuse original 3 entries + add PARDOS_2_S2
+# Build 4-sample FINALIZE TSV: original 3 entries + PARDOS_2_S2
 cp "$FINALIZE_3_TSV" "$FINALIZE_4_TSV"
-echo -e "$NEW_SAM\t${NEW_SCAN2_PREFIX}.fsj_counts\t${NEW_SPLIT_NUM}\t${NEW_SAMPLE_NAME}\t${NEW_SCAN1_PREFIX}" \
+echo -e "${NEW_BWA_SAM}\t${NEW_FSJ_COUNTS}\t${NEW_SPLIT_NUM}\t${NEW_SAMPLE}\t${NEW_SCAN1_PREFIX}" \
     >> "$FINALIZE_4_TSV"
 
-bench_run "70_finalize_4samples" \
-    ${CIRI3} FINALIZE \
-        -I "$FINALIZE_4_TSV" \
-        -CU "$UNIVERSE_DIR/cohort.universe" \
-        -F "$REF_FA" \
-        -O "$FINALIZE_4_DIR/result_4samples" \
-        -S 2 \
-    2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time|ERROR|Exception" || true
-check_exists "4-sample BSJ_Matrix" "$FINALIZE_4_DIR/result_4samples.BSJ_Matrix"
-check_exists "4-sample FSJ_Matrix" "$FINALIZE_4_DIR/result_4samples.FSJ_Matrix"
-info "4-sample result: $(matrix_dims "$FINALIZE_4_DIR/result_4samples.BSJ_Matrix")"
+if [[ -s "$FINAL_4_BSJ" ]]; then
+    info "  [SKIP] 4-sample FINALIZE already done"
+else
+    bench_run "70_finalize_4samples" \
+        "${CIRI3[@]}" FINALIZE \
+            -I "${FINALIZE_4_TSV}" \
+            -CU "${UNIVERSE_FILE}" \
+            -F "${REF_FA}" \
+            -O "${FINALIZE_4_DIR}/result_4samples" \
+            -A "${GTF_FILE}" \
+            -S 2 "${INTRON_FLAG[@]}" \
+        2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
+fi
+check_exists "4-sample BSJ_Matrix" "${FINAL_4_BSJ}"
+check_exists "4-sample FSJ_Matrix" "${FINALIZE_4_DIR}/result_4samples.FSJ_Matrix"
+CIRCS_4=$(tail -n +2 "${FINAL_4_BSJ}" | wc -l)
+info "4-sample result: $(matrix_dims "${FINAL_4_BSJ}")"
 
 # ============================================================================
 # Verification
@@ -281,42 +393,38 @@ echo ""
 info "=== Verification ==="
 
 # 3-sample matrix must have exactly 3 sample columns
-COL_3=$(head -1 "$FINALIZE_3_DIR/result_3samples.BSJ_Matrix" | awk '{print NF-1}')
+COL_3=$(head -1 "${FINAL_3_BSJ}" | awk '{print NF-1}')
 if [[ "$COL_3" -eq 3 ]]; then
     ok "3-sample BSJ_Matrix has exactly 3 sample columns"
 else
-    fail "3-sample BSJ_Matrix: expected 3 sample columns, got $COL_3"
+    fail "3-sample BSJ_Matrix: expected 3 columns, got $COL_3"
 fi
 
 # 4-sample matrix must have exactly 4 sample columns
-COL_4=$(head -1 "$FINALIZE_4_DIR/result_4samples.BSJ_Matrix" | awk '{print NF-1}')
+COL_4=$(head -1 "${FINAL_4_BSJ}" | awk '{print NF-1}')
 if [[ "$COL_4" -eq 4 ]]; then
     ok "4-sample BSJ_Matrix has exactly 4 sample columns"
 else
-    fail "4-sample BSJ_Matrix: expected 4 sample columns, got $COL_4"
+    fail "4-sample BSJ_Matrix: expected 4 columns, got $COL_4"
 fi
 
-# PARDOS_2_S2 column must appear in the 4-sample matrix header
-if head -1 "$FINALIZE_4_DIR/result_4samples.BSJ_Matrix" | grep -q "PARDOS_2_S2"; then
-    ok "PARDOS_2_S2 column is present in the 4-sample BSJ_Matrix"
+# PARDOS_2_S2 column present in 4-sample matrix
+if head -1 "${FINAL_4_BSJ}" | grep -q "${NEW_SAMPLE}"; then
+    ok "${NEW_SAMPLE} column is present in 4-sample BSJ_Matrix"
 else
-    fail "PARDOS_2_S2 column is MISSING from the 4-sample BSJ_Matrix"
+    fail "${NEW_SAMPLE} column is MISSING from 4-sample BSJ_Matrix"
 fi
 
-# 4-sample matrix must have at least as many circRNAs as the 3-sample matrix
-ROWS_3=$(tail -n +2 "$FINALIZE_3_DIR/result_3samples.BSJ_Matrix" | wc -l)
-ROWS_4=$(tail -n +2 "$FINALIZE_4_DIR/result_4samples.BSJ_Matrix" | wc -l)
-if [[ "$ROWS_4" -ge "$ROWS_3" ]]; then
-    ok "4-sample matrix circRNA count ($ROWS_4) >= 3-sample count ($ROWS_3)"
+# 4-sample circRNA count >= 3-sample count
+if [[ "$CIRCS_4" -ge "$CIRCS_3" ]]; then
+    ok "4-sample circRNA count ($CIRCS_4) >= 3-sample count ($CIRCS_3)"
 else
-    fail "4-sample matrix circRNA count ($ROWS_4) < 3-sample count ($ROWS_3)"
+    fail "4-sample circRNA count ($CIRCS_4) < 3-sample count ($CIRCS_3)"
 fi
 
-info "Universe file used: $UNIVERSE_DIR/cohort.universe ($UNIVERSE_LINES candidates)"
-
-# Original 3 sample columns must still be present in the 4-sample matrix
-for S in sample1 sample2 sample3; do
-    if head -1 "$FINALIZE_4_DIR/result_4samples.BSJ_Matrix" | grep -q "$S"; then
+# All original 3 sample columns retained in 4-sample matrix
+for S in "${INITIAL_SAMPLES[@]}"; do
+    if head -1 "${FINAL_4_BSJ}" | grep -q "$S"; then
         ok "Column '$S' retained in 4-sample matrix"
     else
         fail "Column '$S' missing from 4-sample matrix"
@@ -330,15 +438,16 @@ bench_report
 
 echo ""
 echo "========================================================"
-echo "  3-sample matrix : $FINALIZE_3_DIR/result_3samples.BSJ_Matrix"
-echo "  4-sample matrix : $FINALIZE_4_DIR/result_4samples.BSJ_Matrix"
+echo "  3-sample matrix : ${FINAL_3_BSJ}"
+echo "  4-sample matrix : ${FINAL_4_BSJ}"
 echo "========================================================"
 echo "  TEST SUMMARY"
 echo "========================================================"
+printf "  3-sample pipeline : %d circRNAs\n" "${CIRCS_3}"
+printf "  4-sample pipeline : %d circRNAs\n" "${CIRCS_4}"
 echo "  PASSED : $PASS"
 echo "  FAILED : $FAIL"
 echo "========================================================"
-
 if [[ $FAIL -eq 0 ]]; then
     echo "  ALL TESTS PASSED"
     exit 0

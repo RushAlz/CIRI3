@@ -24,8 +24,8 @@ public class MutFindCircRNAScan1 extends FindCircRNAScan1{
 	}
 
 	
-	public void findCircRNAScan1(String samFile, int threads, int threadNum) throws IOException {		
-		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(samFile+"BSJ"+threadNum)));
+	public void findCircRNAScan1(String samFile, int threads, int threadNum, String bsjPrefix) throws IOException {
+		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(bsjPrefix+"BSJ"+threadNum)), 262144);
 		boolean matchLable = false;
 		FileInputStream fileIn = new FileInputStream(samFile);
 		FileChannel fileChannel = fileIn.getChannel();
@@ -83,7 +83,7 @@ public class MutFindCircRNAScan1 extends FindCircRNAScan1{
 					}
 					matchLable = false;
 				    //判断是否含有BSJ
-					if(alignNum > 2 || readsMap.keySet().size() == 1) {
+					if(alignNum > 2 || readsMap.size() == 1) {
 						String circInfor = isBSJScan1.isBSJScan1(readsMap, standMap);
 						if(circInfor != null) {
 							BSJOut.write(id+"\t"+circInfor+"\n");
@@ -145,7 +145,7 @@ public class MutFindCircRNAScan1 extends FindCircRNAScan1{
 					}
 					matchLable = false;
 				    //判断是否含有BSJ
-					if(alignNum > 2 || readsMap.keySet().size() == 1) {
+					if(alignNum > 2 || readsMap.size() == 1) {
 						String circInfor = isBSJScan1.isBSJScan1(readsMap, standMap);
 						if(circInfor != null) {
 							BSJOut.write(id+"\t"+circInfor+"\n");

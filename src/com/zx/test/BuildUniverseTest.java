@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 import com.zx.findcircrna.CircRNAUniverseIO;
 import com.zx.findcircrna.ReadFaFile;
@@ -32,6 +33,7 @@ public class BuildUniverseTest {
         // Step 1: Read samples TSV and all scan1_meta files
         ArrayList<String> filePathList = new ArrayList<String>();
         HashMap<String, Integer> fileSplitNumMap = new HashMap<String, Integer>();
+        HashMap<String, String> bsjPrefixMap = new HashMap<String, String>();
         int globalReadLen = 0;
 
         BufferedReader tsvBr = new BufferedReader(new FileReader(new File(samplesMetaTsv)));
@@ -58,6 +60,8 @@ public class BuildUniverseTest {
                 } else if (metaLine.startsWith("fileSplitNum=")) {
                     int splitNum = Integer.parseInt(metaLine.split("=")[1].trim());
                     fileSplitNumMap.put(samFilePath, splitNum);
+                } else if (metaLine.startsWith("bsjPrefix=")) {
+                    bsjPrefixMap.put(samFilePath, metaLine.split("=", 2)[1].trim());
                 }
                 metaLine = metaBr.readLine();
             }
@@ -87,20 +91,14 @@ public class BuildUniverseTest {
         for (int i = 0; i < filePathList.size(); i++) {
             String samFilePath = filePathList.get(i);
             int splitNum = fileSplitNumMap.get(samFilePath);
+            String bsjBase = bsjPrefixMap.containsKey(samFilePath) ? bsjPrefixMap.get(samFilePath) : samFilePath;
             for (int j = 1; j <= splitNum; j++) {
-                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(samFilePath + "BSJ" + j)));
+                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjBase + "BSJ" + j)), 262144);
                 String line = BSJbr.readLine();
                 while (line != null) {
                     String[] BSJArr = line.split("\t", 5);
-                    if (!chrCircSiteMap.containsKey(BSJArr[3])) {
-                        circSiteSet = new HashSet<String>();
-                        circSiteSet.add(BSJArr[4]);
-                        chrCircSiteMap.put(BSJArr[3], circSiteSet);
-                    } else {
-                        circSiteSet = chrCircSiteMap.get(BSJArr[3]);
-                        circSiteSet.add(BSJArr[4]);
-                        chrCircSiteMap.put(BSJArr[3], circSiteSet);
-                    }
+                    circSiteSet = chrCircSiteMap.computeIfAbsent(BSJArr[3], k -> new HashSet<>());
+                    circSiteSet.add(BSJArr[4]);
                     line = BSJbr.readLine();
                 }
                 BSJbr.close();
@@ -121,7 +119,8 @@ public class BuildUniverseTest {
         ArrayList<SiteSort> siteList2 = new ArrayList<SiteSort>();
 
         // universeDataMap: circFSJMap-key -> siteInfor (for writing the universe file)
-        HashMap<String, String> universeDataMap = new HashMap<String, String>();
+        // LinkedHashMap preserves HashSet iteration order so universe file order matches.
+        LinkedHashMap<String, String> universeDataMap = new LinkedHashMap<String, String>();
 
         for (String chrKey : chrCircSiteMap.keySet()) {
             circSiteSet = chrCircSiteMap.get(chrKey);

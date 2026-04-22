@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,7 +56,7 @@ public class Scan2Test {
      * threads:      thread count (should match the count used in SCAN1)
      */
     public boolean CIRI3(String inputFile, String outputFile, String universeFile,
-            String faFile, String annotationFile, int threads) throws IOException {
+            String faFile, String annotationFile, int threads, String scan1MetaFile) throws IOException {
         long startTime = System.currentTimeMillis();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String outputFileLog = outputFile + ".log";
@@ -75,6 +76,19 @@ public class Scan2Test {
             return false;
         }
 
+        // Resolve BSJ prefix: read from scan1_meta if provided, else fall back to samFile
+        String bsjPrefix = samFile;
+        if (!scan1MetaFile.equals("F")) {
+            BufferedReader metaBr = new BufferedReader(new FileReader(new File(scan1MetaFile)));
+            String ml;
+            while ((ml = metaBr.readLine()) != null) {
+                if (ml.startsWith("bsjPrefix=")) { bsjPrefix = ml.split("=", 2)[1].trim(); break; }
+            }
+            metaBr.close();
+        }
+        System.out.println(df.format(System.currentTimeMillis()) + " :BSJ prefix: " + bsjPrefix);
+        fileLog.write(df.format(System.currentTimeMillis()) + " :BSJ prefix: " + bsjPrefix + "\n");
+
         // Step 1: Read universe file
         int[] seqLenOut = new int[1];
         HashMap<String, String[]> universeDataMap = CircRNAUniverseIO.readUniverse(universeFile, seqLenOut);
@@ -93,24 +107,25 @@ public class Scan2Test {
 
         // Step 3: Reconstruct circFSJMap and site-index structures from universe
         // (identical logic to MutTest lines 282-358, but reading from universeDataMap)
-        circFSJMap = new HashMap<String, Integer>();
+        int uniSize = universeDataMap.size();
+        circFSJMap = new HashMap<String, Integer>(uniSize * 2);
         chrSiteMap1 = new HashMap<String, HashMap<Integer, ArrayList<SiteSort>>>();
         chrSiteMap2 = new HashMap<String, HashMap<Integer, ArrayList<SiteSort>>>();
         siteArrayMap1 = new HashMap<String, byte[]>();
         siteArrayMap2 = new HashMap<String, byte[]>();
 
         // Group universe entries by chromosome
-        HashMap<String, HashMap<String, String[]>> chrUniverseMap = new HashMap<String, HashMap<String, String[]>>();
+        HashMap<String, LinkedHashMap<String, String[]>> chrUniverseMap = new HashMap<String, LinkedHashMap<String, String[]>>();
         for (String circKey : universeDataMap.keySet()) {
             String chrKey = circKey.split("\t")[0];
             if (!chrUniverseMap.containsKey(chrKey)) {
-                chrUniverseMap.put(chrKey, new HashMap<String, String[]>());
+                chrUniverseMap.put(chrKey, new LinkedHashMap<String, String[]>());
             }
             chrUniverseMap.get(chrKey).put(circKey, universeDataMap.get(circKey));
         }
 
         for (String chrKey : chrUniverseMap.keySet()) {
-            HashMap<String, String[]> circMap = chrUniverseMap.get(chrKey);
+            LinkedHashMap<String, String[]> circMap = chrUniverseMap.get(chrKey);
             byte[] siteArray1 = new byte[(chrLenMap.get(chrKey) / seqLen) + 1];
             byte[] siteArray2 = new byte[(chrLenMap.get(chrKey) / seqLen) + 1];
             HashMap<Integer, ArrayList<SiteSort>> SiteMap1 = new HashMap<Integer, ArrayList<SiteSort>>();
@@ -147,13 +162,13 @@ public class Scan2Test {
         chrUniverseMap = null;
         universeDataMap = null;
 
-        // Determine AllFileSplitNum from BSJ file count
+        // Determine AllFileSplitNum from BSJ file count (using bsjPrefix)
         AllFileSplitNum = 0;
-        while (new File(samFile + "BSJ" + (AllFileSplitNum + 1)).exists()) {
+        while (new File(bsjPrefix + "BSJ" + (AllFileSplitNum + 1)).exists()) {
             AllFileSplitNum++;
         }
         if (AllFileSplitNum == 0) {
-            System.out.println("ERROR: No BSJ files found at " + samFile + "BSJ1. Run SCAN1 first.");
+            System.out.println("ERROR: No BSJ files found at " + bsjPrefix + "BSJ1. Run SCAN1 first.");
             fileLog.close();
             return false;
         }
@@ -161,6 +176,7 @@ public class Scan2Test {
         fileLog.write(df.format(System.currentTimeMillis()) + " :AllFileSplitNum=" + AllFileSplitNum + "\n");
 
         // Step 4: Launch thread pool and run scan2 (identical to MutTest lines 118-154)
+        final String bsjPrefixFinal = bsjPrefix;
         ExecutorService poolExe = Executors.newFixedThreadPool(threads);
         final CyclicBarrier threadSub = new CyclicBarrier(threads + 1);
         final CyclicBarrier threadMain = new CyclicBarrier(threads + 1);
@@ -182,15 +198,15 @@ public class Scan2Test {
                             } else {
                                 scan1IdMap.clear();
                                 BufferedReader BSJbr = new BufferedReader(
-                                        new FileReader(new File(samFile + "BSJ" + threadNum)));
+                                        new FileReader(new File(bsjPrefixFinal + "BSJ" + threadNum)), 262144);
                                 String line = BSJbr.readLine();
                                 while (line != null) {
-                                    String[] BSJArr = line.split("\t", 2);
-                                    scan1IdMap.put(BSJArr[0], "");
+                                    int tab = line.indexOf('\t');
+                                    scan1IdMap.put(tab < 0 ? line : line.substring(0, tab), "");
                                     line = BSJbr.readLine();
                                 }
                                 BSJbr.close();
-                                scan2.findCircRNAScan2(samFile, scan1IdMap, AllFileSplitNum, threadNum);
+                                scan2.findCircRNAScan2(samFile, scan1IdMap, AllFileSplitNum, threadNum, bsjPrefixFinal);
                                 System.out.println(df.format(System.currentTimeMillis()) + " :Second scan completed " + threadNum);
                                 fileLog.write(df.format(System.currentTimeMillis()) + " :Second scan completed " + threadNum + "\n");
                             }

@@ -518,12 +518,14 @@ public class TestParameters {
 			HashMap<String,String> parameterMap = new HashMap<String,String>();
 			parameterMap.put("-I", "F"); parameterMap.put("-O", "F"); parameterMap.put("-F", "F");
 			parameterMap.put("-A", "F"); parameterMap.put("-CU", "F"); parameterMap.put("-H", "F");
+			parameterMap.put("-SM", "F");
 			parameterMap.put("-Max", "200000"); parameterMap.put("-Min", "140"); parameterMap.put("-S", "2");
 			parameterMap.put("-U", "10"); parameterMap.put("-E", "0"); parameterMap.put("-Mc", "0");
 			parameterMap.put("-M", "chrM"); parameterMap.put("-T", "1"); parameterMap.put("-It", "0");
 			parameterMap.put("-Sp", "0"); parameterMap.put("-Ma", "0");
 			parameterMap.put("--in", "F"); parameterMap.put("--out", "F"); parameterMap.put("--ref_file", "F");
 			parameterMap.put("--anno", "F"); parameterMap.put("--circ_universe", "F"); parameterMap.put("--help", "F");
+			parameterMap.put("--scan1_meta", "F");
 			parameterMap.put("--thread_num", "1"); parameterMap.put("--intron", "0");
 			parameterMap.put("--splicing_signals", "0"); parameterMap.put("--mapper", "0"); parameterMap.put("--mapq_uni", "10");
 			for (int i = 1; i < Parameters.length-1; i++) {
@@ -563,12 +565,14 @@ public class TestParameters {
 				intronLable = !parameterMap.get("-It").equals("0") || !parameterMap.get("--intron").equals("0");
 				spLable = !parameterMap.get("-Sp").equals("0") || !parameterMap.get("--splicing_signals").equals("0");
 				maLable = parameterMap.get("-Ma").equals("0") && parameterMap.get("--mapper").equals("0");
+				String scan1MetaFile = !parameterMap.get("-SM").equals("F") ? new File(parameterMap.get("-SM")).getCanonicalPath()
+						: (!parameterMap.get("--scan1_meta").equals("F") ? new File(parameterMap.get("--scan1_meta")).getCanonicalPath() : "F");
 				if (maLable) {
 					Scan2Test scan2Test = new Scan2Test(minMapqUni, maxCircle, minCircle, linear_range_size_min, intronLable, strigency, relExp, mitochondrion, mLable, spLable);
-					scan2Test.CIRI3(inputFile, outputFile, universeFile, faFile, annotationFile, threadNum);
+					scan2Test.CIRI3(inputFile, outputFile, universeFile, faFile, annotationFile, threadNum, scan1MetaFile);
 				} else {
 					Scan2STARTest scan2Test = new Scan2STARTest(minMapqUni, maxCircle, minCircle, linear_range_size_min, intronLable, strigency, relExp, mitochondrion, mLable, spLable);
-					scan2Test.CIRI3(inputFile, outputFile, universeFile, faFile, annotationFile, threadNum);
+					scan2Test.CIRI3(inputFile, outputFile, universeFile, faFile, annotationFile, threadNum, scan1MetaFile);
 				}
 			}
 		}else if (Parameters[0].equals("FINALIZE")) {

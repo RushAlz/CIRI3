@@ -97,7 +97,7 @@ public class MutTest {
 								if (threadNum > AllFileSplitNum) {
 									break;
 								}else {
-									scan1.findCircRNAScan1(samFile,AllFileSplitNum,threadNum);								
+									scan1.findCircRNAScan1(samFile,AllFileSplitNum,threadNum,samFile);								
 									System.out.println(df.format(System.currentTimeMillis())+" "+":First scan completed "+threadNum); 
 									fileLog.write(df.format(System.currentTimeMillis())+" "+":First scan completed "+threadNum+"\n");								
 								}
@@ -117,7 +117,7 @@ public class MutTest {
 							threadMain.await();
 							//第二遍扫描
 							MutFindCircRNAScan2 scan2 = new MutFindCircRNAScan2(minMapqUni,circFSJMap,linear_range_size_min,siteArrayMap1,siteArrayMap2,chrSiteMap1,chrSiteMap2,
-				    				chrTCGAMap,seqLen,intronLable);  
+				    				chrTCGAMap,seqLen,intronLable);
 							HashMap<String, String> scan1IdMap = new HashMap<String, String>();
 							while(true) {
 								int threadNum= incr.getAndIncrement();
@@ -125,7 +125,7 @@ public class MutTest {
 									break;
 								}else {
 									//提取ID
-									scan1IdMap.clear();	
+									scan1IdMap.clear();
 									BufferedReader BSJbr = new BufferedReader(new FileReader(new File(samFile+"BSJ"+threadNum)));
 									String line = BSJbr.readLine();
 									while (line != null) {
@@ -133,8 +133,8 @@ public class MutTest {
 										scan1IdMap.put(BSJArr[0], "");
 										line = BSJbr.readLine();
 									}
-									BSJbr.close();		
-									scan2.findCircRNAScan2(samFile,scan1IdMap,AllFileSplitNum,threadNum);														
+									BSJbr.close();
+									scan2.findCircRNAScan2(samFile,scan1IdMap,AllFileSplitNum,threadNum,samFile);														
 									System.out.println(df.format(System.currentTimeMillis())+" "+":Second scan completed "+threadNum);  
 									fileLog.write(df.format(System.currentTimeMillis())+" "+":Second scan completed "+threadNum+"\n");															
 								}

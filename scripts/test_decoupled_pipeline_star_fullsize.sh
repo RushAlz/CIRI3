@@ -7,7 +7,7 @@
 # full-size STAR data, then verifies that both pipelines produce identical
 # BSJ and FSJ matrices.
 #
-# The original (joint) pipeline runs the stock CIRI3_Java_1.8.0.jar so the
+# The original (joint) pipeline runs the stock CIRI3_Java_18.0.1.jar so the
 # comparison is against the published ground truth. The decoupled pipeline
 # runs CIRI3_decoupled.jar, the jar built from this repo's src/ tree.
 #
@@ -24,7 +24,7 @@
 #   --output-dir D       output directory (default: DATA_DIR/decoupled_comparison)
 #   --intron             run with intron mode (-It 1) in both pipelines
 #   --use-current-joint  run the joint pipeline from CIRI3_decoupled.jar (this
-#                        repo's current source) instead of CIRI3_Java_1.8.0.jar.
+#                        repo's current source) instead of CIRI3_Java_18.0.1.jar.
 #                        Use this to test the decoupled decomposition against
 #                        the exact same BSJ-detection code, isolating any
 #                        version-drift differences in the published jar.
@@ -65,12 +65,21 @@ SAMPLES=(
     "PARDOS_2_S2"
 )
 
+# Friendly sample IDs used as per-sample output folder names and as column
+# headers in BSJ_Matrix / FSJ_Matrix. Must be in the same order as SAMPLES.
+SAMPLE_IDS=(
+    "Div_100_S91"
+    "Div_101_S92"
+    "PARDOS_1_S1"
+    "PARDOS_2_S2"
+)
+
 # ---------------------------------------------------------------------------
 # Derived paths
 # ---------------------------------------------------------------------------
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-ORIGINAL_JAR="${REPO_ROOT}/CIRI3_Java_1.8.0.jar"       # published ground truth
+ORIGINAL_JAR="${REPO_ROOT}/CIRI3_Java_18.0.1.jar"       # published ground truth
 DECOUPLED_JAR="${REPO_ROOT}/CIRI3_decoupled.jar"       # built from this repo
 
 [[ -z "$OUT_ROOT" ]] && OUT_ROOT="${DATA_DIR}/decoupled_comparison"
@@ -107,7 +116,7 @@ if [[ $USE_CURRENT_JOINT -eq 1 ]]; then
     JOINT_LABEL="CIRI3_decoupled.jar (current source, -W 1)"
 else
     JAVA_ORIG=(${JAVA_BIN} -jar "${ORIGINAL_JAR}")
-    JOINT_LABEL="CIRI3_Java_1.8.0.jar (published, -W 1)"
+    JOINT_LABEL="CIRI3_Java_18.0.1.jar (published, -W 1)"
 fi
 
 # ---------------------------------------------------------------------------
@@ -158,9 +167,9 @@ info "Decoupled jar:  ${DECOUPLED_JAR}"
 mkdir -p "$ORIG_DIR" "$SCAN1_DIR" "$UNIVERSE_DIR" "$SCAN2_DIR" "$FINALIZE_DIR" "$BENCH_DIR"
 
 # ---------------------------------------------------------------------------
-# 1. ORIGINAL pipeline (-W 1, STAR) from CIRI3_Java_1.8.0.jar
+# 1. ORIGINAL pipeline (-W 1, STAR) from CIRI3_Java_18.0.1.jar
 # ---------------------------------------------------------------------------
-info "=== Stage 0: ORIGINAL pipeline (CIRI3_Java_1.8.0.jar, -W 1, -Ma 1) ==="
+info "=== Stage 0: ORIGINAL pipeline (CIRI3_Java_18.0.1.jar, -W 1, -Ma 1) ==="
 
 ORIG_BSJ="${ORIG_DIR}/result.BSJ_Matrix"
 if [[ -s "$ORIG_BSJ" ]]; then
@@ -183,7 +192,7 @@ else
             -O "${ORIG_DIR}/result" \
             -F "${REF_FA}" \
             -A "${GTF_FILE}" \
-            -W 1 -Ma 1 -T "${THREADS}" -S 0 "${INTRON_FLAG[@]}" \
+            -W 1 -Ma 1 -T "${THREADS}" -S 2 "${INTRON_FLAG[@]}" \
         2>&1 | tee "${ORIG_DIR}/run.log" \
         | grep -E "CIRI3|scan|completed|circRNA|Mapped|time|Exception|Error|^\t?at |DIAG" || true
 fi
@@ -231,39 +240,60 @@ info "=== Decoupled pipeline (CIRI3_decoupled.jar, STAR) ==="
 # --- Stage 1: SCAN1 (per sample) ---
 info "--- Stage 1: SCAN1 ---"
 SCAN1_IDX=0
-for S in "${SAMPLES[@]}"; do
+for i in "${!SAMPLES[@]}"; do
+    S="${SAMPLES[$i]}"
+    SAMPLE_ID="${SAMPLE_IDS[$i]}"
     SCAN1_IDX=$((SCAN1_IDX+1))
     STAR_DIR="${DATA_DIR}/STAR_output_${S}"
     TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
     BWA_SAM="${STAR_DIR}/bwa.sam"
-    OUT_PREFIX="${SCAN1_DIR}/${S}"
+    mkdir -p "${SCAN1_DIR}/${SAMPLE_ID}"
+    OUT_PREFIX="${SCAN1_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
     META="${OUT_PREFIX}.scan1_meta"
 
     if [[ -s "$META" ]]; then
-        info "  [SKIP] SCAN1 already done for $S"
+        info "  [SKIP] SCAN1 already done for ${SAMPLE_ID}"
     else
-        # Wipe any stale BSJ files from a previous run (different -T) so that
-        # SCAN2's on-disk BSJ enumeration only sees files from this run.
-        rm -f "${BWA_SAM}BSJ"*
-        info "  SCAN1: $S"
-        bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${S}")" \
+        # Wipe stale BSJ files at both new per-sample location and old
+        # bwa.sam-adjacent location so SCAN2's BSJ enumeration is clean.
+        rm -f "${OUT_PREFIX}BSJ"* "${BWA_SAM}BSJ"*
+        info "  SCAN1: ${SAMPLE_ID} (STAR dir: ${S})"
+        scan1_stdout="${BENCH_DIR}/scan1_${SAMPLE_ID}.stdout"
+        bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${SAMPLE_ID}")" \
             "${JAVA_NEW[@]}" SCAN1 \
                 -I "${TRIPLE}" \
                 -O "${OUT_PREFIX}" \
                 -F "${REF_FA}" \
                 -A "${GTF_FILE}" \
-                -T "${THREADS}" -Ma 1 -S 0 "${INTRON_FLAG[@]}" \
-            2>&1 | grep -E "scan|meta|time|Mapped" || true
+                -T "${THREADS}" -Ma 1 -S 2 "${INTRON_FLAG[@]}" \
+            2>&1 | tee "${scan1_stdout}" | grep -iE "SCAN1|scan.*completed|meta|time|Mapped|Exception|Error|BrokenBarrier" || true
+        # If meta still missing, surface the tail of the captured output and the Java log
+        if [[ ! -s "$META" ]]; then
+            echo "[DEBUG] Last 30 lines of SCAN1 stdout (${scan1_stdout}):"
+            tail -30 "${scan1_stdout}" 2>/dev/null || echo "  (no stdout captured)"
+            java_log="${OUT_PREFIX}.log"
+            if [[ -s "$java_log" ]]; then
+                echo "[DEBUG] Last 30 lines of Java log (${java_log}):"
+                tail -30 "${java_log}"
+            else
+                echo "[DEBUG] Java log not found: ${java_log}"
+            fi
+        fi
     fi
 
-    check_exists "SCAN1 meta ($S)" "${META}"
+    check_exists "SCAN1 meta (${SAMPLE_ID})" "${META}"
 
-    SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
-    local_fail=0
-    for i in $(seq 1 "${SPLIT_NUM}"); do
-        [[ -f "${BWA_SAM}BSJ${i}" ]] || { fail "Missing BSJ file: ${BWA_SAM}BSJ${i}"; local_fail=1; }
-    done
-    [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for $S (${SPLIT_NUM} splits)"
+    # Guard: if meta is missing (SCAN1 failed), skip BSJ checks for this sample.
+    if [[ ! -s "$META" ]]; then
+        SPLIT_NUM=0
+    else
+        SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
+        local_fail=0
+        for bsj_i in $(seq 1 "${SPLIT_NUM}"); do
+            [[ -f "${OUT_PREFIX}BSJ${bsj_i}" ]] || { fail "Missing BSJ file: ${OUT_PREFIX}BSJ${bsj_i}"; local_fail=1; }
+        done
+        [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for ${SAMPLE_ID} (${SPLIT_NUM} splits)"
+    fi
 
     echo -e "${BWA_SAM}\t${META}" >> "$SCAN1_META_TSV"
 done
@@ -288,32 +318,38 @@ info "Universe: ${UNIVERSE_CIRCS} circRNA candidates."
 # --- Stage 3: SCAN2 (per sample) ---
 info "--- Stage 3: SCAN2 ---"
 SCAN2_IDX=0
-for S in "${SAMPLES[@]}"; do
+for i in "${!SAMPLES[@]}"; do
+    S="${SAMPLES[$i]}"
+    SAMPLE_ID="${SAMPLE_IDS[$i]}"
     SCAN2_IDX=$((SCAN2_IDX+1))
     STAR_DIR="${DATA_DIR}/STAR_output_${S}"
     TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
     BWA_SAM="${STAR_DIR}/bwa.sam"
-    META="${SCAN1_DIR}/${S}.scan1_meta"
+    SCAN1_OUT_PREFIX="${SCAN1_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
+    META="${SCAN1_OUT_PREFIX}.scan1_meta"
     SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
-    OUT_PREFIX="${SCAN2_DIR}/${S}"
+    mkdir -p "${SCAN2_DIR}/${SAMPLE_ID}"
+    OUT_PREFIX="${SCAN2_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
     FSJ_COUNTS="${OUT_PREFIX}.fsj_counts"
 
     if [[ -s "$FSJ_COUNTS" ]]; then
-        info "  [SKIP] SCAN2 already done for $S"
+        info "  [SKIP] SCAN2 already done for ${SAMPLE_ID}"
     else
-        info "  SCAN2: $S"
-        bench_run "$(printf '30_scan2_%02d_%s' "${SCAN2_IDX}" "${S}")" \
+        info "  SCAN2: ${SAMPLE_ID}"
+        bench_run "$(printf '30_scan2_%02d_%s' "${SCAN2_IDX}" "${SAMPLE_ID}")" \
             "${JAVA_NEW[@]}" SCAN2 \
                 -I "${TRIPLE}" \
                 -CU "${UNIVERSE_FILE}" \
+                -SM "${META}" \
                 -O "${OUT_PREFIX}" \
                 -F "${REF_FA}" \
                 -T "${THREADS}" -Ma 1 "${INTRON_FLAG[@]}" \
             2>&1 | grep -E "scan|FSJ|BSJ|time" || true
     fi
-    check_exists "SCAN2 FSJ counts ($S)" "${FSJ_COUNTS}"
+    check_exists "SCAN2 FSJ counts (${SAMPLE_ID})" "${FSJ_COUNTS}"
 
-    echo -e "${BWA_SAM}\t${FSJ_COUNTS}\t${SPLIT_NUM}\t${S}" >> "$FINALIZE_TSV"
+    # Col 4 = SAMPLE_ID (column header in matrices); Col 5 = SCAN1 OUT_PREFIX (BSJ prefix)
+    echo -e "${BWA_SAM}\t${FSJ_COUNTS}\t${SPLIT_NUM}\t${SAMPLE_ID}\t${SCAN1_OUT_PREFIX}" >> "$FINALIZE_TSV"
 done
 
 # --- Stage 4: FINALIZE ---
@@ -329,7 +365,7 @@ else
             -F "${REF_FA}" \
             -O "${FINALIZE_DIR}/result" \
             -A "${GTF_FILE}" \
-            -S 0 "${INTRON_FLAG[@]}" \
+            -S 2 "${INTRON_FLAG[@]}" \
         2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
 fi
 check_exists "Decoupled BSJ_Matrix" "${FINAL_BSJ}"
@@ -385,12 +421,15 @@ fi
 # decoupled run's BSJ files. Only active when CIRI3_KEEP_BSJ was set for joint.
 if [[ -d "${JOINT_BSJ_SNAPSHOT:-}" ]]; then
     info "=== Per-BSJ-file joint vs decoupled diff ==="
-    for S in "${SAMPLES[@]}"; do
+    for idx in "${!SAMPLES[@]}"; do
+        S="${SAMPLES[$idx]}"
+        SAMPLE_ID="${SAMPLE_IDS[$idx]}"
         STAR_DIR="${DATA_DIR}/STAR_output_${S}"
         BWA_SAM="${STAR_DIR}/bwa.sam"
+        DECOUPLED_BSJ_PREFIX="${SCAN1_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"
         for i in 1 2 3 4 5; do
             joint_f="${JOINT_BSJ_SNAPSHOT}/${S}/$(basename "$BWA_SAM")BSJ${i}"
-            dec_f="${BWA_SAM}BSJ${i}"
+            dec_f="${DECOUPLED_BSJ_PREFIX}BSJ${i}"
             [[ -f "$joint_f" && -f "$dec_f" ]] || continue
             joint_sz=$(wc -l < "$joint_f")
             dec_sz=$(wc -l < "$dec_f")

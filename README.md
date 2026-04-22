@@ -1,12 +1,10 @@
 ## About This Fork
 
-This repository is a fork of [CIRI3](https://github.com/gyjames/CIRI3) that adds four decoupled sub-commands — **SCAN1**, **BUILD_UNIVERSE**, **SCAN2**, and **FINALIZE** — designed to improve high-throughput processing of large cohorts. In the original pipeline, all samples must be processed together in a single JVM invocation. The decoupled sub-commands split the pipeline so that per-sample stages can run independently (and in parallel across a cluster), while the two joint stages run once after all per-sample jobs complete.
+This repository is a fork of [CIRI3](https://github.com/gyjames/CIRI3) that adds four decoupled sub-commands — **SCAN1**, **BUILD_UNIVERSE**, **SCAN2**, and **FINALIZE** — designed for high-throughput processing of large cohorts. In the original pipeline, all samples must be processed together in a single JVM invocation. The decoupled sub-commands split the pipeline so that per-sample stages can run independently (and in parallel across a cluster), while the two joint stages run once after all per-sample jobs complete.
 
 ---
 
 ## High-Throughput Processing
-
-This fork adds four decoupled sub-commands that split the joint pipeline into independently schedulable stages, enabling efficient processing of large cohorts where per-sample steps can run in parallel:
 
 ```
 [SCAN1]          per sample — first-pass BSJ detection
@@ -20,77 +18,95 @@ This fork adds four decoupled sub-commands that split the joint pipeline into in
 #### `SCAN1` — per-sample first scan
 
 ```
-java -jar CIRI3.jar SCAN1 \
-    -I  sample.sam          \  # SAM/BAM (or chimeric,aligned,bwa triple for -Ma 1)
-    -O  sample_prefix       \  # output prefix; writes {prefix}.scan1_meta
+java -jar CIRI3_decoupled.jar SCAN1 \
+    -I  sample.sam          \  # SAM/BAM; for STAR: Chimeric.out.junction,Aligned.out.sam,bwa.sam
+    -O  outdir/sample       \  # output prefix; BSJ files and .scan1_meta written here
     -F  ref.fa              \
-   [-A  ref.gtf]            \  # annotation (optional, needed for -It 1)
+   [-A  ref.gtf]            \  # annotation (optional; required for -It 1)
    [-T  8]                  \  # threads (default: 1)
-   [-Ma 0]                     # 0 = BWA-MEM (default), 1 = STAR
+   [-Ma 0]                  \  # 0 = BWA-MEM (default), 1 = STAR
+   [-S  0]                     # strigency filter applied during scan (default: 0)
 ```
 
-Outputs:
-- `{sample_prefix}.scan1_meta` — checkpoint metadata (readLen, fileSplitNum, etc.)
-- `{sample.sam}BSJ{1..N}` — per-thread BSJ fragment files
+Outputs written to `{output_prefix}.*`:
+- `{output_prefix}.scan1_meta` — checkpoint metadata read by downstream stages
+- `{output_prefix}BSJ1` … `{output_prefix}BSJ{N}` — per-thread BSJ fragment files
+
+> **Note**: BSJ files are written next to the output prefix, **not** next to the input SAM file.
+> SCAN2 and FINALIZE locate them via `bsjPrefix=` in the `.scan1_meta` file.
 
 #### `BUILD_UNIVERSE` — joint universe construction
 
 ```
-java -jar CIRI3.jar BUILD_UNIVERSE \
+java -jar CIRI3_decoupled.jar BUILD_UNIVERSE \
     -I  samples_scan1.tsv   \  # two-column TSV: samFile<TAB>scan1_meta_path
     -F  ref.fa              \
-    -O  cohort_prefix          # output prefix; writes {prefix}.universe
+    -O  universe/cohort        # output prefix; writes {prefix}.universe
 ```
 
 `samples_scan1.tsv` format (one row per sample):
 ```
-/abs/path/sample1.sam   /abs/path/sample1.scan1_meta
-/abs/path/sample2.sam   /abs/path/sample2.scan1_meta
+/abs/path/sample1/bwa.sam   /abs/path/sample1/sample1.scan1_meta
+/abs/path/sample2/bwa.sam   /abs/path/sample2/sample2.scan1_meta
 ```
 
 #### `SCAN2` — per-sample second scan
 
 ```
-java -jar CIRI3.jar SCAN2 \
-    -I  sample.sam          \  # same SAM/BAM as SCAN1 (BSJ files must exist)
+java -jar CIRI3_decoupled.jar SCAN2 \
+    -I  sample.sam          \  # same input triple as SCAN1
     -CU cohort.universe     \  # universe file from BUILD_UNIVERSE
-    -O  sample_scan2_prefix \  # output prefix; writes {prefix}.fsj_counts
+    -SM sample.scan1_meta   \  # scan1_meta for this sample (locates BSJ files)
+    -O  outdir/sample       \  # output prefix; writes {prefix}.fsj_counts
     -F  ref.fa              \
    [-T  8]                  \  # threads (should match SCAN1 thread count)
    [-Ma 0]                     # must match -Ma used in SCAN1
 ```
 
+> **`-SM`** is strongly recommended. It tells SCAN2 where the BSJ files from SCAN1 are
+> (via `bsjPrefix=` in the meta file). If omitted, SCAN2 falls back to looking for BSJ
+> files adjacent to the input SAM file (backwards-compatible behaviour).
+
 #### `FINALIZE` — joint merge and matrix writing
 
 ```
-java -jar CIRI3.jar FINALIZE \
-    -I  finalize_samples.tsv \  # four-column TSV (see below)
+java -jar CIRI3_decoupled.jar FINALIZE \
+    -I  finalize_samples.tsv \  # five-column TSV (see below)
+    -CU cohort.universe      \  # universe file from BUILD_UNIVERSE (recommended)
     -F  ref.fa               \
-    -O  cohort_prefix        \  # output prefix; writes result, BSJ_Matrix, FSJ_Matrix
+    -O  finalize/result      \  # output prefix; writes .BSJ_Matrix and .FSJ_Matrix
    [-A  ref.gtf]             \  # annotation (optional)
-   [-S  2]                   \  # strigency (0/1/2, default: 2)
+   [-S  0]                   \  # strigency (0/1/2, default: 2)
    [-E  0]                   \  # rel_exp threshold (default: 0)
    [-It 0]                      # intronic circRNAs (0/1, default: 0)
 ```
 
-`finalize_samples.tsv` format (one row per sample):
+`finalize_samples.tsv` format — **five columns**, one row per sample:
 ```
-/abs/path/sample1.sam   /abs/path/sample1.fsj_counts   8   sample1
-/abs/path/sample2.sam   /abs/path/sample2.fsj_counts   8   sample2
+/abs/bwa.sam  /abs/sample1.fsj_counts  8  sample1  /abs/sample1/sample1
+/abs/bwa.sam  /abs/sample2.fsj_counts  8  sample2  /abs/sample2/sample2
 ```
-Columns: SAM path, `.fsj_counts` path, `fileSplitNum` (from `.scan1_meta`), sample name.
+
+| Column | Content |
+|--------|---------|
+| 1 | Absolute path to the input SAM file |
+| 2 | Absolute path to the `.fsj_counts` file from SCAN2 |
+| 3 | `fileSplitNum` value (read from `.scan1_meta`) |
+| 4 | Sample name (used as column header in output matrices) |
+| 5 | BSJ prefix — same value as `-O` passed to SCAN1/SCAN2 (locates BSJ files) |
 
 ### Intermediate file formats
 
-**`.scan1_meta`** — written by SCAN1, read by BUILD_UNIVERSE / FINALIZE
+**`.scan1_meta`** — written by SCAN1, read by BUILD_UNIVERSE, SCAN2 (`-SM`), and FINALIZE
 ```
-samFile=/abs/path/sample.sam
+samFile=/abs/path/to/bwa.sam
 readLen=151
 readNum=10503264
 fileSplitNum=8
+bsjPrefix=/abs/path/sample1/sample1
 ```
 
-**`.universe`** — written by BUILD_UNIVERSE, read by SCAN2
+**`.universe`** — written by BUILD_UNIVERSE, read by SCAN2 (`-CU`) and FINALIZE (`-CU`)
 ```
 seqLen=139
 chr1	1379083	1414681
@@ -107,13 +123,117 @@ Tab-separated: `chr start end fsjCount` — one line per circRNA in the universe
 
 ---
 
+### Complete example (STAR-based cohort)
+
+The following mirrors `scripts/CIRI3_manual_tests.sh`. Adjust paths at the top then run each block as a separate job (or sequentially).
+
+```bash
+# ── configuration ────────────────────────────────────────────────────────────
+THREADS=64
+REF_FASTA=/path/to/GRCh38.fa
+GTF_FILE=/path/to/gencode.v32.annotation.gtf
+STARDIR=/path/to/star_outputs          # contains STAR_output_<SAMPLE>/ sub-dirs
+DECOUPLED_JAR=/path/to/CIRI3_decoupled.jar
+WORKDIR=/path/to/workdir
+
+SAMPLES=(
+  "Div_100_S91"
+  "Div_101_S92"
+  "PARDOS_1_S1"
+  "PARDOS_2_S2"
+)
+
+# ── SCAN1  (one job per sample) ───────────────────────────────────────────────
+> "${WORKDIR}/samples_scan1.tsv"
+
+for SAMPLE in "${SAMPLES[@]}"; do
+  CHIMERIC="${STARDIR}/STAR_output_${SAMPLE}/Chimeric.out.junction"
+  ALIGNED="${STARDIR}/STAR_output_${SAMPLE}/Aligned.out.sam"
+  BWA_SAM="${STARDIR}/STAR_output_${SAMPLE}/bwa.sam"
+
+  mkdir -p "${WORKDIR}/${SAMPLE}"
+  OUT_PREFIX="${WORKDIR}/${SAMPLE}/${SAMPLE}"
+  META="${OUT_PREFIX}.scan1_meta"
+
+  java -jar "${DECOUPLED_JAR}" SCAN1 \
+    -I "${CHIMERIC},${ALIGNED},${BWA_SAM}" \
+    -O "${OUT_PREFIX}" \
+    -F "${REF_FASTA}" \
+    -A "${GTF_FILE}" \
+    -Ma 1 -S 0 -T "${THREADS}"
+
+  echo -e "${BWA_SAM}\t${META}" >> "${WORKDIR}/samples_scan1.tsv"
+done
+
+# ── BUILD_UNIVERSE  (single joint job) ───────────────────────────────────────
+mkdir -p "${WORKDIR}/universe"
+java -jar "${DECOUPLED_JAR}" BUILD_UNIVERSE \
+  -I "${WORKDIR}/samples_scan1.tsv" \
+  -F "${REF_FASTA}" \
+  -O "${WORKDIR}/universe/cohort"
+
+UNIVERSE="${WORKDIR}/universe/cohort.universe"
+
+# ── SCAN2  (one job per sample) ───────────────────────────────────────────────
+> "${WORKDIR}/finalize_samples.tsv"
+
+for SAMPLE in "${SAMPLES[@]}"; do
+  CHIMERIC="${STARDIR}/STAR_output_${SAMPLE}/Chimeric.out.junction"
+  ALIGNED="${STARDIR}/STAR_output_${SAMPLE}/Aligned.out.sam"
+  BWA_SAM="${STARDIR}/STAR_output_${SAMPLE}/bwa.sam"
+  OUT_PREFIX="${WORKDIR}/${SAMPLE}/${SAMPLE}"
+  META="${OUT_PREFIX}.scan1_meta"
+  SPLIT_NUM=$(grep "^fileSplitNum=" "${META}" | cut -d= -f2)
+
+  java -jar "${DECOUPLED_JAR}" SCAN2 \
+    -I "${CHIMERIC},${ALIGNED},${BWA_SAM}" \
+    -CU "${UNIVERSE}" \
+    -SM "${META}" \
+    -O "${OUT_PREFIX}" \
+    -F "${REF_FASTA}" \
+    -Ma 1 -T "${THREADS}"
+
+  echo -e "${BWA_SAM}\t${OUT_PREFIX}.fsj_counts\t${SPLIT_NUM}\t${SAMPLE}\t${OUT_PREFIX}" \
+    >> "${WORKDIR}/finalize_samples.tsv"
+done
+
+# ── FINALIZE  (single joint job) ─────────────────────────────────────────────
+java -jar "${DECOUPLED_JAR}" FINALIZE \
+  -I  "${WORKDIR}/finalize_samples.tsv" \
+  -CU "${UNIVERSE}" \
+  -F  "${REF_FASTA}" \
+  -O  "${WORKDIR}/result" \
+  -A  "${GTF_FILE}" \
+  -S  0
+```
+
+**Output directory layout after a successful run:**
+
+```
+workdir/
+  Div_100_S91/
+    Div_100_S91.scan1_meta      ← SCAN1 checkpoint
+    Div_100_S91BSJ1 … BSJ{N}   ← BSJ fragment files
+    Div_100_S91.fsj_counts      ← SCAN2 output
+  Div_101_S92/  …
+  universe/
+    cohort.universe             ← shared circRNA universe
+  samples_scan1.tsv
+  finalize_samples.tsv
+  result.BSJ_Matrix             ← column headers = sample names
+  result.FSJ_Matrix
+  result.txt                    ← per-circRNA annotation
+```
+
+---
+
 ## Validation
 
 Three regression scripts verify the decoupled pipeline produces matrices
 equivalent to the joint `-W 1` pipeline:
 
 - `scripts/test_decoupled_pipeline.sh` — small BWA test data bundled with
-  the repo.
+  the repo (no external data needed).
 - `scripts/test_decoupled_pipeline_bwa_fullsize.sh` — full-size BWA data
   (edit `DATA_DIR` and `SAMPLES` at the top of the script).
 - `scripts/test_decoupled_pipeline_star_fullsize.sh` — full-size STAR
@@ -122,7 +242,7 @@ equivalent to the joint `-W 1` pipeline:
 All three support `--threads N`, `--keep` (preserve the output
 directory), and — on the full-size scripts — `--intron` (enable intron
 mode `-It 1`) and `--use-current-joint` (use this repo's jar for the
-joint run instead of `CIRI3_Java_1.8.0.jar`, for apples-to-apples
+joint run instead of the original `CIRI3_Java_*.jar`, for apples-to-apples
 equivalence testing).
 
 After running one of the full-size scripts with `--keep`, render the

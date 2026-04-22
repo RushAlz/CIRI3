@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,7 +56,7 @@ public class Scan2STARTest {
      * threads:      thread count
      */
     public boolean CIRI3(String inputFile, String outputFile, String universeFile,
-            String faFile, String annotationFile, int threads) throws IOException {
+            String faFile, String annotationFile, int threads, String scan1MetaFile) throws IOException {
         long startTime = System.currentTimeMillis();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String outputFileLog = outputFile + ".log";
@@ -89,6 +90,19 @@ public class Scan2STARTest {
             return false;
         }
 
+        // Resolve BSJ prefix: read from scan1_meta if provided, else fall back to bwaSamFile
+        String bsjPrefix = bwaSamFile;
+        if (!scan1MetaFile.equals("F")) {
+            BufferedReader metaBr = new BufferedReader(new FileReader(new File(scan1MetaFile)));
+            String ml;
+            while ((ml = metaBr.readLine()) != null) {
+                if (ml.startsWith("bsjPrefix=")) { bsjPrefix = ml.split("=", 2)[1].trim(); break; }
+            }
+            metaBr.close();
+        }
+        System.out.println(df.format(System.currentTimeMillis()) + " :BSJ prefix: " + bsjPrefix);
+        fileLog.write(df.format(System.currentTimeMillis()) + " :BSJ prefix: " + bsjPrefix + "\n");
+
         // Step 1: Read universe file
         int[] seqLenOut = new int[1];
         HashMap<String, String[]> universeDataMap = CircRNAUniverseIO.readUniverse(universeFile, seqLenOut);
@@ -106,22 +120,23 @@ public class Scan2STARTest {
         fileLog.write(df.format(System.currentTimeMillis()) + " :Successful import of reference genome files\n");
 
         // Step 3: Reconstruct circFSJMap and site-index structures from universe
-        circFSJMap = new HashMap<String, Integer>();
+        int uniSize = universeDataMap.size();
+        circFSJMap = new HashMap<String, Integer>(uniSize * 2);
         chrSiteMap1 = new HashMap<String, HashMap<Integer, ArrayList<SiteSort>>>();
         chrSiteMap2 = new HashMap<String, HashMap<Integer, ArrayList<SiteSort>>>();
         siteArrayMap1 = new HashMap<String, byte[]>();
         siteArrayMap2 = new HashMap<String, byte[]>();
 
-        HashMap<String, HashMap<String, String[]>> chrUniverseMap = new HashMap<String, HashMap<String, String[]>>();
+        HashMap<String, LinkedHashMap<String, String[]>> chrUniverseMap = new HashMap<String, LinkedHashMap<String, String[]>>();
         for (String circKey : universeDataMap.keySet()) {
             String chrKey = circKey.split("\t")[0];
             if (!chrUniverseMap.containsKey(chrKey)) {
-                chrUniverseMap.put(chrKey, new HashMap<String, String[]>());
+                chrUniverseMap.put(chrKey, new LinkedHashMap<String, String[]>());
             }
             chrUniverseMap.get(chrKey).put(circKey, universeDataMap.get(circKey));
         }
         for (String chrKey : chrUniverseMap.keySet()) {
-            HashMap<String, String[]> circMap = chrUniverseMap.get(chrKey);
+            LinkedHashMap<String, String[]> circMap = chrUniverseMap.get(chrKey);
             byte[] siteArray1 = new byte[(chrLenMap.get(chrKey) / seqLen) + 1];
             byte[] siteArray2 = new byte[(chrLenMap.get(chrKey) / seqLen) + 1];
             HashMap<Integer, ArrayList<SiteSort>> SiteMap1 = new HashMap<Integer, ArrayList<SiteSort>>();
@@ -156,31 +171,30 @@ public class Scan2STARTest {
         chrUniverseMap = null;
         universeDataMap = null;
 
-        // Step 4: Determine AllFileSplitNum for bwaSamFile from BSJ file count
+        // Step 4: Determine AllFileSplitNum from BSJ file count (using bsjPrefix)
         AllFileSplitNum = 0;
-        while (new File(bwaSamFile + "BSJ" + (AllFileSplitNum + 1)).exists()) {
+        while (new File(bsjPrefix + "BSJ" + (AllFileSplitNum + 1)).exists()) {
             AllFileSplitNum++;
         }
         if (AllFileSplitNum == 0) {
-            System.out.println("ERROR: No BSJ files found at " + bwaSamFile + "BSJ1. Run SCAN1 first.");
+            System.out.println("ERROR: No BSJ files found at " + bsjPrefix + "BSJ1. Run SCAN1 first.");
             fileLog.close();
             return false;
         }
         final int bwaFileSplitNum = AllFileSplitNum;
 
         // Build all-upfront idCircMap from all SCAN1 BSJ files (matches original -Ma 1 pipeline)
-        HashMap<String, String> idCircMap = new HashMap<String, String>();
+        HashMap<String, String> idCircMap = new HashMap<String, String>(uniSize * 2);
         long bsjTotalAfterScan1 = 0;
         long bsjTagOneAfterScan1 = 0;
         for (int i = 1; i <= bwaFileSplitNum; i++) {
             long fileLines = 0, fileTagOne = 0;
-            BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bwaSamFile + "BSJ" + i)));
+            BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjPrefix + "BSJ" + i)), 262144);
             String bsjLine = BSJbr.readLine();
             while (bsjLine != null) {
-                String[] BSJArr = bsjLine.split("\t", 2);
-                idCircMap.put(BSJArr[0], "");
-                fileLines++;
                 String[] cols = bsjLine.split("\t", 7);
+                idCircMap.put(cols[0], "");
+                fileLines++;
                 if (cols.length > 2 && cols[2].equals("1")) fileTagOne++;
                 bsjLine = BSJbr.readLine();
             }
@@ -195,6 +209,7 @@ public class Scan2STARTest {
         System.out.println(df.format(System.currentTimeMillis()) + " :idCircMap loaded: " + idCircMap.size() + " reads");
         fileLog.write(df.format(System.currentTimeMillis()) + " :idCircMap loaded: " + idCircMap.size() + " reads\n");
 
+        final String bsjPrefixFinal = bsjPrefix;
         ExecutorService poolExe = Executors.newFixedThreadPool(threads);
         final CyclicBarrier threadSub = new CyclicBarrier(threads + 1);
         final CyclicBarrier threadMain = new CyclicBarrier(threads + 1);
@@ -214,7 +229,7 @@ public class Scan2STARTest {
                             if (threadNum > bwaFileSplitNum) {
                                 break;
                             } else {
-                                scan2.findCircRNAScan2(bwaSamFile, idCircMap, bwaFileSplitNum, threadNum);
+                                scan2.findCircRNAScan2(bwaSamFile, idCircMap, bwaFileSplitNum, threadNum, bsjPrefixFinal);
                                 System.out.println(df.format(System.currentTimeMillis()) + " :unmapSam Second scan completed " + threadNum);
                                 fileLog.write(df.format(System.currentTimeMillis()) + " :unmapSam Second scan completed " + threadNum + "\n");
                             }
@@ -241,7 +256,7 @@ public class Scan2STARTest {
                             if (threadNum > AllFileSplitNum) {
                                 break;
                             } else {
-                                starScan2.findCircRNAScan2(starSamFile, idCircMap, AllFileSplitNum, threadNum, bwaSamFile);
+                                starScan2.findCircRNAScan2(starSamFile, idCircMap, AllFileSplitNum, threadNum, bsjPrefixFinal);
                                 System.out.println(df.format(System.currentTimeMillis()) + " :starsam Second scan completed " + threadNum);
                                 fileLog.write(df.format(System.currentTimeMillis()) + " :starsam Second scan completed " + threadNum + "\n");
                             }
@@ -282,7 +297,7 @@ public class Scan2STARTest {
             long bsjTotalAfterBwa = 0, bsjTagOneAfterBwa = 0;
             for (int i = 1; i <= bwaFileSplitNum; i++) {
                 long fl = 0, ft1 = 0;
-                BufferedReader br = new BufferedReader(new FileReader(new File(bwaSamFile + "BSJ" + i)));
+                BufferedReader br = new BufferedReader(new FileReader(new File(bsjPrefix + "BSJ" + i)), 262144);
                 String ln = br.readLine();
                 while (ln != null) { fl++; String[] c = ln.split("\t", 7); if (c.length > 2 && c[2].equals("1")) ft1++; ln = br.readLine(); }
                 br.close();
@@ -335,7 +350,7 @@ public class Scan2STARTest {
             long bsjTotalAfterStar = 0, bsjTagOneAfterStar = 0;
             for (int i = 1; i <= AllFileSplitNum; i++) {
                 long fl = 0, ft1 = 0;
-                BufferedReader br = new BufferedReader(new FileReader(new File(bwaSamFile + "BSJ" + i)));
+                BufferedReader br = new BufferedReader(new FileReader(new File(bsjPrefix + "BSJ" + i)), 262144);
                 String ln = br.readLine();
                 while (ln != null) { fl++; String[] c = ln.split("\t", 7); if (c.length > 2 && c[2].equals("1")) ft1++; ln = br.readLine(); }
                 br.close();

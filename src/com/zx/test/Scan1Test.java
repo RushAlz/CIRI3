@@ -88,7 +88,7 @@ public class Scan1Test {
                             if (threadNum > AllFileSplitNum) {
                                 break;
                             } else {
-                                scan1.findCircRNAScan1(samFile, AllFileSplitNum, threadNum);
+                                scan1.findCircRNAScan1(samFile, AllFileSplitNum, threadNum, outputFile);
                                 System.out.println(df.format(System.currentTimeMillis()) + " :First scan completed " + threadNum);
                                 fileLog.write(df.format(System.currentTimeMillis()) + " :First scan completed " + threadNum + "\n");
                             }
@@ -168,6 +168,7 @@ public class Scan1Test {
             metaBw.write("readLen=" + seqLen + "\n");
             metaBw.write("readNum=" + matchNum + "\n");
             metaBw.write("fileSplitNum=" + AllFileSplitNum + "\n");
+            metaBw.write("bsjPrefix=" + outputFile + "\n");
             metaBw.close();
             System.out.println(df.format(System.currentTimeMillis()) + " :Scan1 metadata written to " + metaPath);
             fileLog.write(df.format(System.currentTimeMillis()) + " :Scan1 metadata written to " + metaPath + "\n");

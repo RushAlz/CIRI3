@@ -24,9 +24,9 @@ public class MutFindCircRNAScan2 extends FindCircRNAScan2{
 		// TODO Auto-generated constructor stub
 	}
 
-	public void findCircRNAScan2(String samFile,HashMap<String, String> scan1IdMap,int threads, int threadNum) throws IOException {
-		//存放第一遍扫描的circRNA id       
-		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(samFile+"BSJ"+threadNum),true));
+	public void findCircRNAScan2(String samFile, HashMap<String, String> scan1IdMap, int threads, int threadNum, String bsjPrefix) throws IOException {
+		//存放第一遍扫描的circRNA id
+		BufferedWriter BSJOut = new BufferedWriter(new FileWriter(new File(bsjPrefix+"BSJ"+threadNum),true), 262144);
 		FileInputStream fileIn = new FileInputStream(samFile);
 		FileChannel fileChannel = fileIn.getChannel();
 		long fileSize = fileChannel.size();

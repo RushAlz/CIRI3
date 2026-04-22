@@ -1,14 +1,17 @@
 # ============================================================================
 # CIRI3 Test Data Analysis (Shell Script)
 # ============================================================================
-cd /pastel/tools/circRNA_tools/test_data
+cd /pastel/Github_scripts/CIRI3 # Git clone
 THREADS=64
-REF_FASTA=GRCh38_full_analysis_set_plus_decoy_hla.fa
-GTF_FILE=gencode.v32.primary_assembly.annotation.gtf
+REF_FASTA=test_decoupled_manual/ref/GRCh38_full_analysis_set_plus_decoy_hla.fa
+GTF_FILE=test_decoupled_manual/ref/gencode.v32.primary_assembly.annotation.gtf
 GENOMEDIR=${PWD}
 
 # git clone https://github.com/gyjames/CIRI3.git
-CIRI3_JAR_PATH=/pastel/tools/circRNA_tools/CIRI3/CIRI3_Java_18.0.1.jar
+CIRI3_JAR_PATH="/pastel/tools/circRNA_tools/CIRI3/CIRI3_Java_18.0.1.jar"
+
+# Decoupled processing
+DECOUPLED_JAR="/pastel/Github_scripts/CIRI3/CIRI3_decoupled.jar" # scripts/build_jar.sh
 
 # List of sample prefixes
 SAMPLES=(

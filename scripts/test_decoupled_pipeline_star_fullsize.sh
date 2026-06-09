@@ -261,7 +261,7 @@ for i in "${!SAMPLES[@]}"; do
         scan1_stdout="${BENCH_DIR}/scan1_${SAMPLE_ID}.stdout"
         bench_run "$(printf '10_scan1_%02d_%s' "${SCAN1_IDX}" "${SAMPLE_ID}")" \
             "${JAVA_NEW[@]}" SCAN1 \
-                -I "${TRIPLE}" \
+                -I "${SCAN1_PAIR}" \
                 -O "${OUT_PREFIX}" \
                 -F "${REF_FA}" \
                 -A "${GTF_FILE}" \
@@ -295,18 +295,30 @@ for i in "${!SAMPLES[@]}"; do
         [[ $local_fail -eq 0 ]] && ok "SCAN1 BSJ files present for ${SAMPLE_ID} (${SPLIT_NUM} splits)"
     fi
 
-    echo -e "${BWA_SAM}\t${META}" >> "$SCAN1_META_TSV"
+    # 1-column meta list consumed by MAKE_BSJ_LIST in the BUILD_UNIVERSE step below
+    echo "$META" >> "$SCAN1_META_TSV"
 done
 
-# --- Stage 2: BUILD_UNIVERSE ---
+# --- Stage 2: BUILD_UNIVERSE (via MAKE_BSJ_LIST + -IB) ---
 info "--- Stage 2: BUILD_UNIVERSE ---"
 UNIVERSE_FILE="${UNIVERSE_DIR}/cohort.universe"
+BSJ_LIST_TSV="${UNIVERSE_DIR}/cohort.bsj_list.tsv"
 if [[ -s "$UNIVERSE_FILE" ]]; then
     info "  [SKIP] Universe already exists"
 else
+    # Convert scan1_meta files to the direct BSJ-list format, then build universe.
+    # MAKE_BSJ_LIST reads bsjPrefix/fileSplitNum/readLen from each meta file;
+    # no stale VM-local paths are propagated into the universe build step.
+    bench_run "19_make_bsj_list" \
+        "${JAVA_NEW[@]}" MAKE_BSJ_LIST \
+            -I "${SCAN1_META_TSV}" \
+            -O "${UNIVERSE_DIR}/cohort" \
+        2>&1 | grep -E "MAKE_BSJ|rows|WARNING" || true
+    check_exists "BSJ list for BUILD_UNIVERSE" "${BSJ_LIST_TSV}"
+
     bench_run "20_build_universe" \
         "${JAVA_NEW[@]}" BUILD_UNIVERSE \
-            -I "${SCAN1_META_TSV}" \
+            -IB "${BSJ_LIST_TSV}" \
             -F "${REF_FA}" \
             -O "${UNIVERSE_DIR}/cohort" \
         2>&1 | grep -E "Universe|circRNA|time" || true
@@ -348,8 +360,9 @@ for i in "${!SAMPLES[@]}"; do
     fi
     check_exists "SCAN2 FSJ counts (${SAMPLE_ID})" "${FSJ_COUNTS}"
 
-    # Col 4 = SAMPLE_ID (column header in matrices); Col 5 = SCAN1 OUT_PREFIX (BSJ prefix)
-    echo -e "${BWA_SAM}\t${FSJ_COUNTS}\t${SPLIT_NUM}\t${SAMPLE_ID}\t${SCAN1_OUT_PREFIX}" >> "$FINALIZE_TSV"
+    # 4-column direct BSJ list format for FINALIZE -IB:
+    #   bsjPrefix <TAB> fileSplitNum <TAB> fsjCountsFile <TAB> sampleName
+    echo -e "${SCAN1_OUT_PREFIX}\t${SPLIT_NUM}\t${FSJ_COUNTS}\t${SAMPLE_ID}" >> "$FINALIZE_TSV"
 done
 
 # --- Stage 4: FINALIZE ---
@@ -360,7 +373,7 @@ if [[ -s "$FINAL_BSJ" ]]; then
 else
     bench_run "40_finalize" \
         "${JAVA_NEW[@]}" FINALIZE \
-            -I "${FINALIZE_TSV}" \
+            -IB "${FINALIZE_TSV}" \
             -CU "${UNIVERSE_FILE}" \
             -F "${REF_FA}" \
             -O "${FINALIZE_DIR}/result" \

@@ -246,6 +246,7 @@ for i in "${!SAMPLES[@]}"; do
     SCAN1_IDX=$((SCAN1_IDX+1))
     STAR_DIR="${DATA_DIR}/STAR_output_${S}"
     TRIPLE="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/Aligned.out.sam,${STAR_DIR}/bwa.sam"
+    SCAN1_PAIR="${STAR_DIR}/Chimeric.out.junction,${STAR_DIR}/bwa.sam"
     BWA_SAM="${STAR_DIR}/bwa.sam"
     mkdir -p "${SCAN1_DIR}/${SAMPLE_ID}"
     OUT_PREFIX="${SCAN1_DIR}/${SAMPLE_ID}/${SAMPLE_ID}"

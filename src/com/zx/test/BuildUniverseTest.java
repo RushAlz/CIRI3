@@ -22,7 +22,10 @@ public class BuildUniverseTest {
     /**
      * Builds the circRNA universe from all SCAN1 outputs and writes a universe file.
      *
-     * samplesMetaTsv: two-column TSV (samFile path, scan1_meta path) per sample
+     * samplesMetaTsv: two-column TSV (samFile path, scan1_meta path) per sample.
+     *   The samFile column is accepted for backward compatibility but is not
+     *   opened — only the scan1_meta file is read to obtain bsjPrefix,
+     *   fileSplitNum, and readLen.
      * faFile:         FASTA reference genome
      * outputPrefix:   prefix for output files; writes {outputPrefix}.universe
      */
@@ -30,10 +33,8 @@ public class BuildUniverseTest {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println(df.format(System.currentTimeMillis()) + " :BUILD_UNIVERSE start");
 
-        // Step 1: Read samples TSV and all scan1_meta files
-        ArrayList<String> filePathList = new ArrayList<String>();
+        ArrayList<String> bsjPrefixList = new ArrayList<String>();
         HashMap<String, Integer> fileSplitNumMap = new HashMap<String, Integer>();
-        HashMap<String, String> bsjPrefixMap = new HashMap<String, String>();
         int globalReadLen = 0;
 
         BufferedReader tsvBr = new BufferedReader(new FileReader(new File(samplesMetaTsv)));
@@ -44,56 +45,113 @@ public class BuildUniverseTest {
                 continue;
             }
             String[] tsvArr = tsvLine.split("\t");
-            String samFilePath = tsvArr[0].trim();
+            // Column 0 (samFile) is kept for backward compatibility but not used.
             String metaFilePath = tsvArr[1].trim();
-            filePathList.add(samFilePath);
 
-            // Read scan1_meta
+            String bsjPrefix = null;
+            int splitNum = 0;
+
             BufferedReader metaBr = new BufferedReader(new FileReader(new File(metaFilePath)));
             String metaLine = metaBr.readLine();
             while (metaLine != null) {
                 if (metaLine.startsWith("readLen=")) {
                     int readLen = Integer.parseInt(metaLine.split("=")[1].trim());
-                    if (readLen > globalReadLen) {
-                        globalReadLen = readLen;
-                    }
+                    if (readLen > globalReadLen) globalReadLen = readLen;
                 } else if (metaLine.startsWith("fileSplitNum=")) {
-                    int splitNum = Integer.parseInt(metaLine.split("=")[1].trim());
-                    fileSplitNumMap.put(samFilePath, splitNum);
+                    splitNum = Integer.parseInt(metaLine.split("=")[1].trim());
                 } else if (metaLine.startsWith("bsjPrefix=")) {
-                    bsjPrefixMap.put(samFilePath, metaLine.split("=", 2)[1].trim());
+                    bsjPrefix = metaLine.split("=", 2)[1].trim();
                 }
                 metaLine = metaBr.readLine();
             }
             metaBr.close();
+
+            if (bsjPrefix == null || splitNum == 0) {
+                System.out.println("WARNING: incomplete scan1_meta at " + metaFilePath + " — skipping sample");
+                tsvLine = tsvBr.readLine();
+                continue;
+            }
+            bsjPrefixList.add(bsjPrefix);
+            fileSplitNumMap.put(bsjPrefix, splitNum);
             tsvLine = tsvBr.readLine();
         }
         tsvBr.close();
+        System.out.println(df.format(System.currentTimeMillis()) + " :Loaded " + bsjPrefixList.size() + " samples");
 
-        System.out.println(df.format(System.currentTimeMillis()) + " :Loaded " + filePathList.size() + " samples");
+        buildFromBsjPrefixes(bsjPrefixList, fileSplitNumMap, globalReadLen, faFile, outputPrefix, df);
+    }
 
-        // Step 2: Load FA file
+    /**
+     * Builds the circRNA universe from a direct BSJ-list TSV, bypassing scan1_meta
+     * files. This is the preferred input format for cloud environments where the
+     * paths stored in scan1_meta are VM-local and not accessible across steps.
+     *
+     * bsjListTsv: three-column TSV per sample:
+     *   bsjPrefix<TAB>fileSplitNum<TAB>readLen
+     *   - bsjPrefix:    path prefix where the BSJ files (BSJ1, BSJ2, …) are located
+     *                   on the current machine (e.g. after staging from object storage)
+     *   - fileSplitNum: number of BSJ files written by SCAN1 for this sample
+     *   - readLen:      maximum read length reported by SCAN1 for this sample
+     * faFile:       FASTA reference genome
+     * outputPrefix: prefix for output files; writes {outputPrefix}.universe
+     */
+    public void buildFromBsjList(String bsjListTsv, String faFile, String outputPrefix) throws IOException {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println(df.format(System.currentTimeMillis()) + " :BUILD_UNIVERSE (direct BSJ list) start");
+
+        ArrayList<String> bsjPrefixList = new ArrayList<String>();
+        HashMap<String, Integer> fileSplitNumMap = new HashMap<String, Integer>();
+        int globalReadLen = 0;
+
+        BufferedReader tsvBr = new BufferedReader(new FileReader(new File(bsjListTsv)));
+        String tsvLine = tsvBr.readLine();
+        while (tsvLine != null) {
+            if (tsvLine.startsWith("#") || tsvLine.equals("")) {
+                tsvLine = tsvBr.readLine();
+                continue;
+            }
+            String[] arr = tsvLine.split("\t");
+            String bsjPrefix = arr[0].trim();
+            int splitNum = Integer.parseInt(arr[1].trim());
+            int readLen = Integer.parseInt(arr[2].trim());
+            bsjPrefixList.add(bsjPrefix);
+            fileSplitNumMap.put(bsjPrefix, splitNum);
+            if (readLen > globalReadLen) globalReadLen = readLen;
+            tsvLine = tsvBr.readLine();
+        }
+        tsvBr.close();
+        System.out.println(df.format(System.currentTimeMillis()) + " :Loaded " + bsjPrefixList.size() + " samples");
+
+        buildFromBsjPrefixes(bsjPrefixList, fileSplitNumMap, globalReadLen, faFile, outputPrefix, df);
+    }
+
+    /**
+     * Core universe-building logic shared by build() and buildFromBsjList().
+     * Reads all BSJ files, aggregates circRNA candidates across samples, builds
+     * spatial-index structures, and writes the universe file.
+     */
+    private void buildFromBsjPrefixes(ArrayList<String> bsjPrefixList,
+            HashMap<String, Integer> fileSplitNumMap, int globalReadLen,
+            String faFile, String outputPrefix, SimpleDateFormat df) throws IOException {
+
+        // Load FA file
         ReadFaFile RF = new ReadFaFile();
         RF.readFa(faFile);
         HashMap<String, Integer> chrLenMap = RF.getChrLenMap();
         RF = null;
         System.out.println(df.format(System.currentTimeMillis()) + " :Successful import of reference genome files");
 
-        // Step 3: Determine global seqLen (max readLen across samples, minus 12)
         int seqLen = globalReadLen - 12;
         System.out.println(df.format(System.currentTimeMillis()) + " :seqLen=" + seqLen + " (readLen=" + globalReadLen + ")");
 
-        // Step 4: Read all BSJ files from all samples to build chrCircSiteMap
-        // (identical to MutFileTest lines 306-327 / MutTest lines 256-273)
+        // Read all BSJ files from all samples to build chrCircSiteMap
         HashMap<String, HashSet<String>> chrCircSiteMap = new HashMap<String, HashSet<String>>();
         HashSet<String> circSiteSet = new HashSet<String>();
 
-        for (int i = 0; i < filePathList.size(); i++) {
-            String samFilePath = filePathList.get(i);
-            int splitNum = fileSplitNumMap.get(samFilePath);
-            String bsjBase = bsjPrefixMap.containsKey(samFilePath) ? bsjPrefixMap.get(samFilePath) : samFilePath;
+        for (String bsjPrefix : bsjPrefixList) {
+            int splitNum = fileSplitNumMap.get(bsjPrefix);
             for (int j = 1; j <= splitNum; j++) {
-                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjBase + "BSJ" + j)), 262144);
+                BufferedReader BSJbr = new BufferedReader(new FileReader(new File(bsjPrefix + "BSJ" + j)), 262144);
                 String line = BSJbr.readLine();
                 while (line != null) {
                     String[] BSJArr = line.split("\t", 5);
@@ -106,8 +164,7 @@ public class BuildUniverseTest {
         }
         System.out.println(df.format(System.currentTimeMillis()) + " :BSJ sites loaded from all samples");
 
-        // Step 5: Build circFSJMap and site-index structures
-        // (identical to MutTest lines 282-358)
+        // Build circFSJMap and site-index structures
         HashMap<String, Integer> circFSJMap = new HashMap<String, Integer>();
         HashMap<String, HashMap<Integer, ArrayList<SiteSort>>> chrSiteMap1 =
                 new HashMap<String, HashMap<Integer, ArrayList<SiteSort>>>();
@@ -118,8 +175,7 @@ public class BuildUniverseTest {
         HashMap<Integer, ArrayList<SiteSort>> SiteMap2 = new HashMap<Integer, ArrayList<SiteSort>>();
         ArrayList<SiteSort> siteList2 = new ArrayList<SiteSort>();
 
-        // universeDataMap: circFSJMap-key -> siteInfor (for writing the universe file)
-        // LinkedHashMap preserves HashSet iteration order so universe file order matches.
+        // LinkedHashMap preserves insertion order so universe file order is stable.
         LinkedHashMap<String, String> universeDataMap = new LinkedHashMap<String, String>();
 
         for (String chrKey : chrCircSiteMap.keySet()) {
@@ -162,7 +218,7 @@ public class BuildUniverseTest {
         chrCircSiteMap = null;
         circSiteSet = null;
 
-        // Sort site lists (identical to MutTest lines 340-357)
+        // Sort site lists
         for (String chrKey : chrSiteMap1.keySet()) {
             SiteMap1 = chrSiteMap1.get(chrKey);
             for (Integer site : SiteMap1.keySet()) {
@@ -184,7 +240,6 @@ public class BuildUniverseTest {
 
         System.out.println(df.format(System.currentTimeMillis()) + " :Universe contains " + circFSJMap.size() + " circRNA candidates");
 
-        // Step 6: Write universe file
         String universePath = outputPrefix + ".universe";
         CircRNAUniverseIO.writeUniverse(universePath, seqLen, universeDataMap);
         System.out.println(df.format(System.currentTimeMillis()) + " :Universe written to " + universePath);

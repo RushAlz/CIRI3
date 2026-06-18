@@ -34,7 +34,9 @@ public class FinalizeTest {
      * Merges FSJ counts from all samples, runs Summary + Annotation, and writes matrix outputs.
      *
      * finalizeInputTsv: five-column TSV per sample:
-     *   samFile  fsjCountsFile  fileSplitNum  sampleName  bsjCountsFile
+     *   samFile  fsjCountsFile  fileSplitNum  sampleName  bsjPrefix
+     *   The samFile column (column 1) is accepted for backward compatibility but
+     *   is not used — only bsjPrefix (column 5) is consulted when reading BSJ files.
      * faFile:         FASTA reference genome
      * annotationFile: GTF/GFF3 or "F"
      * outputPrefix:   prefix for output files
@@ -58,20 +60,15 @@ public class FinalizeTest {
      * Variant with a frozen circRNA filter loaded from an existing BSJ_Matrix file.
      * When freezeMatrixFile is non-null, Summary re-evaluation is skipped entirely:
      * the accepted circRNA set is taken verbatim from the first column of that matrix.
-     * This is the correct mode when adding a new sample to an existing cohort — the
-     * new sample's BSJ evidence must not alter which circRNAs were accepted for the
-     * original samples.
+     * This is the correct mode when adding a new sample to an existing cohort.
      */
     public void finalize(String finalizeInputTsv, String faFile, String annotationFile,
             String outputPrefix, String universeFile, String freezeMatrixFile) throws IOException {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println(df.format(System.currentTimeMillis()) + " :FINALIZE start");
 
-        // Step 1: Read finalize input TSV
-        // Format: samFile  fsjCountsFile  fileSplitNum  sampleName  [bsjPrefix]
-        // The 5th column (bsjPrefix) is optional; if absent, samFilePath is used.
-        ArrayList<String> filePathList = new ArrayList<String>();
-        HashMap<String, Integer> fileSplitNumMap = new HashMap<String, Integer>();
+        // Parse five-column TSV: samFile  fsjCountsFile  fileSplitNum  sampleName  [bsjPrefix]
+        // samFile (col 1) is vestigial — present only for backward compatibility.
         ArrayList<String> fsjCountsFileList = new ArrayList<String>();
         ArrayList<String> sampleNameList = new ArrayList<String>();
         ArrayList<String> bsjPrefixList = new ArrayList<String>();
@@ -85,13 +82,11 @@ public class FinalizeTest {
                 continue;
             }
             String[] arr = tsvLine.split("\t");
-            String samFilePath = arr[0].trim();
+            String samFilePath = arr[0].trim();   // not used, kept for compat
             String fsjCountsPath = arr[1].trim();
             int splitNum = Integer.parseInt(arr[2].trim());
             String sampleName = arr[3].trim();
             String bsjPrefix = (arr.length >= 5 && !arr[4].trim().isEmpty()) ? arr[4].trim() : samFilePath;
-            filePathList.add(samFilePath);
-            fileSplitNumMap.put(samFilePath, splitNum);
             fsjCountsFileList.add(fsjCountsPath);
             sampleNameList.add(sampleName);
             bsjPrefixList.add(bsjPrefix);
@@ -99,16 +94,95 @@ public class FinalizeTest {
             tsvLine = tsvBr.readLine();
         }
         tsvBr.close();
-        System.out.println(df.format(System.currentTimeMillis()) + " :Loaded " + filePathList.size() + " samples");
 
-        // Step 2: Load FA file
+        runFinalize(fsjCountsFileList, sampleNameList, bsjPrefixList, bsjPrefixSplitNumMap,
+                faFile, annotationFile, outputPrefix, universeFile, freezeMatrixFile, df);
+    }
+
+    /**
+     * Merges FSJ counts and builds output matrices using a direct BSJ-list TSV,
+     * bypassing the samFile column that is present in the legacy format. This is
+     * the preferred input format for cloud environments where file paths are not
+     * persistent across pipeline steps.
+     *
+     * finalizeInputTsv: four-column TSV per sample:
+     *   bsjPrefix<TAB>fileSplitNum<TAB>fsjCountsFile<TAB>sampleName
+     *   - bsjPrefix:    path prefix where the BSJ files are located on the current machine
+     *   - fileSplitNum: number of BSJ files for this sample (from SCAN1 metadata)
+     *   - fsjCountsFile: path to the .fsj_counts file produced by SCAN2
+     *   - sampleName:   column header for this sample in the output matrices
+     * faFile:         FASTA reference genome
+     * annotationFile: GTF/GFF3 or "F"
+     * outputPrefix:   prefix for output files
+     */
+    public void finalizeFromBsjList(String finalizeInputTsv, String faFile, String annotationFile,
+            String outputPrefix) throws IOException {
+        finalizeFromBsjList(finalizeInputTsv, faFile, annotationFile, outputPrefix, null);
+    }
+
+    public void finalizeFromBsjList(String finalizeInputTsv, String faFile, String annotationFile,
+            String outputPrefix, String universeFile) throws IOException {
+        finalizeFromBsjList(finalizeInputTsv, faFile, annotationFile, outputPrefix, universeFile, null);
+    }
+
+    public void finalizeFromBsjList(String finalizeInputTsv, String faFile, String annotationFile,
+            String outputPrefix, String universeFile, String freezeMatrixFile) throws IOException {
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println(df.format(System.currentTimeMillis()) + " :FINALIZE (direct BSJ list) start");
+
+        ArrayList<String> fsjCountsFileList = new ArrayList<String>();
+        ArrayList<String> sampleNameList = new ArrayList<String>();
+        ArrayList<String> bsjPrefixList = new ArrayList<String>();
+        HashMap<String, Integer> bsjPrefixSplitNumMap = new HashMap<String, Integer>();
+
+        BufferedReader tsvBr = new BufferedReader(new FileReader(new File(finalizeInputTsv)));
+        String tsvLine = tsvBr.readLine();
+        while (tsvLine != null) {
+            if (tsvLine.startsWith("#") || tsvLine.equals("")) {
+                tsvLine = tsvBr.readLine();
+                continue;
+            }
+            String[] arr = tsvLine.split("\t");
+            String bsjPrefix = arr[0].trim();
+            int splitNum = Integer.parseInt(arr[1].trim());
+            String fsjCountsPath = arr[2].trim();
+            String sampleName = arr[3].trim();
+            bsjPrefixList.add(bsjPrefix);
+            bsjPrefixSplitNumMap.put(bsjPrefix, splitNum);
+            fsjCountsFileList.add(fsjCountsPath);
+            sampleNameList.add(sampleName);
+            tsvLine = tsvBr.readLine();
+        }
+        tsvBr.close();
+        System.out.println(df.format(System.currentTimeMillis()) + " :Loaded " + sampleNameList.size() + " samples");
+
+        runFinalize(fsjCountsFileList, sampleNameList, bsjPrefixList, bsjPrefixSplitNumMap,
+                faFile, annotationFile, outputPrefix, universeFile, freezeMatrixFile, df);
+    }
+
+    /**
+     * Core FINALIZE logic shared by finalize() and finalizeFromBsjList().
+     */
+    private void runFinalize(
+            ArrayList<String> fsjCountsFileList,
+            ArrayList<String> sampleNameList,
+            ArrayList<String> bsjPrefixList,
+            HashMap<String, Integer> bsjPrefixSplitNumMap,
+            String faFile, String annotationFile, String outputPrefix,
+            String universeFile, String freezeMatrixFile,
+            SimpleDateFormat df) throws IOException {
+
+        int sampleCount = sampleNameList.size();
+        System.out.println(df.format(System.currentTimeMillis()) + " :Loaded " + sampleCount + " samples");
+
+        // Load FA file
         ReadFaFile RF = new ReadFaFile();
         RF.readFa(faFile);
         HashMap<String, String> chrTCGAMap = RF.getChrTCGAMap();
         RF = null;
         System.out.println(df.format(System.currentTimeMillis()) + " :Successful import of reference genome files");
 
-        // Step 3: Load annotation (optional)
+        // Load annotation (optional)
         HashMap<String, ArrayList<SiteSort>> geneExonMap = new HashMap<String, ArrayList<SiteSort>>();
         HashMap<String, ArrayList<Integer[]>> exonListMap = new HashMap<String, ArrayList<Integer[]>>();
         HashMap<String, String> chrExonStartMap = new HashMap<String, String>();
@@ -138,9 +212,8 @@ public class FinalizeTest {
             System.out.println(df.format(System.currentTimeMillis()) + " :Successfully imported comment files");
         }
 
-        // Step 4: Read all .fsj_counts files and build merged circFSJMap
-        // Seed the universe: prefer the BUILD_UNIVERSE output when supplied, else
-        // fall back to the first sample's .fsj_counts for backwards compatibility.
+        // Seed the universe: prefer BUILD_UNIVERSE output when supplied, else
+        // fall back to the first sample's .fsj_counts for backward compatibility.
         HashMap<String, Integer> circFSJMerged = new HashMap<String, Integer>();
         if (universeFile != null && !universeFile.isEmpty()) {
             int[] seqLenOut = new int[1];
@@ -163,7 +236,6 @@ public class FinalizeTest {
 
         // Build circRowMap (universe index) and per-sample FSJ matrix
         int circNum = circFSJMerged.size();
-        int sampleCount = filePathList.size();
         int[][] FSJmatrix = new int[circNum][sampleCount];
         HashMap<String, Integer> circRowMap = new HashMap<String, Integer>();
         int rowIdx = 0;
@@ -171,7 +243,7 @@ public class FinalizeTest {
             circRowMap.put(circKey, rowIdx++);
         }
 
-        // Read all .fsj_counts: populate per-sample FSJ matrix and merged map
+        // Read all .fsj_counts: populate per-sample FSJ matrix
         for (int j = 0; j < sampleCount; j++) {
             BufferedReader fsjBr = new BufferedReader(new FileReader(new File(fsjCountsFileList.get(j))));
             String line = fsjBr.readLine();
@@ -189,7 +261,7 @@ public class FinalizeTest {
         }
         System.out.println(df.format(System.currentTimeMillis()) + " :FSJ counts merged: " + circFSJMerged.size() + " circRNAs");
 
-        // Step 5: Build BSJ matrix from BSJ files (SCAN2 appends additional BSJ reads to the same files)
+        // Build BSJ matrix from BSJ files
         int[][] BSJmatrix = new int[circNum][sampleCount];
         for (int i = 0; i < sampleCount; i++) {
             HashMap<String, Integer> circMap = new HashMap<String, Integer>();
@@ -226,10 +298,7 @@ public class FinalizeTest {
         }
         System.out.println(df.format(System.currentTimeMillis()) + " :BSJ matrix built");
 
-        // Step 6: Determine accepted circRNA set
-        // Normal mode: run Summary on all BSJ files to filter by stringency.
-        // Freeze mode: load the accepted set from a prior BSJ_Matrix; Summary is
-        //   skipped so the new sample's BSJ evidence cannot alter the row set.
+        // Determine accepted circRNA set
         ArrayList<String> SummaryCircList = new ArrayList<String>();
         HashMap<String, String> circTrueIdMap;
         if (freezeMatrixFile != null && !freezeMatrixFile.isEmpty()) {
@@ -253,7 +322,7 @@ public class FinalizeTest {
         }
         chrTCGAMap = null;
 
-        // Write BSJ_Matrix and FSJ_Matrix (identical to MutFileTest lines 509-541)
+        // Write BSJ_Matrix and FSJ_Matrix
         String outPutBSJCountFile = outputPrefix + ".BSJ_Matrix";
         String outPutFSJCountFile = outputPrefix + ".FSJ_Matrix";
         BufferedWriter BSJCount = new BufferedWriter(new FileWriter(new File(outPutBSJCountFile)));
@@ -283,7 +352,7 @@ public class FinalizeTest {
         FSJCount.close();
         System.out.println(df.format(System.currentTimeMillis()) + " :Matrix files written");
 
-        // Step 7: Annotation
+        // Annotation
         if (!annotationFile.equals("F") && geneExonMap.size() > 0) {
             if (intronLable) {
                 AnnotationIntron annotation = new AnnotationIntron();

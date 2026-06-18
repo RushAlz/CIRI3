@@ -385,7 +385,198 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 7. Benchmark + test summary
+# 7. Test new -IB (direct BSJ list) modes for BUILD_UNIVERSE and FINALIZE
+#    These cloud-friendly modes bypass scan1_meta files entirely.
+# ---------------------------------------------------------------------------
+info "=== Testing -IB (direct BSJ list) modes ==="
+
+IB_DIR="$WORK_DIR/ib_mode"
+mkdir -p "$IB_DIR"
+
+# Build the direct BSJ list for BUILD_UNIVERSE -IB:
+# columns: bsjPrefix<TAB>fileSplitNum<TAB>readLen
+BSJ_LIST_TSV="$IB_DIR/bsj_list.tsv"
+> "$BSJ_LIST_TSV"
+for SAM in "${SAMPLES[@]}"; do
+    SAMPLE_NAME=$(basename "$SAM" .sam)
+    SCAN1_META="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}.scan1_meta"
+    BSJ_PREFIX=$(grep "^bsjPrefix=" "$SCAN1_META" | cut -d= -f2)
+    SPLIT_NUM=$(grep  "^fileSplitNum=" "$SCAN1_META" | cut -d= -f2)
+    READ_LEN=$(grep   "^readLen="     "$SCAN1_META" | cut -d= -f2)
+    echo -e "${BSJ_PREFIX}\t${SPLIT_NUM}\t${READ_LEN}" >> "$BSJ_LIST_TSV"
+done
+
+info "  BUILD_UNIVERSE -IB"
+bench_run "50_build_universe_ib" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" BUILD_UNIVERSE \
+        -IB "$BSJ_LIST_TSV" \
+        -F  "$REF_FA" \
+        -O  "$IB_DIR/cohort" \
+    2>&1 | grep -E "Universe|circRNA|time" || true
+check_exists "Universe file (-IB mode)" "$IB_DIR/cohort.universe"
+
+# Verify the universe produced by -IB matches the one from -I
+IB_UNIVERSE_LINES=$(grep -c "^chr" "$IB_DIR/cohort.universe" || true)
+ORIG_UNIVERSE_LINES=$(grep -c "^chr" "$UNIVERSE_DIR/cohort.universe" || true)
+if [[ "$IB_UNIVERSE_LINES" -eq "$ORIG_UNIVERSE_LINES" ]]; then
+    ok "BUILD_UNIVERSE -IB: universe size matches -I mode ($IB_UNIVERSE_LINES circRNAs)"
+else
+    fail "BUILD_UNIVERSE -IB: size mismatch — -IB=$IB_UNIVERSE_LINES vs -I=$ORIG_UNIVERSE_LINES"
+fi
+
+# Build the direct BSJ list for FINALIZE -IB:
+# columns: bsjPrefix<TAB>fileSplitNum<TAB>fsjCountsFile<TAB>sampleName
+FINALIZE_BSJ_LIST_TSV="$IB_DIR/finalize_bsj_list.tsv"
+> "$FINALIZE_BSJ_LIST_TSV"
+for SAM in "${SAMPLES[@]}"; do
+    SAMPLE_NAME=$(basename "$SAM" .sam)
+    SCAN1_META="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}.scan1_meta"
+    BSJ_PREFIX=$(grep "^bsjPrefix=" "$SCAN1_META" | cut -d= -f2)
+    SPLIT_NUM=$(grep  "^fileSplitNum=" "$SCAN1_META" | cut -d= -f2)
+    FSJ_COUNTS="$SCAN2_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}.fsj_counts"
+    echo -e "${BSJ_PREFIX}\t${SPLIT_NUM}\t${FSJ_COUNTS}\t${SAMPLE_NAME}" >> "$FINALIZE_BSJ_LIST_TSV"
+done
+
+info "  FINALIZE -IB"
+bench_run "60_finalize_ib" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" FINALIZE \
+        -IB "$FINALIZE_BSJ_LIST_TSV" \
+        -CU "$IB_DIR/cohort.universe" \
+        -F  "$REF_FA" \
+        -O  "$IB_DIR/result" \
+        -S  2 \
+    2>&1 | grep -E "FINALIZE|Summary|Matrix|circRNA|time" || true
+check_exists "BSJ_Matrix (-IB mode)" "$IB_DIR/result.BSJ_Matrix"
+check_exists "FSJ_Matrix (-IB mode)" "$IB_DIR/result.FSJ_Matrix"
+
+# Verify -IB FINALIZE output matches the standard -I FINALIZE output
+IB_BSJ=$(normalise_matrix "$IB_DIR/result.BSJ_Matrix")
+STD_BSJ=$(normalise_matrix "$FINALIZE_DIR/result.BSJ_Matrix")
+if [[ "$IB_BSJ" == "$STD_BSJ" ]]; then
+    ok "FINALIZE -IB: BSJ_Matrix matches standard -I output"
+else
+    fail "FINALIZE -IB: BSJ_Matrix differs from standard -I output"
+    { diff <(echo "$STD_BSJ") <(echo "$IB_BSJ") || true; } | head -20 || true
+fi
+
+IB_FSJ=$(normalise_matrix "$IB_DIR/result.FSJ_Matrix")
+STD_FSJ=$(normalise_matrix "$FINALIZE_DIR/result.FSJ_Matrix")
+if [[ "$IB_FSJ" == "$STD_FSJ" ]]; then
+    ok "FINALIZE -IB: FSJ_Matrix matches standard -I output"
+else
+    fail "FINALIZE -IB: FSJ_Matrix differs from standard -I output"
+    { diff <(echo "$STD_FSJ") <(echo "$IB_FSJ") || true; } | head -20 || true
+fi
+
+# ---------------------------------------------------------------------------
+# 8. Test MAKE_BSJ_LIST command
+#    Exercises all three input formats and verifies each produces a bsj_list.tsv
+#    that, when fed into BUILD_UNIVERSE -IB, yields the same universe as the
+#    standard -I run.
+# ---------------------------------------------------------------------------
+info "=== Testing MAKE_BSJ_LIST ==="
+
+MBL_DIR="$WORK_DIR/make_bsj_list"
+mkdir -p "$MBL_DIR"
+
+# --- 8a: 1-column format (meta path only, use bsjPrefix as stored in meta) ---
+info "  MAKE_BSJ_LIST: 1-column format (meta path as-is)"
+MBL_1COL_TSV="$MBL_DIR/input_1col.tsv"
+> "$MBL_1COL_TSV"
+for SAM in "${SAMPLES[@]}"; do
+    SAMPLE_NAME=$(basename "$SAM" .sam)
+    echo "$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}.scan1_meta" >> "$MBL_1COL_TSV"
+done
+
+bench_run "70_make_bsj_list_1col" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" MAKE_BSJ_LIST \
+        -I "$MBL_1COL_TSV" \
+        -O "$MBL_DIR/out_1col" \
+    2>&1 | grep -E "MAKE_BSJ|rows|WARNING" || true
+check_exists "bsj_list.tsv (1-col)" "$MBL_DIR/out_1col.bsj_list.tsv"
+
+# Verify 3 columns, correct row count
+MBL_1COL_ROWS=$(wc -l < "$MBL_DIR/out_1col.bsj_list.tsv")
+MBL_1COL_BAD=$(awk 'NF!=3' "$MBL_DIR/out_1col.bsj_list.tsv" | wc -l)
+if [[ "$MBL_1COL_ROWS" -eq "${#SAMPLES[@]}" ]] && [[ "$MBL_1COL_BAD" -eq 0 ]]; then
+    ok "MAKE_BSJ_LIST 1-col: $MBL_1COL_ROWS rows, all 3 columns"
+else
+    fail "MAKE_BSJ_LIST 1-col: $MBL_1COL_ROWS rows (expected ${#SAMPLES[@]}), $MBL_1COL_BAD malformed"
+fi
+
+# Feed into BUILD_UNIVERSE -IB and compare universe size
+bench_run "71_build_universe_from_1col" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" BUILD_UNIVERSE \
+        -IB "$MBL_DIR/out_1col.bsj_list.tsv" \
+        -F  "$REF_FA" \
+        -O  "$MBL_DIR/universe_1col" \
+    2>&1 | grep -E "Universe|circRNA|time" || true
+check_exists "Universe from MAKE_BSJ_LIST 1-col" "$MBL_DIR/universe_1col.universe"
+U1=$(grep -c "^chr" "$MBL_DIR/universe_1col.universe" || true)
+UREF=$(grep -c "^chr" "$UNIVERSE_DIR/cohort.universe" || true)
+if [[ "$U1" -eq "$UREF" ]]; then
+    ok "MAKE_BSJ_LIST 1-col → BUILD_UNIVERSE: $U1 circRNAs (matches reference)"
+else
+    fail "MAKE_BSJ_LIST 1-col → BUILD_UNIVERSE: $U1 circRNAs (expected $UREF)"
+fi
+
+# --- 8b: 2-column format (meta path + explicit bsjPrefix override) ---
+info "  MAKE_BSJ_LIST: 2-column format (path override)"
+MBL_2COL_TSV="$MBL_DIR/input_2col.tsv"
+> "$MBL_2COL_TSV"
+for SAM in "${SAMPLES[@]}"; do
+    SAMPLE_NAME=$(basename "$SAM" .sam)
+    META="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}.scan1_meta"
+    # Use the actual bsjPrefix from meta as the override (same path, just testing the code path)
+    BSJ_PREFIX=$(grep "^bsjPrefix=" "$META" | cut -d= -f2)
+    echo -e "$META\t$BSJ_PREFIX" >> "$MBL_2COL_TSV"
+done
+
+bench_run "72_make_bsj_list_2col" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" MAKE_BSJ_LIST \
+        -I "$MBL_2COL_TSV" \
+        -O "$MBL_DIR/out_2col" \
+    2>&1 | grep -E "MAKE_BSJ|rows|WARNING" || true
+check_exists "bsj_list.tsv (2-col)" "$MBL_DIR/out_2col.bsj_list.tsv"
+
+# 2-col output should be identical to 1-col (same paths, just different code path)
+if diff -q "$MBL_DIR/out_1col.bsj_list.tsv" "$MBL_DIR/out_2col.bsj_list.tsv" > /dev/null 2>&1; then
+    ok "MAKE_BSJ_LIST 2-col: output identical to 1-col (path override roundtrips correctly)"
+else
+    fail "MAKE_BSJ_LIST 2-col: output differs from 1-col unexpectedly"
+    diff "$MBL_DIR/out_1col.bsj_list.tsv" "$MBL_DIR/out_2col.bsj_list.tsv" | head -10 || true
+fi
+
+# --- 8c: 3-column format (legacy, no meta; fileSplitNum auto-detected) ---
+info "  MAKE_BSJ_LIST: 3-column format (legacy, no meta)"
+MBL_3COL_TSV="$MBL_DIR/input_3col.tsv"
+> "$MBL_3COL_TSV"
+for SAM in "${SAMPLES[@]}"; do
+    SAMPLE_NAME=$(basename "$SAM" .sam)
+    META="$SCAN1_DIR/${SAMPLE_NAME}/${SAMPLE_NAME}.scan1_meta"
+    BSJ_PREFIX=$(grep "^bsjPrefix=" "$META" | cut -d= -f2)
+    READ_LEN=$(grep "^readLen=" "$META" | cut -d= -f2)
+    # col[0] = sam path (not opened), col[1] = bsjPrefix, col[2] = readLen
+    echo -e "$SAM\t$BSJ_PREFIX\t$READ_LEN" >> "$MBL_3COL_TSV"
+done
+
+bench_run "73_make_bsj_list_3col" \
+    ${JAVA_BIN} -cp "${CLASSPATH}" "${MAIN_CLASS}" MAKE_BSJ_LIST \
+        -I "$MBL_3COL_TSV" \
+        -O "$MBL_DIR/out_3col" \
+    2>&1 | grep -E "MAKE_BSJ|rows|WARNING" || true
+check_exists "bsj_list.tsv (3-col)" "$MBL_DIR/out_3col.bsj_list.tsv"
+
+# 3-col output should equal 1-col output (same data, different input path)
+if diff -q "$MBL_DIR/out_1col.bsj_list.tsv" "$MBL_DIR/out_3col.bsj_list.tsv" > /dev/null 2>&1; then
+    ok "MAKE_BSJ_LIST 3-col: output identical to 1-col (auto-detected fileSplitNum matches)"
+else
+    fail "MAKE_BSJ_LIST 3-col: output differs from 1-col"
+    diff "$MBL_DIR/out_1col.bsj_list.tsv" "$MBL_DIR/out_3col.bsj_list.tsv" | head -10 || true
+fi
+
+# ---------------------------------------------------------------------------
+# 9. Benchmark + test summary
 # ---------------------------------------------------------------------------
 bench_report
 
@@ -397,7 +588,7 @@ echo "  PASSED : $PASS"
 echo "  FAILED : $FAIL"
 echo "========================================"
 
-if [[ $FAIL -eq 0 ]]; then
+if [[ "$FAIL" -eq 0 ]]; then
     echo "  ALL TESTS PASSED"
     exit 0
 else

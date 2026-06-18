@@ -19,7 +19,7 @@ This repository is a fork of [CIRI3](https://github.com/gyjames/CIRI3) that adds
 
 ```
 java -jar CIRI3_decoupled.jar SCAN1 \
-    -I  sample.sam          \  # SAM/BAM; for STAR: Chimeric.out.junction,Aligned.out.sam,bwa.sam
+    -I  sample.sam          \  # SAM/BAM; for STAR: Chimeric.out.junction,bwa.sam (or legacy 3-file, see below)
     -O  outdir/sample       \  # output prefix; BSJ files and .scan1_meta written here
     -F  ref.fa              \
    [-A  ref.gtf]            \  # annotation (optional; required for -It 1)
@@ -35,20 +35,42 @@ Outputs written to `{output_prefix}.*`:
 > **Note**: BSJ files are written next to the output prefix, **not** next to the input SAM file.
 > SCAN2 and FINALIZE locate them via `bsjPrefix=` in the `.scan1_meta` file.
 
+> **STAR mode (`-Ma 1`) input**: SCAN1 only needs `Chimeric.out.junction` and
+> `bwa.sam` (the BWA remap of STAR-unmapped reads) — `-I Chimeric.out.junction,bwa.sam`.
+> The STAR-aligned BAM (`Aligned.out.sam`) is **not read** during SCAN1, so it
+> does not need to be staged for this step. The legacy 3-file form
+> `-I Chimeric.out.junction,Aligned.out.sam,bwa.sam` is still accepted for
+> backwards compatibility. **SCAN2** (Phase B FSJ counting) does need
+> `Aligned.out.sam`, so continue passing all three files to `SCAN2 -I`.
+
 #### `BUILD_UNIVERSE` — joint universe construction
 
 ```
 java -jar CIRI3_decoupled.jar BUILD_UNIVERSE \
-    -I  samples_scan1.tsv   \  # two-column TSV: samFile<TAB>scan1_meta_path
+    (-I  samples_scan1.tsv | -IB bsj_list.tsv) \
     -F  ref.fa              \
     -O  universe/cohort        # output prefix; writes {prefix}.universe
 ```
 
-`samples_scan1.tsv` format (one row per sample):
-```
-/abs/path/sample1/bwa.sam   /abs/path/sample1/sample1.scan1_meta
-/abs/path/sample2/bwa.sam   /abs/path/sample2/sample2.scan1_meta
-```
+Two input modes:
+
+- **`-I samples_scan1.tsv`** — two-column TSV: `samFile<TAB>scan1_meta_path`
+  (column 1 is kept for backward compatibility but is never opened).
+  `bsjPrefix`, `fileSplitNum`, and `readLen` are read from each `.scan1_meta`.
+  ```
+  /abs/path/sample1/bwa.sam   /abs/path/sample1/sample1.scan1_meta
+  /abs/path/sample2/bwa.sam   /abs/path/sample2/sample2.scan1_meta
+  ```
+
+- **`-IB bsj_list.tsv`** (recommended for cloud/multi-VM workflows) —
+  three-column TSV: `bsjPrefix<TAB>fileSplitNum<TAB>readLen`. No meta files
+  are read at all, so this works even if `.scan1_meta` files contain stale
+  `bsjPrefix=` paths from the VM that ran SCAN1. Generate this file with
+  `MAKE_BSJ_LIST` (see below).
+  ```
+  /abs/path/sample1/sample1   8   151
+  /abs/path/sample2/sample2   8   151
+  ```
 
 #### `SCAN2` — per-sample second scan
 
@@ -71,7 +93,7 @@ java -jar CIRI3_decoupled.jar SCAN2 \
 
 ```
 java -jar CIRI3_decoupled.jar FINALIZE \
-    -I  finalize_samples.tsv \  # five-column TSV (see below)
+    (-I  finalize_samples.tsv | -IB finalize_bsj_list.tsv) \
     -CU cohort.universe      \  # universe file from BUILD_UNIVERSE (recommended)
     -F  ref.fa               \
     -O  finalize/result      \  # output prefix; writes .BSJ_Matrix and .FSJ_Matrix
@@ -81,23 +103,69 @@ java -jar CIRI3_decoupled.jar FINALIZE \
    [-It 0]                      # intronic circRNAs (0/1, default: 0)
 ```
 
-`finalize_samples.tsv` format — **five columns**, one row per sample:
+Two input modes:
+
+- **`-I finalize_samples.tsv`** — legacy **five-column** TSV, one row per sample:
+  ```
+  /abs/bwa.sam  /abs/sample1.fsj_counts  8  sample1  /abs/sample1/sample1
+  /abs/bwa.sam  /abs/sample2.fsj_counts  8  sample2  /abs/sample2/sample2
+  ```
+
+  | Column | Content |
+  |--------|---------|
+  | 1 | Absolute path to the input SAM file (kept for backward compatibility, never opened) |
+  | 2 | Absolute path to the `.fsj_counts` file from SCAN2 |
+  | 3 | `fileSplitNum` value (read from `.scan1_meta`) |
+  | 4 | Sample name (used as column header in output matrices) |
+  | 5 | BSJ prefix — same value as `-O` passed to SCAN1/SCAN2 (locates BSJ files) |
+
+- **`-IB finalize_bsj_list.tsv`** (recommended for cloud/multi-VM workflows) —
+  **four-column** TSV, dropping the unused `samFile` column:
+  ```
+  /abs/sample1/sample1  8  /abs/sample1.fsj_counts  sample1
+  /abs/sample2/sample2  8  /abs/sample2.fsj_counts  sample2
+  ```
+
+  | Column | Content |
+  |--------|---------|
+  | 1 | BSJ prefix — same value as `-O` passed to SCAN1/SCAN2 (locates BSJ files) |
+  | 2 | `fileSplitNum` value |
+  | 3 | Absolute path to the `.fsj_counts` file from SCAN2 |
+  | 4 | Sample name (used as column header in output matrices) |
+
+  The first two columns can be reused directly from the `bsj_list.tsv`
+  produced by `MAKE_BSJ_LIST` for `BUILD_UNIVERSE -IB` — just append the
+  `.fsj_counts` path and sample name (and reorder) once SCAN2 has run.
+
+#### `MAKE_BSJ_LIST` — convert SCAN1 outputs to the `-IB` BSJ list format
+
 ```
-/abs/bwa.sam  /abs/sample1.fsj_counts  8  sample1  /abs/sample1/sample1
-/abs/bwa.sam  /abs/sample2.fsj_counts  8  sample2  /abs/sample2/sample2
+java -jar CIRI3_decoupled.jar MAKE_BSJ_LIST \
+    -I  meta_list.tsv  \  # input TSV (1, 2, or 3 columns; see below)
+    -O  output_prefix     # writes {output_prefix}.bsj_list.tsv
 ```
 
-| Column | Content |
-|--------|---------|
-| 1 | Absolute path to the input SAM file |
-| 2 | Absolute path to the `.fsj_counts` file from SCAN2 |
-| 3 | `fileSplitNum` value (read from `.scan1_meta`) |
-| 4 | Sample name (used as column header in output matrices) |
-| 5 | BSJ prefix — same value as `-O` passed to SCAN1/SCAN2 (locates BSJ files) |
+This is the bridge between SCAN1 output and `BUILD_UNIVERSE -IB` /
+`FINALIZE -IB`. It is especially useful in cloud deployments where SCAN1
+runs on one VM and `bsjPrefix=` in `.scan1_meta` then points to a path that
+no longer exists once the BSJ files are staged elsewhere. The input TSV
+format is auto-detected by column count:
+
+| Columns | Format | Use case |
+|---------|--------|----------|
+| 1 | `scan1_meta_path` | Meta exists; use `bsjPrefix`/`fileSplitNum`/`readLen` from the meta file as-is |
+| 2 | `scan1_meta_path<TAB>staged_bsj_prefix` | Meta exists; override the stale `bsjPrefix` with the current (staged) path — `fileSplitNum`/`readLen` still come from the meta |
+| 3 | `sam_file_path<TAB>staged_bsj_prefix<TAB>read_len` | Legacy pre-decoupled outputs with **no** `.scan1_meta`; `fileSplitNum` is auto-detected by probing `{staged_bsj_prefix}BSJ1`, `BSJ2`, … until a file is missing |
+
+Output `{output_prefix}.bsj_list.tsv` — three columns, ready for
+`BUILD_UNIVERSE -IB`:
+```
+bsjPrefix    fileSplitNum    readLen
+```
 
 ### Intermediate file formats
 
-**`.scan1_meta`** — written by SCAN1, read by BUILD_UNIVERSE, SCAN2 (`-SM`), and FINALIZE
+**`.scan1_meta`** — written by SCAN1, read by BUILD_UNIVERSE (`-I`), SCAN2 (`-SM`), FINALIZE (`-I`), and MAKE_BSJ_LIST
 ```
 samFile=/abs/path/to/bwa.sam
 readLen=151
@@ -105,6 +173,9 @@ readNum=10503264
 fileSplitNum=8
 bsjPrefix=/abs/path/sample1/sample1
 ```
+> `starSamFile=/abs/path/to/Aligned.out.sam` is also written when SCAN1 was
+> run with the legacy 3-file STAR input. It is omitted when SCAN1 ran with
+> the 2-file `chimeric,bwa` input.
 
 **`.universe`** — written by BUILD_UNIVERSE, read by SCAN2 (`-CU`) and FINALIZE (`-CU`)
 ```
@@ -144,11 +215,12 @@ SAMPLES=(
 )
 
 # ── SCAN1  (one job per sample) ───────────────────────────────────────────────
+# Only Chimeric.out.junction and bwa.sam are needed for SCAN1 — Aligned.out.sam
+# does not need to be staged at this point.
 > "${WORKDIR}/samples_scan1.tsv"
 
 for SAMPLE in "${SAMPLES[@]}"; do
   CHIMERIC="${STARDIR}/STAR_output_${SAMPLE}/Chimeric.out.junction"
-  ALIGNED="${STARDIR}/STAR_output_${SAMPLE}/Aligned.out.sam"
   BWA_SAM="${STARDIR}/STAR_output_${SAMPLE}/bwa.sam"
 
   mkdir -p "${WORKDIR}/${SAMPLE}"
@@ -156,25 +228,34 @@ for SAMPLE in "${SAMPLES[@]}"; do
   META="${OUT_PREFIX}.scan1_meta"
 
   java -jar "${DECOUPLED_JAR}" SCAN1 \
-    -I "${CHIMERIC},${ALIGNED},${BWA_SAM}" \
+    -I "${CHIMERIC},${BWA_SAM}" \
     -O "${OUT_PREFIX}" \
     -F "${REF_FASTA}" \
     -A "${GTF_FILE}" \
     -Ma 1 -S 2 -T "${THREADS}"
 
-  echo -e "${BWA_SAM}\t${META}" >> "${WORKDIR}/samples_scan1.tsv"
+  echo "${META}" >> "${WORKDIR}/samples_scan1.tsv"
 done
 
 # ── BUILD_UNIVERSE  (single joint job) ───────────────────────────────────────
+# MAKE_BSJ_LIST converts the per-sample .scan1_meta files into the direct
+# bsjPrefix/fileSplitNum/readLen format consumed by BUILD_UNIVERSE -IB.
+# This avoids re-reading meta files on a different VM where bsjPrefix= may
+# point to a path that no longer exists.
 mkdir -p "${WORKDIR}/universe"
-java -jar "${DECOUPLED_JAR}" BUILD_UNIVERSE \
+java -jar "${DECOUPLED_JAR}" MAKE_BSJ_LIST \
   -I "${WORKDIR}/samples_scan1.tsv" \
+  -O "${WORKDIR}/universe/cohort"
+
+java -jar "${DECOUPLED_JAR}" BUILD_UNIVERSE \
+  -IB "${WORKDIR}/universe/cohort.bsj_list.tsv" \
   -F "${REF_FASTA}" \
   -O "${WORKDIR}/universe/cohort"
 
 UNIVERSE="${WORKDIR}/universe/cohort.universe"
 
 # ── SCAN2  (one job per sample) ───────────────────────────────────────────────
+# SCAN2 Phase B (FSJ counting) needs all three STAR files.
 > "${WORKDIR}/finalize_samples.tsv"
 
 for SAMPLE in "${SAMPLES[@]}"; do
@@ -193,13 +274,14 @@ for SAMPLE in "${SAMPLES[@]}"; do
     -F "${REF_FASTA}" \
     -Ma 1 -T "${THREADS}"
 
-  echo -e "${BWA_SAM}\t${OUT_PREFIX}.fsj_counts\t${SPLIT_NUM}\t${SAMPLE}\t${OUT_PREFIX}" \
+  # 4-column -IB row: bsjPrefix <TAB> fileSplitNum <TAB> fsjCountsFile <TAB> sampleName
+  echo -e "${OUT_PREFIX}\t${SPLIT_NUM}\t${OUT_PREFIX}.fsj_counts\t${SAMPLE}" \
     >> "${WORKDIR}/finalize_samples.tsv"
 done
 
 # ── FINALIZE  (single joint job) ─────────────────────────────────────────────
 java -jar "${DECOUPLED_JAR}" FINALIZE \
-  -I  "${WORKDIR}/finalize_samples.tsv" \
+  -IB "${WORKDIR}/finalize_samples.tsv" \
   -CU "${UNIVERSE}" \
   -F  "${REF_FASTA}" \
   -O  "${WORKDIR}/result" \
@@ -218,12 +300,19 @@ workdir/
   SAMPLE2/  …
   universe/
     cohort.universe             ← shared circRNA universe
-  samples_scan1.tsv
-  finalize_samples.tsv
+    cohort.bsj_list.tsv         ← from MAKE_BSJ_LIST, used by BUILD_UNIVERSE -IB
+  samples_scan1.tsv              ← 1-column meta list, input to MAKE_BSJ_LIST
+  finalize_samples.tsv           ← 4-column -IB list, input to FINALIZE -IB
   result.BSJ_Matrix             ← column headers = sample names
   result.FSJ_Matrix
   result.txt                    ← per-circRNA annotation
 ```
+
+> The legacy `-I` formats (two-column `samples_scan1.tsv` for
+> `BUILD_UNIVERSE` and five-column `finalize_samples.tsv` for `FINALIZE`)
+> remain fully supported — see the sub-command reference above — and are
+> useful when running everything on a single machine where `bsjPrefix=`
+> paths in `.scan1_meta` are guaranteed to stay valid.
 
 ---
 

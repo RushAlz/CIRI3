@@ -402,6 +402,38 @@ public class TestParameters {
 				    	
 	        }
 	        
+		}else if (Parameters[0].equals("MAKE_BSJ_LIST")) {
+			String inputFile = null, outputFile = null;
+			HashMap<String,String> parameterMap = new HashMap<String,String>();
+			parameterMap.put("-I", "F"); parameterMap.put("-O", "F"); parameterMap.put("-H", "F");
+			parameterMap.put("--in", "F"); parameterMap.put("--out", "F"); parameterMap.put("--help", "F");
+			for (int i = 1; i < Parameters.length-1; i++) {
+				if (Parameters[i].startsWith("-")) { parameterMap.put(Parameters[i], Parameters[i+1]); }
+			}
+			if (Parameters[Parameters.length-1].startsWith("-")) { parameterMap.put(Parameters[Parameters.length-1], "T"); }
+			if (!parameterMap.get("-H").equals("F") || !parameterMap.get("--help").equals("F")) {
+				System.out.println("Usage: java CIRI3.jar MAKE_BSJ_LIST -I input.tsv -O output_prefix");
+				System.out.println("Converts SCAN1 outputs to the bsj_list.tsv format required by BUILD_UNIVERSE -IB.");
+				System.out.println("Input TSV column formats (auto-detected):");
+				System.out.println("  1 col:  scan1_meta_path");
+				System.out.println("         Use bsjPrefix/fileSplitNum/readLen from meta as-is.");
+				System.out.println("  2 cols: scan1_meta_path <TAB> staged_bsj_prefix");
+				System.out.println("         Override stale bsjPrefix with current staged path (cloud use case).");
+				System.out.println("  3 cols: sam_file_path <TAB> staged_bsj_prefix <TAB> read_len");
+				System.out.println("         Legacy joint-pipeline outputs (no .scan1_meta); fileSplitNum auto-detected.");
+				System.out.println("Output: {output_prefix}.bsj_list.tsv  (ready for BUILD_UNIVERSE -IB)");
+			} else if (parameterMap.get("-I").equals("F") && parameterMap.get("--in").equals("F")) {
+				System.out.println("Please use -I or --in to designate the input TSV file!");
+			} else if (parameterMap.get("-O").equals("F") && parameterMap.get("--out").equals("F")) {
+				System.out.println("Please use -O or --out to designate the output prefix!");
+			} else {
+				if (!parameterMap.get("-I").equals("F")) { inputFile = parameterMap.get("-I"); } else { inputFile = parameterMap.get("--in"); }
+				inputFile = new File(inputFile).getCanonicalPath();
+				if (!parameterMap.get("-O").equals("F")) { outputFile = parameterMap.get("-O"); } else { outputFile = parameterMap.get("--out"); }
+				outputFile = new File(outputFile).getCanonicalPath();
+				MakeBsjListTest mbl = new MakeBsjListTest();
+				mbl.make(inputFile, outputFile);
+			}
 		}else if (Parameters[0].equals("SCAN1")) {
 			String inputFile = null, outputFile = null, annotationFile, faFile = null, mitochondrion;
 			int minMapqUni, maxCircle, minCircle, linear_range_size_min = 50000, strigency, relExp, threadNum;
@@ -488,28 +520,40 @@ public class TestParameters {
 			String inputFile = null, outputFile = null, faFile = null;
 			HashMap<String,String> parameterMap = new HashMap<String,String>();
 			parameterMap.put("-I", "F"); parameterMap.put("-O", "F"); parameterMap.put("-F", "F"); parameterMap.put("-H", "F");
+			parameterMap.put("-IB", "F");
 			parameterMap.put("--in", "F"); parameterMap.put("--out", "F"); parameterMap.put("--ref_file", "F"); parameterMap.put("--help", "F");
+			parameterMap.put("--bsj_list", "F");
 			for (int i = 1; i < Parameters.length-1; i++) {
 				if (Parameters[i].startsWith("-")) { parameterMap.put(Parameters[i], Parameters[i+1]); }
 			}
 			if (Parameters[Parameters.length-1].startsWith("-")) { parameterMap.put(Parameters[Parameters.length-1], "T"); }
+			boolean hasBsjList = !parameterMap.get("-IB").equals("F") || !parameterMap.get("--bsj_list").equals("F");
+			boolean hasMetaTsv  = !parameterMap.get("-I").equals("F")  || !parameterMap.get("--in").equals("F");
 			if (!parameterMap.get("-H").equals("F")) {
-				System.out.println("Usage: java CIRI3.jar BUILD_UNIVERSE -I samples_scan1.tsv -F ref.fa -O universe_prefix");
-			} else if (parameterMap.get("-I").equals("F") && parameterMap.get("--in").equals("F")) {
-				System.out.println("Please use --in or -I to designate the samples_scan1.tsv file!");
+				System.out.println("Usage: java CIRI3.jar BUILD_UNIVERSE (-I samples_scan1.tsv | -IB bsj_list.tsv) -F ref.fa -O universe_prefix");
+				System.out.println("  -I  samples_scan1.tsv   two-column TSV: samFile<TAB>scan1_meta (legacy format)");
+				System.out.println("  -IB bsj_list.tsv        three-column TSV: bsjPrefix<TAB>fileSplitNum<TAB>readLen (cloud-friendly, no meta files needed)");
+			} else if (!hasBsjList && !hasMetaTsv) {
+				System.out.println("Please use -I (meta TSV) or -IB (direct BSJ list) to designate the input!");
 			} else if (parameterMap.get("-O").equals("F") && parameterMap.get("--out").equals("F")) {
 				System.out.println("Please use --out or -O to designate the output universe prefix!");
 			} else if (parameterMap.get("-F").equals("F") && parameterMap.get("--ref_file").equals("F")) {
 				System.out.println("Please use --ref_file or -F to designate the FASTA reference file!");
 			} else {
-				if (!parameterMap.get("-I").equals("F")) { inputFile = parameterMap.get("-I"); } else { inputFile = parameterMap.get("--in"); }
-				inputFile = new File(inputFile).getCanonicalPath();
 				if (!parameterMap.get("-O").equals("F")) { outputFile = parameterMap.get("-O"); } else { outputFile = parameterMap.get("--out"); }
 				outputFile = new File(outputFile).getCanonicalPath();
 				if (!parameterMap.get("-F").equals("F")) { faFile = parameterMap.get("-F"); } else { faFile = parameterMap.get("--ref_file"); }
 				faFile = new File(faFile).getCanonicalPath();
 				BuildUniverseTest bu = new BuildUniverseTest();
-				bu.build(inputFile, faFile, outputFile);
+				if (hasBsjList) {
+					String bsjListFile = !parameterMap.get("-IB").equals("F") ? parameterMap.get("-IB") : parameterMap.get("--bsj_list");
+					bsjListFile = new File(bsjListFile).getCanonicalPath();
+					bu.buildFromBsjList(bsjListFile, faFile, outputFile);
+				} else {
+					if (!parameterMap.get("-I").equals("F")) { inputFile = parameterMap.get("-I"); } else { inputFile = parameterMap.get("--in"); }
+					inputFile = new File(inputFile).getCanonicalPath();
+					bu.build(inputFile, faFile, outputFile);
+				}
 			}
 		}else if (Parameters[0].equals("SCAN2")) {
 			String inputFile = null, outputFile = null, universeFile = null, annotationFile, faFile = null, mitochondrion;
@@ -585,24 +629,28 @@ public class TestParameters {
 			parameterMap.put("-A", "F"); parameterMap.put("-S", "2"); parameterMap.put("-E", "0");
 			parameterMap.put("-It", "0"); parameterMap.put("-H", "F"); parameterMap.put("-CU", "F");
 			parameterMap.put("-FM", "F"); parameterMap.put("--freeze-matrix", "F");
+			parameterMap.put("-IB", "F");
 			parameterMap.put("--in", "F"); parameterMap.put("--out", "F"); parameterMap.put("--ref_file", "F");
 			parameterMap.put("--anno", "F"); parameterMap.put("--strigency", "2"); parameterMap.put("--rel_exp", "0");
 			parameterMap.put("--intron", "0"); parameterMap.put("--help", "F"); parameterMap.put("--circ_universe", "F");
+			parameterMap.put("--bsj_list", "F");
 			for (int i = 1; i < Parameters.length-1; i++) {
 				if (Parameters[i].startsWith("-")) { parameterMap.put(Parameters[i], Parameters[i+1]); }
 			}
 			if (Parameters[Parameters.length-1].startsWith("-")) { parameterMap.put(Parameters[Parameters.length-1], "T"); }
+			boolean hasBsjListFin = !parameterMap.get("-IB").equals("F") || !parameterMap.get("--bsj_list").equals("F");
+			boolean hasMetaTsvFin  = !parameterMap.get("-I").equals("F")  || !parameterMap.get("--in").equals("F");
 			if (!parameterMap.get("-H").equals("F")) {
-				System.out.println("Usage: java CIRI3.jar FINALIZE -I finalize_samples.tsv -F ref.fa -O output_prefix [-CU cohort.universe] [-A ref.gtf] [-S strigency] [-E rel_exp] [-It 0|1]");
-			} else if (parameterMap.get("-I").equals("F") && parameterMap.get("--in").equals("F")) {
-				System.out.println("Please use --in or -I to designate the finalize_samples.tsv file!");
+				System.out.println("Usage: java CIRI3.jar FINALIZE (-I finalize_samples.tsv | -IB bsj_list.tsv) -F ref.fa -O output_prefix [-CU cohort.universe] [-A ref.gtf] [-S strigency] [-E rel_exp] [-It 0|1]");
+				System.out.println("  -I  finalize_samples.tsv  five-column TSV: samFile<TAB>fsjCountsFile<TAB>fileSplitNum<TAB>sampleName<TAB>bsjPrefix (legacy)");
+				System.out.println("  -IB bsj_list.tsv          four-column TSV: bsjPrefix<TAB>fileSplitNum<TAB>fsjCountsFile<TAB>sampleName (cloud-friendly, no samFile needed)");
+			} else if (!hasBsjListFin && !hasMetaTsvFin) {
+				System.out.println("Please use -I (legacy TSV) or -IB (direct BSJ list) to designate the input!");
 			} else if (parameterMap.get("-O").equals("F") && parameterMap.get("--out").equals("F")) {
 				System.out.println("Please use --out or -O to designate output prefix!");
 			} else if (parameterMap.get("-F").equals("F") && parameterMap.get("--ref_file").equals("F")) {
 				System.out.println("Please use --ref_file or -F to designate the FASTA reference file!");
 			} else {
-				if (!parameterMap.get("-I").equals("F")) { inputFile = parameterMap.get("-I"); } else { inputFile = parameterMap.get("--in"); }
-				inputFile = new File(inputFile).getCanonicalPath();
 				if (!parameterMap.get("-O").equals("F")) { outputFile = parameterMap.get("-O"); } else { outputFile = parameterMap.get("--out"); }
 				outputFile = new File(outputFile).getCanonicalPath();
 				if (!parameterMap.get("-F").equals("F")) { faFile = parameterMap.get("-F"); } else { faFile = parameterMap.get("--ref_file"); }
@@ -618,7 +666,15 @@ public class TestParameters {
 				if (!parameterMap.get("-FM").equals("F")) { freezeMatrixFile = new File(parameterMap.get("-FM")).getCanonicalPath(); }
 				else if (!parameterMap.get("--freeze-matrix").equals("F")) { freezeMatrixFile = new File(parameterMap.get("--freeze-matrix")).getCanonicalPath(); }
 				FinalizeTest ft = new FinalizeTest(minMapqUni, maxCircle, minCircle, linear_range_size_min, intronLable, strigency, relExp, mitochondrion, mLable, spLable);
-				ft.finalize(inputFile, faFile, annotationFile, outputFile, universeFile, freezeMatrixFile);
+				if (hasBsjListFin) {
+					String bsjListFile = !parameterMap.get("-IB").equals("F") ? parameterMap.get("-IB") : parameterMap.get("--bsj_list");
+					bsjListFile = new File(bsjListFile).getCanonicalPath();
+					ft.finalizeFromBsjList(bsjListFile, faFile, annotationFile, outputFile, universeFile, freezeMatrixFile);
+				} else {
+					if (!parameterMap.get("-I").equals("F")) { inputFile = parameterMap.get("-I"); } else { inputFile = parameterMap.get("--in"); }
+					inputFile = new File(inputFile).getCanonicalPath();
+					ft.finalize(inputFile, faFile, annotationFile, outputFile, universeFile, freezeMatrixFile);
+				}
 			}
 		}else {
 			String inputFile = null,outputFile = null,UserGivecircRNA = "",annotationFile,faFile = null,mitochondrion;

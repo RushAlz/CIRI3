@@ -51,7 +51,13 @@ public class Scan1STARTest {
             chrExonEndTranscriptMap = new HashMap<String, ArrayList<String>>();
 
     /**
-     * inputFile: comma-separated "chimericPath,starSamPath,unmappedSamPath"
+     * inputFile: comma-separated files for STAR mode.
+     *   2-file format: "chimericPath,bwaSamPath"
+     *     - The STAR-aligned SAM is not used during SCAN1 (it is only needed by
+     *       SCAN2 Phase B), so it can be omitted here to avoid staging a large
+     *       file into the SCAN1 VM in cloud environments.
+     *   3-file format (legacy): "chimericPath,starSamPath,bwaSamPath"
+     *     - All three files are accepted for backward compatibility.
      */
     public boolean CIRI3(String inputFile, String outputFile, String annotationFile,
             String faFile, int threads, String UserGivecircRNA) throws IOException {
@@ -62,11 +68,23 @@ public class Scan1STARTest {
         System.out.println(df.format(System.currentTimeMillis()) + " :CIRI3 SCAN1 (STAR) start");
         fileLog.write(df.format(System.currentTimeMillis()) + " :CIRI3 SCAN1 (STAR) start\n");
 
-        // Parse STAR input triple
+        // Parse STAR input: 2-file (chimeric,bwa) or 3-file (chimeric,star,bwa)
         String[] samFileArr = inputFile.split(",");
         String chimericPath = samFileArr[0];
-        String starSamPath = samFileArr[1];
-        String unmappedSamPath = samFileArr[2];
+        String unmappedSamPath;
+        String starSamPath = null;
+
+        if (samFileArr.length == 2) {
+            unmappedSamPath = samFileArr[1];
+            starSamFile = null;
+        } else if (samFileArr.length == 3) {
+            starSamPath = samFileArr[1];
+            unmappedSamPath = samFileArr[2];
+        } else {
+            System.out.println("STAR mode requires 2 inputs (chimeric,bwa) or 3 inputs (chimeric,star,bwa)");
+            fileLog.close();
+            return false;
+        }
 
         if (unmappedSamPath.substring(unmappedSamPath.length() - 3).equals("sam")) {
             bwaSamFile = unmappedSamPath;
@@ -76,17 +94,22 @@ public class Scan1STARTest {
             bts.bamToBam(unmappedSamPath, bwaSamFile);
         } else {
             System.out.println("Please enter the file that ends with sam or bam");
+            fileLog.close();
             return false;
         }
-        if (starSamPath.substring(starSamPath.length() - 3).equals("sam")) {
-            starSamFile = starSamPath;
-        } else if (starSamPath.substring(starSamPath.length() - 3).equals("bam")) {
-            starSamFile = starSamPath.substring(0, starSamPath.length() - 3) + "sam";
-            BamToSam bts = new BamToSam();
-            bts.bamToBam(starSamPath, starSamFile);
-        } else {
-            System.out.println("Please enter the file that ends with sam or bam");
-            return false;
+
+        if (starSamPath != null) {
+            if (starSamPath.substring(starSamPath.length() - 3).equals("sam")) {
+                starSamFile = starSamPath;
+            } else if (starSamPath.substring(starSamPath.length() - 3).equals("bam")) {
+                starSamFile = starSamPath.substring(0, starSamPath.length() - 3) + "sam";
+                BamToSam bts = new BamToSam();
+                bts.bamToBam(starSamPath, starSamFile);
+            } else {
+                System.out.println("Please enter the file that ends with sam or bam");
+                fileLog.close();
+                return false;
+            }
         }
 
         ExecutorService poolExe = Executors.newFixedThreadPool(threads);
@@ -205,7 +228,9 @@ public class Scan1STARTest {
             String metaPath = outputFile + ".scan1_meta";
             BufferedWriter metaBw = new BufferedWriter(new FileWriter(new File(metaPath)));
             metaBw.write("samFile=" + bwaSamFile + "\n");
-            metaBw.write("starSamFile=" + starSamFile + "\n");
+            if (starSamFile != null) {
+                metaBw.write("starSamFile=" + starSamFile + "\n");
+            }
             metaBw.write("readLen=" + seqLen + "\n");
             metaBw.write("readNum=0\n");
             metaBw.write("fileSplitNum=" + AllFileSplitNum + "\n");
